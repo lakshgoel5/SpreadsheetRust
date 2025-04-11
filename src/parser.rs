@@ -99,36 +99,26 @@ pub fn validate(
         return None;
     }
     match operation {
-        "SUM" => {
-            Some((
-                cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Sum)),
-            ))
-        }
-        "AVG" => {
-            Some((
-                cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Avg)),
-            ))
-        }
-        "STDEV" => {
-            Some((
-                cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Std)),
-            ))
-        }
-        "MIN" => {
-            Some((
-                cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Min)),
-            ))
-        }
-        "MAX" => {
-            Some((
-                cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
-            ))
-        }
+        "SUM" => Some((
+            cell,
+            Some(Value::Oper(Box::new(start), Box::new(end), Operation::Sum)),
+        )),
+        "AVG" => Some((
+            cell,
+            Some(Value::Oper(Box::new(start), Box::new(end), Operation::Avg)),
+        )),
+        "STDEV" => Some((
+            cell,
+            Some(Value::Oper(Box::new(start), Box::new(end), Operation::Std)),
+        )),
+        "MIN" => Some((
+            cell,
+            Some(Value::Oper(Box::new(start), Box::new(end), Operation::Min)),
+        )),
+        "MAX" => Some((
+            cell,
+            Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
+        )),
         _ => {
             eprintln!("Invalid operation");
             Some((cell, None))
@@ -165,7 +155,7 @@ pub fn is_cell(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     let mut i = 0;
     while i < 3 {
         if chars[i].is_alphabetic() {
-            col = col * 26 + (chars[i] as u8 -  b'A') as usize + 1;
+            col = col * 26 + (chars[i] as u8 - b'A') as usize + 1;
         } else {
             break;
         }
