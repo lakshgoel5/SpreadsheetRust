@@ -1,5 +1,5 @@
 pub fn validate(
-    cmd: &String,
+    cmd: &str,
     rows: &usize,
     columns: &usize,
 ) -> Option<(Option<Value>, Option<Value>)> {
@@ -14,13 +14,13 @@ pub fn validate(
     let Some((operation, range)) = exp.split_once('(') else {
         // basic math operations or constant (0-4)
         let val = (String::from(exp)).trim().to_string();
-        let operators = vec!["+", "-", "*", "/"];
+        let operators = ["+", "-", "*", "/"];
         for (i, c) in val.chars().enumerate() {
             if i == 0 && c == '-' {
                 continue;
             }
             if operators.contains(&c.to_string().as_str()) {
-                let op1 = (&val[..i]).trim().to_string();
+                let op1 = (val[..i]).trim().to_string();
                 let op2 = &val[i + 1..].trim().to_string();
                 let op1 = is_cell_or_const(&op1.to_string(), rows, columns)?;
                 let op2 = is_cell_or_const(&op2.to_string(), rows, columns)?;
@@ -28,25 +28,25 @@ pub fn validate(
                     '+' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::ADD)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Add)),
                         ));
                     }
                     '-' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::SUB)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Sub)),
                         ));
                     }
                     '*' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::MUL)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Mul)),
                         ));
                     }
                     '/' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::DIV)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Div)),
                         ));
                     }
                     _ => {
@@ -64,7 +64,7 @@ pub fn validate(
             Some(Value::Oper(
                 Box::new(val),
                 Box::new(Value::Const(0)),
-                Operation::CONS,
+                Operation::Cons,
             )),
         ));
     };
@@ -72,7 +72,7 @@ pub fn validate(
 
     let Some((start, end)) = range.split_once(':') else {
         // SLEEP (the keyword 'SLEEP' is not checked for, it is taken fro granted)
-        let val = String::from(range);
+        let val = range;
         let val = is_cell_or_const(&val, rows, columns);
         if let Some(val) = val {
             return Some((
@@ -80,7 +80,7 @@ pub fn validate(
                 Some(Value::Oper(
                     Box::new(val),
                     Box::new(Value::Const(0)),
-                    Operation::SLP,
+                    Operation::Slp,
                 )),
             ));
         }
@@ -100,63 +100,64 @@ pub fn validate(
     }
     match operation {
         "SUM" => {
-            return Some((
+            Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::SUM)),
-            ));
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Sum)),
+            ))
         }
         "AVG" => {
-            return Some((
+            Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::AVG)),
-            ));
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Avg)),
+            ))
         }
         "STDEV" => {
-            return Some((
+            Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::STD)),
-            ));
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Std)),
+            ))
         }
         "MIN" => {
-            return Some((
+            Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::MIN)),
-            ));
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Min)),
+            ))
         }
         "MAX" => {
-            return Some((
+            Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::MAX)),
-            ));
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
+            ))
         }
         _ => {
             eprintln!("Invalid operation");
-            return Some((cell, None));
+            Some((cell, None))
         }
     }
 }
 #[derive(Debug)]
-enum Operation {
-    CONS = 0,
-    ADD = 1,
-    SUB = 2,
-    MUL = 3,
-    DIV = 4,
-    MIN = 5,
-    MAX = 6,
-    AVG = 7,
-    SUM = 8,
-    STD = 9,
-    SLP = 10,
+pub enum Operation {
+    Cons = 0,
+    Add = 1,
+    Sub = 2,
+    Mul = 3,
+    Div = 4,
+    Min = 5,
+    Max = 6,
+    Avg = 7,
+    Sum = 8,
+    Std = 9,
+    Slp = 10,
 }
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum Value {
     Cell(usize, usize),
     Const(isize),
     Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
 }
 
-pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
+pub fn is_cell(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
 
@@ -164,7 +165,7 @@ pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
     let mut i = 0;
     while i < 3 {
         if chars[i].is_alphabetic() {
-            col = col * 26 + (chars[i] as u8 - 'A' as u8) as usize + 1;
+            col = col * 26 + (chars[i] as u8 -  b'A') as usize + 1;
         } else {
             break;
         }
@@ -175,7 +176,7 @@ pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
     }
     while i < exp.chars().count() {
         if chars[i].is_numeric() {
-            row = row * 10 + (chars[i] as u8 - '0' as u8) as usize;
+            row = row * 10 + (chars[i] as u8 - b'0') as usize;
         } else {
             return None;
         }
@@ -184,10 +185,10 @@ pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
     if row > *rows || col > *columns {
         return None;
     }
-    return Some(Value::Cell(col, row));
+    Some(Value::Cell(col, row))
 }
 
-pub fn is_const(exp: &String) -> Option<Value> {
+pub fn is_const(exp: &str) -> Option<Value> {
     // let mut ans = 0;
     // for c in exp.chars() {
     //     if c.is_numeric() {
@@ -203,9 +204,9 @@ pub fn is_const(exp: &String) -> Option<Value> {
     }
 }
 
-pub fn is_cell_or_const(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
+pub fn is_cell_or_const(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     if let Some(constant) = is_const(exp) {
-        return Some(constant);
+        Some(constant)
     } else if let Some(cell) = is_cell(exp, rows, columns) {
         return Some(cell);
     } else {
