@@ -1,4 +1,8 @@
-pub fn validate(cmd: &String, rows: &usize, columns: &usize) -> Option<(Option<Value>, Option<Value>)> {
+pub fn validate(
+    cmd: &String,
+    rows: &usize,
+    columns: &usize,
+) -> Option<(Option<Value>, Option<Value>)> {
     let Some((cell, exp)) = cmd.split_once('=') else {
         eprintln!("Could not find a valid exp being assigned to a valid cell");
         return None;
@@ -12,25 +16,57 @@ pub fn validate(cmd: &String, rows: &usize, columns: &usize) -> Option<(Option<V
         let val = (String::from(exp)).trim().to_string();
         let operators = vec!["+", "-", "*", "/"];
         for (i, c) in val.chars().enumerate() {
-            if i==0 && c=='-' { continue; }
+            if i == 0 && c == '-' {
+                continue;
+            }
             if operators.contains(&c.to_string().as_str()) {
                 let op1 = (&val[..i]).trim().to_string();
-                let op2 = &val[i+1..].trim().to_string();
+                let op2 = &val[i + 1..].trim().to_string();
                 let op1 = is_cell_or_const(&op1.to_string(), rows, columns)?;
                 let op2 = is_cell_or_const(&op2.to_string(), rows, columns)?;
                 match c {
-                    '+' => return Some((cell, Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::ADD)))),
-                    '-' => return Some((cell, Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::SUB)))),
-                    '*' => return Some((cell, Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::MUL)))),
-                    '/' => return Some((cell, Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::DIV)))),
-                    _ => { eprintln!("Invalid operation"); return None; } //This case is not possible, just for compilation
+                    '+' => {
+                        return Some((
+                            cell,
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::ADD)),
+                        ));
+                    }
+                    '-' => {
+                        return Some((
+                            cell,
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::SUB)),
+                        ));
+                    }
+                    '*' => {
+                        return Some((
+                            cell,
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::MUL)),
+                        ));
+                    }
+                    '/' => {
+                        return Some((
+                            cell,
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::DIV)),
+                        ));
+                    }
+                    _ => {
+                        eprintln!("Invalid operation");
+                        return None;
+                    } //This case is not possible, just for compilation
                 }
             }
         }
 
-        let val= is_cell_or_const(&val, rows, columns)?; //for the moment, assuming the RHS to be a constant or cell
+        let val = is_cell_or_const(&val, rows, columns)?; //for the moment, assuming the RHS to be a constant or cell
         // println!("{} {}", cmd, cmd); //---------------debugger
-        return Some((cell, Some(Value::Oper(Box::new(val), Box::new(Value::Const(0)), Operation::CONS))));
+        return Some((
+            cell,
+            Some(Value::Oper(
+                Box::new(val),
+                Box::new(Value::Const(0)),
+                Operation::CONS,
+            )),
+        ));
     };
     let range = range.strip_suffix(')')?.to_string(); //removing the closing bracket
 
@@ -39,7 +75,14 @@ pub fn validate(cmd: &String, rows: &usize, columns: &usize) -> Option<(Option<V
         let val = String::from(range);
         let val = is_cell_or_const(&val, rows, columns);
         if let Some(val) = val {
-            return Some((cell, Some(Value::Oper(Box::new(val), Box::new(Value::Const(0)), Operation::SLP))));
+            return Some((
+                cell,
+                Some(Value::Oper(
+                    Box::new(val),
+                    Box::new(Value::Const(0)),
+                    Operation::SLP,
+                )),
+            ));
         }
         return Some((cell, None));
     };
@@ -48,7 +91,7 @@ pub fn validate(cmd: &String, rows: &usize, columns: &usize) -> Option<(Option<V
     let start = is_cell(&start, rows, columns)?;
     let end = is_cell(&end, rows, columns)?;
     if let (Value::Cell(r, c), Value::Cell(r2, c2)) = (&start, &end) {
-        if r>r2 || c>c2 {
+        if r > r2 || c > c2 {
             eprintln!("Invalid range, start is greater than end");
             return None;
         }
@@ -56,12 +99,40 @@ pub fn validate(cmd: &String, rows: &usize, columns: &usize) -> Option<(Option<V
         return None;
     }
     match operation {
-        "SUM" => return Some((cell, Some(Value::Oper(Box::new(start), Box::new(end), Operation::SUM)))),
-        "AVG" => return Some((cell, Some(Value::Oper(Box::new(start), Box::new(end), Operation::AVG)))),
-        "STDEV" => return Some((cell, Some(Value::Oper(Box::new(start), Box::new(end), Operation::STD)))),
-        "MIN" => return Some((cell, Some(Value::Oper(Box::new(start), Box::new(end), Operation::MIN)))),
-        "MAX" => return Some((cell, Some(Value::Oper(Box::new(start), Box::new(end), Operation::MAX)))),
-        _ => { eprintln!("Invalid operation");  return Some((cell, None)); }
+        "SUM" => {
+            return Some((
+                cell,
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::SUM)),
+            ));
+        }
+        "AVG" => {
+            return Some((
+                cell,
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::AVG)),
+            ));
+        }
+        "STDEV" => {
+            return Some((
+                cell,
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::STD)),
+            ));
+        }
+        "MIN" => {
+            return Some((
+                cell,
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::MIN)),
+            ));
+        }
+        "MAX" => {
+            return Some((
+                cell,
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::MAX)),
+            ));
+        }
+        _ => {
+            eprintln!("Invalid operation");
+            return Some((cell, None));
+        }
     }
 }
 #[derive(Debug)]
@@ -76,20 +147,20 @@ enum Operation {
     AVG = 7,
     SUM = 8,
     STD = 9,
-    SLP = 10
+    SLP = 10,
 }
 #[derive(Debug)]
 pub enum Value {
     Cell(usize, usize),
     Const(isize),
-    Oper(Box<Value>, Box<Value>, Operation) //value1 and value2, and the operation or command, respectively
+    Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
 }
 
 pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
-    
-    let chars : Vec<char> = exp.chars().collect();
+
+    let chars: Vec<char> = exp.chars().collect();
     let mut i = 0;
     while i < 3 {
         if chars[i].is_alphabetic() {
