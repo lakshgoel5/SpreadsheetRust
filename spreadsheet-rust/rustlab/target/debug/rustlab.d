@@ -1,1 +1,0 @@
-C:\Users\Adit\ Jindal\OneDrive\Desktop\Acads-IIT\COP290\spreadsheet-rust\rustlab\target\debug\rustlab.exe: C:\Users\Adit\ Jindal\OneDrive\Desktop\Acads-IIT\COP290\spreadsheet-rust\rustlab\src\main.rs C:\Users\Adit\ Jindal\OneDrive\Desktop\Acads-IIT\COP290\spreadsheet-rust\rustlab\src\parser.rs
