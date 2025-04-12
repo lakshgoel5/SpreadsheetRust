@@ -3,6 +3,43 @@ pub fn validate(
     rows: &usize,
     columns: &usize,
 ) -> Option<(Option<Value>, Option<Value>)> {
+    match cmd.trim() {
+        "enable_output" => {
+            return Some((None, Some(Value::Oper(
+                Box::new(Value::Const(0)),
+                Box::new(Value::Const(0)),
+                Operation::EnableOutput
+            ))));
+        },
+        "disable_output" => {
+            return Some((None, Some(Value::Oper(
+                Box::new(Value::Const(0)),
+                Box::new(Value::Const(0)),
+                Operation::DisableOutput
+            ))));
+        },
+        _ => {} // Continue with the regular parsing for other commands
+    }
+
+    if cmd.trim().starts_with("scroll_to ") {
+        let cell_name = cmd.trim()["scroll_to ".len()..].trim();
+        let cell = is_cell(cell_name, rows, columns);
+        if let Some(cell) = cell {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    Box::new(cell),
+                    Box::new(Value::Const(0)),
+                    Operation::Scrollto,
+                )),
+            ));
+        } 
+        else {
+            eprintln!("Invalid cell address in scroll_to command");
+            return None;
+        }
+    }
+
     let Some((cell, exp)) = cmd.split_once('=') else {
         eprintln!("Could not find a valid exp being assigned to a valid cell");
         return None;
@@ -138,6 +175,9 @@ pub enum Operation {
     Sum = 8,
     Std = 9,
     Slp = 10,
+    EnableOutput = 11,
+    DisableOutput = 12,
+    Scrollto = 13,
 }
 #[derive(Debug)]
 #[allow(dead_code)]
