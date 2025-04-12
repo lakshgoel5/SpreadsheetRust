@@ -162,7 +162,7 @@ pub fn validate(
         }
     }
 }
-#[derive(Debug)]
+#[derive(Clone,Copy,Debug)]
 pub enum Operation {
     Cons = 0,
     Add = 1,
