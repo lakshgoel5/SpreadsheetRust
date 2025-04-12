@@ -5,19 +5,25 @@ pub fn validate(
 ) -> Option<(Option<Value>, Option<Value>)> {
     match cmd.trim() {
         "enable_output" => {
-            return Some((None, Some(Value::Oper(
-                Box::new(Value::Const(0)),
-                Box::new(Value::Const(0)),
-                Operation::EnableOutput
-            ))));
-        },
+            return Some((
+                None,
+                Some(Value::Oper(
+                    Box::new(Value::Const(0)),
+                    Box::new(Value::Const(0)),
+                    Operation::EnableOutput,
+                )),
+            ));
+        }
         "disable_output" => {
-            return Some((None, Some(Value::Oper(
-                Box::new(Value::Const(0)),
-                Box::new(Value::Const(0)),
-                Operation::DisableOutput
-            ))));
-        },
+            return Some((
+                None,
+                Some(Value::Oper(
+                    Box::new(Value::Const(0)),
+                    Box::new(Value::Const(0)),
+                    Operation::DisableOutput,
+                )),
+            ));
+        }
         _ => {} // Continue with the regular parsing for other commands
     }
 
@@ -33,8 +39,7 @@ pub fn validate(
                     Operation::Scrollto,
                 )),
             ));
-        } 
-        else {
+        } else {
             eprintln!("Invalid cell address in scroll_to command");
             return None;
         }
@@ -162,7 +167,7 @@ pub fn validate(
         }
     }
 }
-#[derive(Clone,Copy,Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Operation {
     Cons = 0,
     Add = 1,
