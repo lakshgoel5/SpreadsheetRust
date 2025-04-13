@@ -6,12 +6,17 @@ use std::ffi::CString;
 use std::ptr;
 mod parser;
 
+mod graph;
+mod types;
+
+use graph::{Graph};
+use types::Coordinates;
+
+
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
 
-
-// static mut IS_DISABLED: bool = false;
-
+static mut GRAPH: Option<Graph> = None;
 static mut GRID: Option<Vec<Vec<i32>>> = None;
 
 fn generate_grid(r: usize, c: usize) {
@@ -130,56 +135,61 @@ fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: u
         _ => {}
     }
 
-    let mut function: isize = -1;
+    // let mut function: isize = -1;
 
     let coord = parser::validate(command, &r, &c);
 
     if let Some((_, Some(ref value))) = coord {
         match value {
             parser::Value::Oper(left_operand, right_operand, operation) => {
-                function = *operation as isize;
-                if function == 13 {
-                    if let parser::Value::Cell(row, col) = **left_operand {
-                        *start_x = row;
-                        *start_y = col;
+                match operation {
+                    parser::Operation::EnableOutput => {
+                        *is_disabled = true;
+                        1
+                    }
+                    parser::Operation::DisableOutput => {
+                        *is_disabled = false;
+                        1
+                    }
+                    parser::Operation::Scrollto => {
+                        if let parser::Value::Cell(row, col) = **left_operand {
+                            *start_x = row;
+                            *start_y = col;
+                        }
+                        if !(*is_disabled) {
+                            print_grid(*start_x, *start_y, r, c);
+                        }
+                        1
+                    }
+                    _ => {
+                        if let Some(coords) = coord {
+                            // let status = getting_things_updated(function, &coords[0], &coords[1], &coords[2], r, c);
+                            let status = 1;
+                            if !(*is_disabled) {
+                                print_grid(*start_x, *start_y, r, c);
+                            }
+                            status
+                        } 
+                        else {
+                            3
+                        }
                     }
                 }
+                // function = *operation as isize;
+                // if function == 13 {
+                //     if let parser::Value::Cell(row, col) = **left_operand {
+                //         *start_x = row;
+                //         *start_y = col;
+                //     }
+                // }
+
+                
             }
             _ => {}
         }
     } 
     else {
         return 3;
-    }
-    match function {
-        12 => {
-            *is_disabled = true;
-            1
-        }
-        11 => {
-            *is_disabled = false;
-            print_grid(*start_x, *start_y, r, c);
-            1
-        }
-        13 => {
-            if !(*is_disabled) {
-                print_grid(*start_x, *start_y, r, c);
-            }
-            1
-        }
-        _ => {
-            if let Some(coords) = coord {
-                // let status = getting_things_updated(function, &coords[0], &coords[1], &coords[2], r, c);
-                let status = 1;
-                if !(*is_disabled) {
-                    print_grid(*start_x, *start_y, r, c);
-                }
-                status
-            } 
-            else {
-                3
-            }
-        }
     }
 }
 
@@ -200,6 +210,9 @@ fn process_first(x: usize, command: &[String], start_x: &mut usize, start_y: &mu
 
     let start = Instant::now();
     generate_grid(r, c);
+    unsafe {
+        GRAPH = Graph::new(r + 1, c + 1);
+    }
     if !(*is_disabled) {
         print_grid(*start_x, *start_y, r, c);
     }
@@ -237,8 +250,10 @@ fn main() {
             command.pop();
         }
         if command.is_empty() {
-            println!("[0.0] (unrecognized cmd) > ");
             // print_grid(start_x, start_y, r, c, &graph);
+            print_grid(start_x, start_y, r, c);
+            print!("[0.0] (unrecognized cmd) > ");
+            io::stdout().flush().unwrap();
             continue;
         }
 
