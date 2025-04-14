@@ -80,8 +80,8 @@ enum Operation {
 }
 #[derive(Debug)]
 pub enum Value {
-    Cell(usize, usize),
     Const(isize),
+    Cell(usize, usize),
     Oper(Box<Value>, Box<Value>, Operation) //value1 and value2, and the operation or command, respectively
 }
 
