@@ -215,8 +215,8 @@ fn main() {
     let c = args[2].parse::<usize>().unwrap();
     let start = Instant::now();
     let mut grid = generate_grid(r, c);
-    if !(is_disabled) {
-        print_grid(*start_x, *start_y, r, c, &mut grid);
+    if !is_disabled {
+        print_grid(start_x, start_y, r, c, &mut grid);
     }
     let duration = start.elapsed();
     display_status(1, duration.as_secs_f64());
