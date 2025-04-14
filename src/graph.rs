@@ -1,108 +1,84 @@
 use std::collections::HashMap;
 
 use crate::types::Coordinates;
-
+use std::fmt;
 #[derive(Debug)]
 pub struct Node {
+    pub node_value: i32,
     pub function: i32,
     pub value1: Coordinates,
     pub value2: Coordinates,
     pub position: Coordinates,
-    pub edges: HashMap<(usize, usize), ()>, // simulate HashTable: mapping Coordinates to empty value
+    // pub edges: HashMap<(usize, usize), ()>, // simulate HashTable: mapping Coordinates to empty value // debug // will change : 2hr
     pub valid: bool,
+    pub dependents: Vec<Coordinates>, // stores the coordinates of dependent nodes
 }
 
-#[derive(Debug)]
-pub struct Graph {
-    pub matrix: Vec<Vec<Option<Node>>>,
-    pub rows: usize,
-    pub cols: usize,
-}
-
-impl Graph {
-    pub fn new(rows: usize, cols: usize) -> Option<Self> {
-        if rows > 1000 || cols > 18279 {
-            return None;
-        }
-        let mut matrix = vec![vec![None; cols + 1]; rows + 1];
-        Some(Self { matrix, rows, cols })
+impl Node {
+    pub fn get_value(&self) -> i32 {
+        self.node_value
     }
-
-    pub fn add_node(&mut self, function: &i32, value1: &Coordinates, value2: &Coordinates, row: usize, col: usize) {
-        if row > self.rows || col > self.cols || row == 0 || col == 0 {
-            return;
-        }
-        if self.matrix[row][col].is_some() {
-            return;
-        }
-        let node = Node {
-            function: *function,
-            value1: *value1,
-            value2: *value2,
-            position: Coordinates { row, col },
-            edges: HashMap::new(),
-            valid: true,
-        };
-        self.matrix[row][col] = Some(node);
+    pub fn set_value(&mut self, value: i32) {
+        self.node_value = value;
     }
-
-    pub fn add_edge(&mut self, from: &Coordinates, to: &Coordinates) {
-        if let Some(node) = self.matrix[from.row][from.col].as_mut() {
-            node.edges.insert((to.row, to.col), ());
+    pub fn get_function(&self) -> i32 {
+        self.function
+    }
+    pub fn set_function(&mut self, function: i32) {
+        self.function = function;
+    }
+    pub fn set_position(&mut self, position: Coordinates) {
+        self.position = position;
+    }
+    // getvalue1
+    // getvalue2
+    pub fn set_value1(&mut self, value1: Coordinates) {
+        self.value1 = value1;
+    }
+    pub fn set_value2(&mut self, value2: Coordinates) {
+        self.value2 = value2;
+    }
+    pub fn get_valid(&self) -> bool {
+        self.valid
+    }
+    pub fn set_valid(&mut self, valid: bool) {
+        self.valid = valid;
+    }
+    pub fn add_dep(&mut self, coord: Coordinates) {
+        if !self.dependents.contains(&coord) {
+            self.dependents.push(coord);
         }
     }
-
-    pub fn remove_edge(&mut self, from: &Coordinates, to: &Coordinates) {
-        if let Some(node) = self.matrix[from.row][from.col].as_mut() {
-            node.edges.remove(&(to.row, to.col));
-        }
+    pub fn remove_dep(&mut self, coord: Coordinates) {
+        self.dependents.retain(|x| *x != coord);
     }
-
-    pub fn has_cycle(&self, start: &Coordinates) -> bool {
-        let mut visited = vec![vec![false; self.cols + 1]; self.rows + 1];
-        let mut in_stack = vec![vec![false; self.cols + 1]; self.rows + 1];
-        self.has_cycle_util(start, &mut visited, &mut in_stack)
+    pub fn get_dependents(&self) -> &Vec<Coordinates> {
+        &self.dependents
     }
-
-    fn has_cycle_util(&self, coord: &Coordinates, visited: &mut Vec<Vec<bool>>, in_stack: &mut Vec<Vec<bool>>) -> bool {
-        if visited[coord.row][coord.col] {
-            return false;
-        }
-        visited[coord.row][coord.col] = true;
-        in_stack[coord.row][coord.col] = true;
-
-        if let Some(node) = &self.matrix[coord.row][coord.col] {
-            for &(r, c) in node.edges.keys() {
-                if in_stack[r][c] {
-                    return true;
-                }
-                if !visited[r][c] && self.has_cycle_util(&Coordinates { row: r, col: c }, visited, in_stack) {
-                    return true;
-                }
-            }
-        }
-
-        in_stack[coord.row][coord.col] = false;
+    pub fn set_dependents(&mut self, dependents: Vec<Coordinates>) {
+        self.dependents = dependents;
+    }
+    pub fn check_cycle(&self, coord: Coordinates) -> bool {
+        // check for cycle using efficient DFS
+        // no need of visited and instack use dirty parent flags
         false
     }
-    pub fn topological_sort(&self, start: &Coordinates) -> Vec<Coordinates> {
-        let mut visited = vec![vec![false; self.cols + 1]; self.rows + 1];
-        let mut result = Vec::new();
-        self.topological_util(start, &mut visited, &mut result);
-        result
-    }
+    // topo sort -> no need -> already dependent lists present
+}
+/// remove graph will also improve memory usage
 
-    fn topological_util(&self, coord: &Coordinates, visited: &mut Vec<Vec<bool>>, result: &mut Vec<Coordinates>) {
-        if visited[coord.row][coord.col] {
-            return;
-        }
-        visited[coord.row][coord.col] = true;
-
-        if let Some(node) = &self.matrix[coord.row][coord.col] {
-            for &(r, c) in node.edges.keys() {
-                self.topological_util(&Coordinates { row: r, col: c }, visited, result);
-            }
-        }
-        result.push(*coord);
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Node {{ node_value: {}, function: {}, value1: ({}, {}), value2: ({}, {}), position: ({}, {}), valid: {}, dependents: {:?} }}",
+            self.node_value,
+            self.function,
+            self.value1.row, self.value1.col,
+            self.value2.row, self.value2.col,
+            self.position.row, self.position.col,
+            self.valid,
+            self.dependents,
+        )
     }
 }

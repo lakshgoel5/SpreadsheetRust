@@ -4,26 +4,22 @@ use std::time::{Instant};
 use std::cmp;
 use std::ffi::CString;
 use std::ptr;
-mod parser;
-
-mod graph;
-mod types;
-
-use graph::{Graph};
-use types::Coordinates;
-
-
+use crate::parser;
+use crate::backend::generate_grid;
+use crate::graph::Node;
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
 
-static mut GRAPH: Option<Graph> = None;
-static mut GRID: Option<Vec<Vec<i32>>> = None;
 
-fn generate_grid(r: usize, c: usize) {
-    unsafe {
-        GRID = Some(vec![vec![0; c + 1]; r + 1]);
-    }
-}
+// static mut IS_DISABLED: bool = false;
+// debug // change this
+// static mut GRID: Option<Vec<Vec<i32>>> = None;
+//
+// fn generate_grid(r: usize, c: usize) {
+//     unsafe {
+//         GRID = Some(vec![vec![0; c + 1]; r + 1]);
+//     }
+// }
 
 fn column_decoder(mut j: usize) -> String {
     let mut cc = Vec::new();
@@ -37,7 +33,7 @@ fn column_decoder(mut j: usize) -> String {
 }
 
 // , graph: &Graph
-fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize) {
+fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid:&mut Vec<Vec<crate::graph::Node>>) {
     let max_x = cmp::min(9 + start_x, r);
     let max_y = cmp::min(9 + start_y, c);
 
@@ -53,9 +49,10 @@ fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize) {
                 print!("{:>12}", i);
             } 
             else {
-                unsafe {
-                    print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
-                }
+                print!("{:>12}", grid[i][j]);
+                // unsafe {
+                //     print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
+                // }
                 // print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
                 // if graph.matrix[i][j].is_none() {
                 //     print!("{:>12}", 0);
@@ -95,13 +92,13 @@ fn is_number(str: &str) -> bool {
 
 // , graph: &Graph // debug
 // this processes commands and prints the grid
-fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: usize, c: usize, is_disabled: &mut bool) -> i32 {
+fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: usize, c: usize, is_disabled: &mut bool, grid: &mut Vec<Vec<Node>>) -> i32 {
     match command {
         "q" => return 0,
         "w" => {
             *start_x = if *start_x > 10 { *start_x - 10 } else { 1 };
             if !(*is_disabled) {
-                print_grid(*start_x, *start_y, r, c);
+                print_grid(*start_x, *start_y, r, c, grid);
             }
             return 1;
         }
@@ -111,14 +108,14 @@ fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: u
                 *start_x = cmp::min(*start_x, r - 9);
             }
             if !(*is_disabled) {
-                print_grid(*start_x, *start_y, r, c);
+                print_grid(*start_x, *start_y, r, c, grid);
             }
             return 1;
         }
         "a" => {
             *start_y = if *start_y > 10 { *start_y - 10 } else { 1 };
             if !(*is_disabled) {
-                print_grid(*start_x, *start_y, r, c);
+                print_grid(*start_x, *start_y, r, c, grid);
             }
             return 1;
         }
@@ -128,68 +125,63 @@ fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: u
                 *start_y = cmp::min(*start_y, c - 9);
             }
             if !(*is_disabled) {
-                print_grid(*start_x, *start_y, r, c);
+                print_grid(*start_x, *start_y, r, c, grid);
             }
             return 1;
         }
         _ => {}
     }
 
-    // let mut function: isize = -1;
+    let mut function: isize = -1;
 
     let coord = parser::validate(command, &r, &c);
 
     if let Some((_, Some(ref value))) = coord {
         match value {
             parser::Value::Oper(left_operand, right_operand, operation) => {
-                match operation {
-                    parser::Operation::EnableOutput => {
-                        *is_disabled = true;
-                        1
-                    }
-                    parser::Operation::DisableOutput => {
-                        *is_disabled = false;
-                        1
-                    }
-                    parser::Operation::Scrollto => {
-                        if let parser::Value::Cell(row, col) = **left_operand {
-                            *start_x = row;
-                            *start_y = col;
-                        }
-                        if !(*is_disabled) {
-                            print_grid(*start_x, *start_y, r, c);
-                        }
-                        1
-                    }
-                    _ => {
-                        if let Some(coords) = coord {
-                            // let status = getting_things_updated(function, &coords[0], &coords[1], &coords[2], r, c);
-                            let status = 1;
-                            if !(*is_disabled) {
-                                print_grid(*start_x, *start_y, r, c);
-                            }
-                            status
-                        } 
-                        else {
-                            3
-                        }
+                function = *operation as isize;
+                if function == 13 {
+                    if let parser::Value::Cell(row, col) = **left_operand {
+                        *start_x = row;
+                        *start_y = col;
                     }
                 }
-                // function = *operation as isize;
-                // if function == 13 {
-                //     if let parser::Value::Cell(row, col) = **left_operand {
-                //         *start_x = row;
-                //         *start_y = col;
-                //     }
-                // }
-
-                
             }
             _ => {}
         }
     } 
     else {
         return 3;
+    }
+    match function {
+        12 => {
+            *is_disabled = true;
+            1
+        }
+        11 => {
+            *is_disabled = false;
+            print_grid(*start_x, *start_y, r, c, grid);
+            1
+        }
+        13 => {
+            if !(*is_disabled) {
+                print_grid(*start_x, *start_y, r, c, grid);
+            }
+            1
+        }
+        _ => {
+            if let Some(coords) = coord {
+                // let status = getting_things_updated(function, &coords[0], &coords[1], &coords[2], r, c);
+                let status = 1;
+                if !(*is_disabled) {
+                    print_grid(*start_x, *start_y, r, c, grid);
+                }
+                status
+            } 
+            else {
+                3
+            }
+        }
     }
 }
 
@@ -207,17 +199,6 @@ fn process_first(x: usize, command: &[String], start_x: &mut usize, start_y: &mu
     if r < 1 || r > MAX_ROW || c < 1 || c > MAX_COLUMN {
         return false;
     }
-
-    let start = Instant::now();
-    generate_grid(r, c);
-    unsafe {
-        GRAPH = Graph::new(r + 1, c + 1);
-    }
-    if !(*is_disabled) {
-        print_grid(*start_x, *start_y, r, c);
-    }
-    let duration = start.elapsed();
-    display_status(1, duration.as_secs_f64());
     true
 }
 
@@ -230,9 +211,16 @@ fn main() {
     if !process_first(args.len(), &args, &mut start_x, &mut start_y, &mut is_disabled) {
         return;
     }
-
     let r = args[1].parse::<usize>().unwrap();
     let c = args[2].parse::<usize>().unwrap();
+    let start = Instant::now();
+    let mut grid = generate_grid(r, c);
+    if !(*is_disabled) {
+        print_grid(*start_x, *start_y, r, c, &mut grid);
+    }
+    let duration = start.elapsed();
+    display_status(1, duration.as_secs_f64());
+
 
     let stdin = io::stdin();
     let mut command = String::new();
@@ -250,8 +238,7 @@ fn main() {
             command.pop();
         }
         if command.is_empty() {
-            // print_grid(start_x, start_y, r, c, &graph);
-            print_grid(start_x, start_y, r, c);
+            print_grid(start_x, start_y, r, c, &mut grid);
             print!("[0.0] (unrecognized cmd) > ");
             io::stdout().flush().unwrap();
             continue;
@@ -259,7 +246,7 @@ fn main() {
 
         let start = Instant::now();
         // , &graph // debug
-        let status = process_command(&command, &mut start_x, &mut start_y, r, c, &mut is_disabled);
+        let status = process_command(&command, &mut start_x, &mut start_y, r, c, &mut is_disabled, &mut grid);
         let duration = start.elapsed();
 
         // quit status
