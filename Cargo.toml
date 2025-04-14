@@ -1,6 +1,19 @@
 [package]
-name = "spreadsheet-rust"
+name = "yew-app"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+yew = { version = "0.21", features = ["csr"] }
+
+[dependencies.wasm-bindgen]
+version = "0.2"
+
+[dependencies.web-sys]
+version = "0.3"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
