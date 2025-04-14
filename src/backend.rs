@@ -1,12 +1,12 @@
 // getting_things_updated function here
 // all operations to be done here
-use crate::types::{Coordinates};
 use crate::graph::Node;
+use crate::types::Coordinates;
 // functions to be added :
 // 1. generate_grid
 // 2. add_edges
 // 3. break_edges
-// 4. 
+// 4.
 
 // static mut IS_DISABLED: bool = false;
 // debug // change this
@@ -27,7 +27,10 @@ pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
                     function: -1,
                     value1: Coordinates { row: -1, col: -1 },
                     value2: Coordinates { row: -1, col: -1 },
-                    position: Coordinates { row: i as i32, col: j as i32 },
+                    position: Coordinates {
+                        row: i as i32,
+                        col: j as i32,
+                    },
                     valid: true,
                     dependents: Vec::new(),
                 })
@@ -46,8 +49,8 @@ pub fn add_edges_inward(
     // add in dependency list of vectors
 
     // range based functions
-    for i in value1.row as usize ..= value2.row as usize {
-        for j in value1.col as usize ..= value2.col as usize {
+    for i in value1.row as usize..=value2.row as usize {
+        for j in value1.col as usize..=value2.col as usize {
             graph[i][j].add_dep(new_node);
         }
     }
@@ -61,12 +64,24 @@ pub fn break_edges_inward(
     value1: Coordinates,
     value2: Coordinates,
     new_node: Coordinates,
-){
+) {
 
     // remove from dependency list of parent(old dependecies)
 }
 
-pub fn update_grid(
+// breaks and adds - can be used after a cycle detection also
+pub fn update_node(
+    graph: &mut Vec<Vec<Node>>,
+    value1: Coordinates,
+    value2: Coordinates,
+    new_node: Coordinates,
+) {
+    // update the grid with the new node
+    // add edges to the graph
+    // add_edges_inward(graph, value1, value2, new_node);
+}
+
+pub fn getting_things_updated(
     graph: &mut Vec<Vec<Node>>,
     value1: Coordinates,
     value2: Coordinates,

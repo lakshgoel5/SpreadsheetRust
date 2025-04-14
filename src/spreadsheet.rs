@@ -1,15 +1,14 @@
-use std::env;
-use std::io::{self, BufRead, Write};
-use std::time::{Instant};
-use std::cmp;
-use std::ffi::CString;
-use std::ptr;
-use crate::parser;
 use crate::backend::generate_grid;
 use crate::graph::Node;
+use crate::parser;
+use std::cmp;
+use std::env;
+use std::ffi::CString;
+use std::io::{self, BufRead, Write};
+use std::ptr;
+use std::time::Instant;
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
-
 
 // static mut IS_DISABLED: bool = false;
 // debug // change this
@@ -33,7 +32,13 @@ fn column_decoder(mut j: usize) -> String {
 }
 
 // , graph: &Graph
-fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid:&mut Vec<Vec<crate::graph::Node>>) {
+fn print_grid(
+    start_x: usize,
+    start_y: usize,
+    r: usize,
+    c: usize,
+    grid: &mut Vec<Vec<crate::graph::Node>>,
+) {
     let max_x = cmp::min(9 + start_x, r);
     let max_y = cmp::min(9 + start_y, c);
 
@@ -41,14 +46,11 @@ fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid:&mut Vec<
         for j in start_y - 1..=max_y {
             if i == start_x - 1 && j == start_y - 1 {
                 print!("{:>12}", " ");
-            } 
-            else if i == start_x - 1 && j != start_y - 1 {
+            } else if i == start_x - 1 && j != start_y - 1 {
                 print!("{:>12}", column_decoder(j));
-            } 
-            else if j == start_y - 1 {
+            } else if j == start_y - 1 {
                 print!("{:>12}", i);
-            } 
-            else {
+            } else {
                 print!("{:>12}", grid[i][j]);
                 // unsafe {
                 //     print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
@@ -56,13 +58,13 @@ fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid:&mut Vec<
                 // print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
                 // if graph.matrix[i][j].is_none() {
                 //     print!("{:>12}", 0);
-                // } 
-                // // Option<T> -> Option<&T> -> 
+                // }
+                // // Option<T> -> Option<&T> ->
                 // else if graph.matrix[i][j].as_ref().unwrap().valid {
                 //     unsafe {
                 //         print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
                 //     }
-                // } 
+                // }
                 // else {
                 //     print!("{:>12}", "ERR");
                 // }
@@ -92,7 +94,15 @@ fn is_number(str: &str) -> bool {
 
 // , graph: &Graph // debug
 // this processes commands and prints the grid
-fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: usize, c: usize, is_disabled: &mut bool, grid: &mut Vec<Vec<Node>>) -> i32 {
+fn process_command(
+    command: &str,
+    start_x: &mut usize,
+    start_y: &mut usize,
+    r: usize,
+    c: usize,
+    is_disabled: &mut bool,
+    grid: &mut Vec<Vec<Node>>,
+) -> i32 {
     match command {
         "q" => return 0,
         "w" => {
@@ -149,8 +159,7 @@ fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: u
             }
             _ => {}
         }
-    } 
-    else {
+    } else {
         return 3;
     }
     match function {
@@ -177,15 +186,20 @@ fn process_command(command: &str, start_x: &mut usize, start_y: &mut usize, r: u
                     print_grid(*start_x, *start_y, r, c, grid);
                 }
                 status
-            } 
-            else {
+            } else {
                 3
             }
         }
     }
 }
 
-fn process_first(x: usize, command: &[String], start_x: &mut usize, start_y: &mut usize, is_disabled: &mut bool) -> bool {
+fn process_first(
+    x: usize,
+    command: &[String],
+    start_x: &mut usize,
+    start_y: &mut usize,
+    is_disabled: &mut bool,
+) -> bool {
     if x != 3 {
         return false;
     }
@@ -208,7 +222,13 @@ fn main() {
     let mut is_disabled = false;
     let args: Vec<String> = env::args().collect();
     // part of first processing
-    if !process_first(args.len(), &args, &mut start_x, &mut start_y, &mut is_disabled) {
+    if !process_first(
+        args.len(),
+        &args,
+        &mut start_x,
+        &mut start_y,
+        &mut is_disabled,
+    ) {
         return;
     }
     let r = args[1].parse::<usize>().unwrap();
@@ -220,7 +240,6 @@ fn main() {
     }
     let duration = start.elapsed();
     display_status(1, duration.as_secs_f64());
-
 
     let stdin = io::stdin();
     let mut command = String::new();
@@ -246,7 +265,15 @@ fn main() {
 
         let start = Instant::now();
         // , &graph // debug
-        let status = process_command(&command, &mut start_x, &mut start_y, r, c, &mut is_disabled, &mut grid);
+        let status = process_command(
+            &command,
+            &mut start_x,
+            &mut start_y,
+            r,
+            c,
+            &mut is_disabled,
+            &mut grid,
+        );
         let duration = start.elapsed();
 
         // quit status

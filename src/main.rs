@@ -1,10 +1,10 @@
 use std::env;
-mod parser;
-mod graph;
 mod backend;
-mod types;
-mod spreadsheet;
 mod functions;
+mod graph;
+mod parser;
+mod spreadsheet;
+mod types;
 
 fn main() {
     // decoding rows and columns
