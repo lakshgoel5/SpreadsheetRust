@@ -207,7 +207,7 @@ fn main() {
     let mut start_y = 1;
     let mut is_disabled = false;
     let args: Vec<String> = env::args().collect();
-
+    // part of first processing
     if !process_first(args.len(), &args, &mut start_x, &mut start_y, &mut is_disabled) {
         return;
     }
@@ -215,7 +215,7 @@ fn main() {
     let c = args[2].parse::<usize>().unwrap();
     let start = Instant::now();
     let mut grid = generate_grid(r, c);
-    if !(*is_disabled) {
+    if !(is_disabled) {
         print_grid(*start_x, *start_y, r, c, &mut grid);
     }
     let duration = start.elapsed();
