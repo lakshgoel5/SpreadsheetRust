@@ -2,6 +2,8 @@
 // all operations to be done here
 use crate::graph::Node;
 use crate::types::Coordinates;
+use crate::functions::Value;
+use crate::functions::Operation;
 // functions to be added :
 // 1. generate_grid
 // 2. add_edges
@@ -31,6 +33,7 @@ pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
                         row: i as i32,
                         col: j as i32,
                     },
+                    op: Operation::Cons, // Default to constant assignment
                     valid: true,
                     dependents: Vec::new(),
                 })
@@ -38,20 +41,93 @@ pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
         })
         .collect()
 }
-
 // wrt new node -- inward
-pub fn add_edges_inward(
+
+// flags : for these two functions
+// true: when working with new dependencies : value1 and value2
+// false: when working with old dependencies : old_value1 and old_value2
+pub fn add_edges(
     graph: &mut Vec<Vec<Node>>,
     value1: Coordinates,
     value2: Coordinates,
-    new_node: Coordinates,
+    target: Coordinates,
+    op : Operation,
+    flag : bool, // debug
 ) {
-    // add in dependency list of vectors
+    let target_row = target.row as usize;
+    let target_col = target.col as usize;
+    let target_cell = &mut graph[target_row][target_col];
+    if flag {
+        match target_cell.op {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                // For range operations, remove from all cells in the range
+                for i in value1.row..=value2.row {
+                    for j in value1.col..=value2.col {
+                        if i >= 0 && j >= 0 {
+                            let r = i as usize;
+                            let c = j as usize;
+                            graph[r][c].add_dep(target);
+                        }
+                    }
+                }
+            },
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div =>
+            {
+                // For binary operations, remove dependency from value1 and value2 - check cells and values
+                if value1.col != -1 {
+                    graph[value1.row as usize][value1.col as usize].add_dep(target);
+                }
+                if value2.col != -1 {
+                    graph[value2.row as usize][value2.col as usize].add_dep(target);
+                }
+            },
+            Operation::Cons | Operation::Slp => {
+                // single cell operation just check value1 and apply the cases
+                // cell
+                if value1.col != -1 && value1.row != -1 {
+                    graph[value1.row as usize][value1.col as usize].add_dep(target);
+                }
+                // value -- do nothing
+            },
+            _ => {}  // will not reach here
+        }
+    }
+    else {
+        let old_value1 = target_cell.value1;
+        let old_value2 = target_cell.value2;
 
-    // range based functions
-    for i in value1.row as usize..=value2.row as usize {
-        for j in value1.col as usize..=value2.col as usize {
-            graph[i][j].add_dep(new_node);
+        match target_cell.op {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                // For range operations, remove from all cells in the range
+                for i in old_value1.row..=old_value2.row {
+                    for j in old_value1.col..=old_value2.col {
+                        if i >= 0 && j >= 0 {
+                            let r = i as usize;
+                            let c = j as usize;
+                            graph[r][c].add_dep(target);
+                        }
+                    }
+                }
+            },
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div =>
+            {
+                // For binary operations, remove dependency from value1 and value2 - check cells and values
+                if old_value1.col != -1 {
+                    graph[old_value1.row as usize][old_value1.col as usize].add_dep(target);
+                }
+                if old_value2.col != -1 {
+                    graph[old_value2.row as usize][old_value2.col as usize].add_dep(target);
+                }
+            },
+            Operation::Cons | Operation::Slp => {
+                // single cell operation just check value1 and apply the cases
+                // cell
+                if old_value1.col != -1 && old_value1.row != -1 {
+                    graph[old_value1.row as usize][old_value1.col as usize].add_dep(target);
+                }
+                // value -- do nothing
+            },
+            _ => {}  // will not reach here
         }
     }
 }
@@ -59,35 +135,131 @@ pub fn add_edges_inward(
 // will fill when structure is more clear
 // debug -- see the old dependecies where they are stored in the graph when fully made
 // wrt new node -- inward
-pub fn break_edges_inward(
+
+
+pub fn break_edges(
     graph: &mut Vec<Vec<Node>>,
     value1: Coordinates,
     value2: Coordinates,
-    new_node: Coordinates,
+    target: Coordinates,
+    op: Operation,
+    flag: bool, // debug
 ) {
+    // Get the target cell
+    let target_row = target.row as usize;
+    let target_col = target.col as usize;
+    let target_cell = &mut graph[target_row][target_col];
+    if flag {
+        match target_cell.op {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                // For range operations, remove from all cells in the range
+                for i in value1.row..=value2.row {
+                    for j in value1.col..=value2.col {
+                        if i >= 0 && j >= 0 {
+                            let r = i as usize;
+                            let c = j as usize;
+                            graph[r][c].remove_dep(target);
+                        }
+                    }
+                }
+            },
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div =>
+            {
+                // For binary operations, remove dependency from value1 and value2 - check cells and values
+                if value1.col != -1 {
+                    graph[value1.row as usize][value1.col as usize].remove_dep(target);
+                }
+                if value2.col != -1 {
+                    graph[value2.row as usize][value2.col as usize].remove_dep(target);
+                }
+            },
+            Operation::Cons | Operation::Slp => {
+                // single cell operation just check value1 and apply the cases
+                // cell
+                if value1.col != -1 && value1.row != -1 {
+                    graph[value1.row as usize][value1.col as usize].remove_dep(target);
+                }
+                // value -- do nothing
+            },
+            _ => {}  // will not reach here
+        }
+    }
+    else {
+        // Get the previous dependencies (value1 and value2)
+        let old_value1 = target_cell.value1;
+        let old_value2 = target_cell.value2;
+        
+        // If old value1 is valid (not -1), remove dependencies
+        // Check if the operation is range-based
+        match target_cell.op {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                // For range operations, remove from all cells in the range
+                for i in old_value1.row..=old_value2.row {
+                    for j in old_value1.col..=old_value2.col {
+                        if i >= 0 && j >= 0 {
+                            let r = i as usize;
+                            let c = j as usize;
+                            graph[r][c].remove_dep(target);
+                        }
+                    }
+                }
+            },
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div =>
+            {
+                // For binary operations, remove dependency from value1 and value2 - check cells and values
+                if old_value1.col != -1 {
+                    graph[old_value1.row as usize][old_value1.col as usize].remove_dep(target);
+                }
+                if old_value2.col != -1 {
+                    graph[old_value2.row as usize][old_value2.col as usize].remove_dep(target);
+                }
+            },
+            Operation::Cons | Operation::Slp => {
+                // single cell operation just check value1 and apply the cases
+                // cell
+                if old_value1.col != -1 && old_value1.row != -1 {
+                    graph[old_value1.row as usize][old_value1.col as usize].remove_dep(target);
+                }
+                // value -- do nothing
+            },
+            _ => {}  // will not reach here
+        }
+    }
 
-    // remove from dependency list of parent(old dependecies)
 }
 
-// breaks and adds - can be used after a cycle detection also
-pub fn update_node(
-    graph: &mut Vec<Vec<Node>>,
-    value1: Coordinates,
-    value2: Coordinates,
-    new_node: Coordinates,
-) {
-    // update the grid with the new node
-    // add edges to the graph
-    // add_edges_inward(graph, value1, value2, new_node);
+pub fn has_cycle() -> bool {
+    // check for cycle using efficient DFS
+    // no need of visited and instack use dirty parent flags
+    
+    false
 }
-
+// returns status to process_command
 pub fn getting_things_updated(
     graph: &mut Vec<Vec<Node>>,
+    target: Coordinates,
     value1: Coordinates,
     value2: Coordinates,
-    new_node: Coordinates,
-) {
-    // update the grid with the new node
-    // add edges to the graph
-    // add_edges_inward(graph, value1, value2, new_node);
+    op: Operation,
+    r: usize,
+    c: usize,
+    grid: &mut Vec<Vec<Node>>,
+) -> i32 {
+    // so at this point of time value1 and value2 will store the new ranges of the new function to be applied on target cell
+    // will call update_node (breaking and adding edges)
+    // break previous inward dependecies (will remove the target from its previous parents)
+    // add new dependencies of target in parent's vector
+    // old_op : 
+    break_edges(graph, value1, value2, target, op, false);  // old dependencies
+    add_edges(graph, value1, value2, target, op, true);  // new dependencies
+    // check if new dependecies introduces cycle
+    if has_cycle() {
+        break_edges(graph, value1, value2, target, op, true); // new dependencies
+        add_edges(graph, value1, value2, target, op, false); // old dependencies
+        6
+    }
+
+    // go to dependents of the cell and change their values
+
+    1 // success
 }

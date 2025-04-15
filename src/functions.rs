@@ -9,6 +9,8 @@ pub struct Range {
     pub end: Coordinates,
 }
 
+// check ERR flag
+
 // operand : operand type  --> use pattern matching here
 pub enum Operand {
     Cell(Coordinates),
@@ -20,8 +22,46 @@ pub struct ArithmeticOp {
     pub val1: Operand,
     pub val2: Operand,
 }
+
+pub enum FunctionType {
+    Range(Range),  // range based functions
+    Arithmetic(ArithmeticOp), // b/w two cells/ints int/cell
+    ConstantAssignment(Operand), // cell/value
+    Sleep(Operand), // sleep : cell/value
+}
+pub struct Function {
+    pub function: Operation,
+    pub function_type: FunctionType,
+}
+
+// parser
+#[derive(Clone, Copy, Debug)]
+pub enum Operation {
+    Cons,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Min,
+    Max,
+    Avg,
+    Sum,
+    Std,
+    Slp,
+    EnableOutput,
+    DisableOutput,
+    Scrollto,
+}
+#[derive(Debug)]
+pub enum Value {
+    Cell(usize, usize),
+    Const(isize),
+    Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
+}
+// parser ends
 // handle sleep individually
 
+// range based functions
 pub fn max_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
     match (op1, op2) {
         (Operand::Cell(coord1), Operand::Cell(coord2)) => {
@@ -146,3 +186,9 @@ pub fn stdev_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> 
 // }
 
 // arith operations - tbd
+pub fn is_arithmetic(op: Operation) -> bool {
+    match op {
+        Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => true,
+        _ => false,
+    }
+}

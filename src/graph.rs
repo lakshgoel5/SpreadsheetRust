@@ -3,15 +3,18 @@ use std::collections::HashMap;
 use crate::types::Coordinates;
 use std::fmt;
 #[derive(Debug)]
+
 pub struct Node {
-    pub node_value: i32,
-    pub function: i32,
+    pub dependents: Vec<Coordinates>, // stores the coordinates of dependent nodes
     pub value1: Coordinates,
     pub value2: Coordinates,
     pub position: Coordinates,
+    pub node_value: i32,
+    // pub function: Function,  // will change/ add a fn
     // pub edges: HashMap<(usize, usize), ()>, // simulate HashTable: mapping Coordinates to empty value // debug // will change : 2hr
+    pub op: Operation,
+    pub visited: bool,
     pub valid: bool,
-    pub dependents: Vec<Coordinates>, // stores the coordinates of dependent nodes
 }
 
 impl Node {
@@ -67,6 +70,7 @@ impl Node {
 }
 /// remove graph will also improve memory usage
 
+// debug this once
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(

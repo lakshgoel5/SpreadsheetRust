@@ -1,6 +1,7 @@
 use crate::backend::generate_grid;
 use crate::graph::Node;
 use crate::parser;
+use crate::functions::Value;
 use std::cmp;
 use std::env;
 use std::ffi::CString;
@@ -142,62 +143,80 @@ fn process_command(
         _ => {}
     }
 
-    let mut function: isize = -1;
+    // let mut function: isize = -1;
+    // work with enums only not functions
 
-    let coord = parser::validate(command, &r, &c);
-
-    if let Some((_, Some(ref value))) = coord {
-        match value {
-            parser::Value::Oper(left_operand, right_operand, operation) => {
-                function = *operation as isize;
-                if function == 13 {
-                    if let parser::Value::Cell(row, col) = **left_operand {
-                        *start_x = row;
-                        *start_y = col;
-                    }
-                }
-            }
-            _ => {}
-        }
-    } else {
-        return 3;
-    }
-    match function {
-        12 => {
-            *is_disabled = true;
-            1
-        }
-        11 => {
-            *is_disabled = false;
-            print_grid(*start_x, *start_y, r, c, grid);
-            1
-        }
-        13 => {
+    match parser::validate(command, &r, &c) {
+        Some((Some(Value::Cell(row, col)), Some(Value::Oper(v1, v2, op)))) => {
+            let target_cell = Value::Cell(row, col);
+            let val1 = v1.as_ref();
+            let val2 = v2.as_ref();
+            let operation = op;
+    
+            let status = getting_things_updated(grid, target_cell, val1, val2, operation, r, c, grid);
+    
             if !(*is_disabled) {
                 print_grid(*start_x, *start_y, r, c, grid);
             }
-            1
+    
+            return status;
         }
-        _ => {
-            if let Some(coords) = coord {
-                // let status = getting_things_updated(function, &coords[0], &coords[1], &coords[2], r, c);
-                let status = 1;
-                if !(*is_disabled) {
-                    print_grid(*start_x, *start_y, r, c, grid);
-                }
-                status
-            } else {
-                3
-            }
-        }
-    }
+        _ => return 3, // If parsing fails or does not match expected structure
+    }    
+    1
+    // let coord = parser::parse(command, r, c);
+    // let coord = parser::validate(command, &r, &c);
+
+    // if let Some((_, Some(ref value))) = coord {
+    //     match value {
+    //         parser::Value::Oper(left_operand, right_operand, operation) => {
+    //             function = *operation as isize;
+    //             if function == 13 {
+    //                 if let parser::Value::Cell(row, col) = **left_operand {
+    //                     *start_x = row;
+    //                     *start_y = col;
+    //                 }
+    //             }
+    //         }
+    //         _ => {}
+    //     }
+    // } else {
+    //     return 3;
+    // }
+    // match function {
+    //     12 => {
+    //         *is_disabled = true;
+    //         1
+    //     }
+    //     11 => {
+    //         *is_disabled = false;
+    //         print_grid(*start_x, *start_y, r, c, grid);
+    //         1
+    //     }
+    //     13 => {
+    //         if !(*is_disabled) {
+    //             print_grid(*start_x, *start_y, r, c, grid);
+    //         }
+    //         1
+    //     }
+    //     _ => {
+    //         if let Some(coords) = coord {
+    //             // let status = getting_things_updated(function, &coords[0], &coords[1], &coords[2], r, c);
+    //             let status = 1;
+    //             if !(*is_disabled) {
+    //                 print_grid(*start_x, *start_y, r, c, grid);
+    //             }
+    //             status
+    //         } else {
+    //             3
+    //         }
+    //     }
+    // }
 }
 
 fn process_first(
     x: usize,
     command: &[String],
-    start_x: &mut usize,
-    start_y: &mut usize,
     is_disabled: &mut bool,
 ) -> bool {
     if x != 3 {
@@ -225,8 +244,6 @@ fn main() {
     if !process_first(
         args.len(),
         &args,
-        &mut start_x,
-        &mut start_y,
         &mut is_disabled,
     ) {
         return;

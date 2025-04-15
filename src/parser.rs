@@ -1,3 +1,5 @@
+use crate::functions::Operation;
+use crate::functions::Value;
 pub fn validate(
     cmd: &str,
     rows: &usize,
@@ -8,8 +10,8 @@ pub fn validate(
             return Some((
                 None,
                 Some(Value::Oper(
-                    Box::new(Value::Const(0)),
-                    Box::new(Value::Const(0)),
+                    Box::new(Value::Const(-1)),
+                    Box::new(Value::Const(-1)),
                     Operation::EnableOutput,
                 )),
             ));
@@ -18,8 +20,8 @@ pub fn validate(
             return Some((
                 None,
                 Some(Value::Oper(
-                    Box::new(Value::Const(0)),
-                    Box::new(Value::Const(0)),
+                    Box::new(Value::Const(-1)),
+                    Box::new(Value::Const(-1)),
                     Operation::DisableOutput,
                 )),
             ));
@@ -32,10 +34,10 @@ pub fn validate(
         let cell = is_cell(cell_name, rows, columns);
         if let Some(cell) = cell {
             return Some((
-                None,
+                Some(cell),
                 Some(Value::Oper(
-                    Box::new(cell),
-                    Box::new(Value::Const(0)),
+                    Box::new(Value::Const(-1)),
+                    Box::new(Value::Const(-1)),
                     Operation::Scrollto,
                 )),
             ));
@@ -105,7 +107,7 @@ pub fn validate(
             cell,
             Some(Value::Oper(
                 Box::new(val),
-                Box::new(Value::Const(0)),
+                Box::new(Value::Const(-1)),
                 Operation::Cons,
             )),
         ));
@@ -121,7 +123,7 @@ pub fn validate(
                 cell,
                 Some(Value::Oper(
                     Box::new(val),
-                    Box::new(Value::Const(0)),
+                    Box::new(Value::Const(-1)),
                     Operation::Slp,
                 )),
             ));
@@ -167,30 +169,7 @@ pub fn validate(
         }
     }
 }
-#[derive(Clone, Copy, Debug)]
-pub enum Operation {
-    Cons = 0,
-    Add = 1,
-    Sub = 2,
-    Mul = 3,
-    Div = 4,
-    Min = 5,
-    Max = 6,
-    Avg = 7,
-    Sum = 8,
-    Std = 9,
-    Slp = 10,
-    EnableOutput = 11,
-    DisableOutput = 12,
-    Scrollto = 13,
-}
-#[derive(Debug)]
-#[allow(dead_code)]
-pub enum Value {
-    Cell(usize, usize),
-    Const(isize),
-    Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
-}
+
 
 pub fn is_cell(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     let mut col = 0;
