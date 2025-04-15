@@ -4,24 +4,13 @@ use crate::graph::Node;
 use crate::types::Coordinates;
 use crate::functions::Value;
 use crate::functions::Operation;
-// functions to be added :
-// 1. generate_grid
-// 2. add_edges
-// 3. break_edges
-// 4.
+use crate::functions::min_function;
+use crate::functions::max_function;
+use crate::functions::avg_function;
+use crate::functions::sum_function;
+use crate::functions::stdev_function;
 
-// static mut IS_DISABLED: bool = false;
-// debug // change this
-// static mut GRID: Option<Vec<Vec<types::Node>>> = None;
-
-// fn generate_grid(r: usize, c: usize) {
-//     unsafe {
-//         GRID = Some(vec![vec![0; c + 1]; r + 1]);
-//     }
-// }
-
-
-///// debug -> in add_and _break check which ops you are taking
+///// debug -> in add_and _break check which ops you are taking  ---> done
 
 pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
     (0..r)
@@ -29,7 +18,6 @@ pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
             (0..c)
                 .map(|j| Node {
                     node_value: 0,
-                    function: -1,
                     value1: Coordinates { row: -1, col: -1 },
                     value2: Coordinates { row: -1, col: -1 },
                     position: Coordinates {
@@ -38,6 +26,7 @@ pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
                     },
                     op: Operation::Cons, // Default to constant assignment
                     valid: true,
+                    visited: false,
                     dependents: Vec::new(),
                 })
                 .collect()
@@ -61,7 +50,7 @@ pub fn add_edges(
     let target_col = target.col as usize;
     let target_cell = &mut graph[target_row][target_col];
     if flag {
-        match target_cell.op {
+        match op {
             Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
                 // For range operations, remove from all cells in the range
                 for i in value1.row..=value2.row {
@@ -153,7 +142,7 @@ pub fn break_edges(
     let target_col = target.col as usize;
     let target_cell = &mut graph[target_row][target_col];
     if flag {
-        match target_cell.op {
+        match op {
             Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
                 // For range operations, remove from all cells in the range
                 for i in value1.row..=value2.row {
@@ -239,8 +228,8 @@ pub fn getting_things_updated(
     value1: Coordinates,
     value2: Coordinates,
     op: Operation,
-    r: usize,
-    c: usize,
+    // r: usize,
+    // c: usize,
     grid: &mut Vec<Vec<Node>>,
 ) -> i32 {
     // so at this point of time value1 and value2 will store the new ranges of the new function to be applied on target cell
@@ -254,10 +243,18 @@ pub fn getting_things_updated(
     if has_cycle(target, graph) {
         break_edges(graph, value1, value2, target, op, true); // new dependencies
         add_edges(graph, value1, value2, target, op, false); // old dependencies
-        6
+        return 6;
     }
 
     // go to dependents of the cell and change their values
+    grid[target.row as usize][target.col as usize].op = op;
+    grid[target.row as usize][target.col as usize].value1.row = value1.row;
+    grid[target.row as usize][target.col as usize].value1.col = value1.col;
+    grid[target.row as usize][target.col as usize].value2.row = value2.row;
+    grid[target.row as usize][target.col as usize].value2.col = value2.col;
+
+    evaluate_node(graph, target);
+    update_topo(graph, target);
 
     1 // success
 }
@@ -298,36 +295,208 @@ pub fn topological_sort(
 
 // function that sets node value according to its operation
 pub fn evaluate_node (graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
-    node = &mut graph[coord.row as usize][coord.col as usize];
+    let node = &mut graph[coord.row as usize][coord.col as usize];
     match node.op {
         Operation::Add => {
-            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
-            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
-            node.node_value = value1 + value2;
-        }
-        Operation::Sub => {
-            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
-            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
-            node.node_value = value1 - value2;
-        }
-        Operation::Mul => {
-            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
-            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
-            node.node_value = value1 * value2;
-        }
-        Operation::Div => {
-            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
-            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
-            if value2 != 0 {
-                node.node_value = value1 / value2;
-            } else {
-                node.node_value = 0; // Handle division by zero
+            // V V
+            if node.value1.col == -1 && node.value2.col == -1 {
+                node.valid = true;
+                node.node_value = node.value1.row + node.value2.row;
+            }
+            // V C
+            else if node.value1.col == -1 {
+                if graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = node.value1.row + graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C V
+            else if node.value2.col == -1 {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value + node.value2.row;
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C C
+            else {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid && graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value + graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                } else {
+                    node.valid = false;
+                }
             }
         }
+        Operation::Sub => {
+            // V V
+            if node.value1.col == -1 && node.value2.col == -1 {
+                node.valid = true;
+                node.node_value = node.value1.row - node.value2.row;
+            }
+            // V C
+            else if node.value1.col == -1 {
+                if graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = node.value1.row - graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C V
+            else if node.value2.col == -1 {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value - node.value2.row;
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C C
+            else {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid && graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value - graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                } else {
+                    node.valid = false;
+                }
+            }
+        }
+        Operation::Mul => {
+            // V V
+            if node.value1.col == -1 && node.value2.col == -1 {
+                node.valid = true;
+                node.node_value = node.value1.row * node.value2.row;
+            }
+            // V C
+            else if node.value1.col == -1 {
+                if graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = node.value1.row * graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C V
+            else if node.value2.col == -1 {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value * node.value2.row;
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C C
+            else {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid && graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    node.valid = true;
+                    node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value * graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                } else {
+                    node.valid = false;
+                }
+            }
+        }
+        Operation::Div => {
+            // handle ERR here /// debug
+            // V V
+            if node.value1.col == -1 && node.value2.col == -1 {
+                if node.value2.row == 0 {
+                    node.valid = false;
+                } else {
+                    node.valid = true;
+                    node.node_value = node.value1.row / node.value2.row;
+                }
+            }
+            // V C
+            else if node.value1.col == -1 {
+                if graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    if graph[node.value2.row as usize][node.value2.col as usize].node_value == 0 {
+                        node.valid = false;
+                    } else {
+                        node.valid = true;
+                        node.node_value = node.value1.row / graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                    }
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C V
+            else if node.value2.col == -1 {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid {
+                    if node.value2.row == 0 {
+                        node.valid = false;
+                    } else {
+                        node.valid = true;
+                        node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value / node.value2.row;
+                    }
+                } else {
+                    node.valid = false;
+                }
+            }
+            // C C
+            else {
+                if graph[node.value1.row as usize][node.value1.col as usize].valid && graph[node.value2.row as usize][node.value2.col as usize].valid {
+                    if graph[node.value2.row as usize][node.value2.col as usize].node_value == 0 {
+                        node.valid = false;
+                    } else {
+                        node.valid = true;
+                        node.node_value = graph[node.value1.row as usize][node.value1.col as usize].node_value / graph[node.value2.row as usize][node.value2.col as usize].node_value;
+                    }
+                } else {
+                    node.valid = false;
+                }
+            }
+        }
+        // range based functions
         Operation::Min => {
-            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
-            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
-            node.node_value = value1.min(value2);
+            if let Some(result) = min_function(node.value1, node.value2, graph) {
+                node.node_value = result;
+                node.valid = true;
+            } else {
+                node.valid = false;
+            }
+        }
+        Operation::Max => {
+            if let Some(result) = max_function(node.value1, node.value2, graph) {
+                node.node_value = result;
+                node.valid = true;
+            } else {
+                node.valid = false;
+            }
+        }
+        Operation::Avg => {
+            if let Some(result) = avg_function(node.value1, node.value2, graph) {
+                node.node_value = result;
+                node.valid = true;
+            } else {
+                node.valid = false;
+            }
+        }
+        Operation::Sum => {
+            if let Some(result) = sum_function(node.value1, node.value2, graph) {
+                node.node_value = result;
+                node.valid = true;
+            } else {
+                node.valid = false;
+            }
+        }
+        Operation::Std => {
+            if let Some(result) = stdev_function(node.value1, node.value2, graph) {
+                node.node_value = result;
+                node.valid = true;
+            } else {
+                node.valid = false;
+            }
+        }
+        // sleep function
+        Operation::Slp => {
+            // Handle sleep operation
+            // Sleep for a specified duration
+            /// DEBUG - add this after testing
+            // std::thread::sleep(std::time::Duration::from_secs(1));
         }
     }
 }
@@ -337,9 +506,9 @@ pub fn has_cycle(target: Coordinates, graph: &mut Vec<Vec<Node>>) -> bool {
     // use stack
     // reset visited flags
     let mut stack = vec![target];
-    graph[target.position.row as usize][target.position.col as usize].visited = true;
+    graph[target.row as usize][target.col as usize].visited = true;
     while let Some(node1) = stack.pop() {
-        let node = &mut graph[node1.position.row as usize][node1.position.col as usize];
+        let node = &mut graph[node1.row as usize][node1.col as usize];
 
         for dep in &node.dependents {
             if dep.row == target.row && dep.col == target.col {
@@ -366,7 +535,7 @@ fn reset_visited(graph: &mut Vec<Vec<Node>>, start: Coordinates) {
     graph[start.row as usize][start.col as usize].visited = false;
 
     while let Some(node1) = stack.pop() {
-        let node = &mut graph[node1.position.row as usize][node1.position.col as usize];
+        let node = &mut graph[node1.row as usize][node1.col as usize];
         for dep in &node.dependents {
             let dep_node = &mut graph[dep.row as usize][dep.col as usize];
             if dep_node.visited {

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::types::Coordinates;
+use crate::functions::Operation;
 use std::fmt;
 #[derive(Debug)]
 
@@ -23,12 +24,6 @@ impl Node {
     }
     pub fn set_value(&mut self, value: i32) {
         self.node_value = value;
-    }
-    pub fn get_function(&self) -> i32 {
-        self.function
-    }
-    pub fn set_function(&mut self, function: i32) {
-        self.function = function;
     }
     pub fn set_position(&mut self, position: Coordinates) {
         self.position = position;
@@ -77,7 +72,6 @@ impl fmt::Display for Node {
             f,
             "Node {{ node_value: {}, function: {}, value1: ({}, {}), value2: ({}, {}), position: ({}, {}), valid: {}, dependents: {:?} }}",
             self.node_value,
-            self.function,
             self.value1.row,
             self.value1.col,
             self.value2.row,

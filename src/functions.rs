@@ -62,123 +62,112 @@ pub enum Value {
 // handle sleep individually
 
 // range based functions
-pub fn max_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
-    match (op1, op2) {
-        (Operand::Cell(coord1), Operand::Cell(coord2)) => {
-            // Both are cell references
-            let mut max_val = std::i32::MIN;
-            for i in coord1.row..=coord2.row {
-                for j in coord1.col..=coord2.col {
-                    if grid[i as usize][j as usize].valid {
-                        max_val = max(max_val, grid[i as usize][j as usize].node_value);
-                    } else {
-                        // debug // handle ERR cases after some more clarity
-                        return None;
-                    }
-                }
-            }
-            Some(max_val)
-        }
-        _ => {
-            // println!("Error: max_function only supports Cell-Cell operands");
-            // this case wont come - Caller duty - debug
-            // None can come only if the cell is invalid (ERR)
-            None // Return None to indicate an error/invalid operation
-        }
-    }
-}
-
-pub fn min_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
-    match (op1, op2) {
-        (Operand::Cell(coord1), Operand::Cell(coord2)) => {
-            // Both are cell references
-            let mut min_val = std::i32::MAX;
-            for i in coord1.row..=coord2.row {
-                for j in coord1.col..=coord2.col {
-                    if grid[i as usize][j as usize].valid {
-                        min_val = min(min_val, grid[i as usize][j as usize].node_value);
-                    } else {
-                        // debug // handle ERR cases after some more clarity
-                        return None;
-                    }
-                }
-            }
-            Some(min_val)
-        }
-        _ => {
-            // println!("Error: max_function only supports Cell-Cell operands");
-            // this case wont come - Caller duty - debug
-            // None can come only if the cell is invalid (ERR)
-            None // Return None to indicate an error/invalid operation
-        }
-    }
-}
-
-pub fn avg_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
-    match (op1, op2) {
-        (Operand::Cell(coord1), Operand::Cell(coord2)) => {
-            let mut sum = 0;
-            let mut count = 0;
-            for i in coord1.row..=coord2.row {
-                for j in coord1.col..=coord2.col {
-                    if grid[i as usize][j as usize].valid {
-                        sum += grid[i as usize][j as usize].node_value;
-                        count += 1;
-                    } else {
-                        return None;
-                    }
-                }
-            }
-            if count == 0 { None } else { Some(sum / count) }
-        }
-        _ => None,
-    }
-}
-
-pub fn sum_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
-    match (op1, op2) {
-        (Operand::Cell(coord1), Operand::Cell(coord2)) => {
-            let mut sum = 0;
-            for i in coord1.row..=coord2.row {
-                for j in coord1.col..=coord2.col {
-                    if grid[i as usize][j as usize].valid {
-                        sum += grid[i as usize][j as usize].node_value;
-                    } else {
-                        return None;
-                    }
-                }
-            }
-            Some(sum)
-        }
-        _ => None,
-    }
-}
-
-pub fn stdev_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
-    match (op1, op2) {
-        (Operand::Cell(coord1), Operand::Cell(coord2)) => {
-            let mut values = Vec::new();
-            for i in coord1.row..=coord2.row {
-                for j in coord1.col..=coord2.col {
-                    if grid[i as usize][j as usize].valid {
-                        values.push(grid[i as usize][j as usize].node_value as f64);
-                    } else {
-                        return None;
-                    }
-                }
-            }
-            let n = values.len();
-            if n == 0 {
+pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+    // Both are cell references
+    let mut max_val = std::i32::MIN;
+    // bool flag = false;
+    for i in value1.row..=value2.row {
+        for j in value1.col..=value2.col {
+            if grid[i as usize][j as usize].valid {
+                max_val = max(max_val, grid[i as usize][j as usize].node_value);
+            } else {
+                // debug // handle ERR cases after some more clarity
+                // flag = true;
                 return None;
             }
-            let mean: f64 = values.iter().sum::<f64>() / n as f64;
-            let variance: f64 =
-                values.iter().map(|&x| (x - mean) * (x - mean)).sum::<f64>() / n as f64;
-            let stdev = variance.sqrt();
-            Some(stdev.round() as i32) // Round and convert to i32 for consistency
         }
-        _ => None,
     }
+    Some(max_val)
+}
+
+pub fn min_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+    // Both are cell references
+    let mut min_val = std::i32::MAX;
+    // bool flag = false;
+    for i in value1.row..=value2.row {
+        for j in value1.col..=value2.col {
+            if grid[i as usize][j as usize].valid {
+                min_val = min(min_val, grid[i as usize][j as usize].node_value);
+            } else {
+                // debug // handle ERR cases after some more clarity
+                // flag = true;
+                return None;
+            }
+        }
+    }
+    Some(min_val)
+}
+
+pub fn avg_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+    let mut sum = 0;
+    let mut count = 0;
+    for i in value1.row..=value2.row {
+        for j in value1.col..=value2.col {
+            if grid[i as usize][j as usize].valid {
+                sum += grid[i as usize][j as usize].node_value;
+                count += 1;
+            } else {
+                return None;
+            }
+        }
+    }
+    if count == 0 { None } else { Some(sum / count) }
+}
+
+pub fn sum_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+    let mut sum = 0;
+    for i in value1.row..=value2.row {
+        for j in value1.col..=value2.col {
+            if grid[i as usize][j as usize].valid {
+                sum += grid[i as usize][j as usize].node_value;
+            } else {
+                return None;
+            }
+        }
+    }
+    Some(sum)
+}
+
+pub fn stdev_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+    let mut sum = 0f64;
+    let mut count = 0;
+    
+    // First pass: calculate sum and count
+    for i in value1.row..=value2.row {
+        for j in value1.col..=value2.col {
+            let node = &grid[i as usize][j as usize];
+            if node.valid {
+                sum += node.node_value as f64;
+                count += 1;
+            }
+            else{
+                return None;
+            }
+        }
+    }
+
+    if count == 0 {
+        return Some(0); // Consistent with C behavior
+    }
+
+    let mean = sum / count as f64;
+
+    // Second pass: calculate variance
+    let mut stdev = 0f64;
+    for i in value1.row..=value2.row {
+        for j in value1.col..=value2.col {
+            let node = &grid[i as usize][j as usize];
+            //
+            if !node.valid {
+                return None; // In C, this sets the target to invalid
+            }
+            let val = node.node_value as f64;
+            stdev += (val - mean) * (val - mean);
+        }
+    }
+
+    let result = (stdev / count as f64).sqrt().round() as i32;
+    Some(result)
 }
 
 // pub fn sleep_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {

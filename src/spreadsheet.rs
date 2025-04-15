@@ -8,6 +8,7 @@ use std::ffi::CString;
 use std::io::{self, BufRead, Write};
 use std::ptr;
 use std::time::Instant;
+use crate::backend::getting_things_updated;
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
 
