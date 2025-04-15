@@ -1,15 +1,15 @@
-use crate::backend::generate_grid;
+// use crate::backend::generate_grid;
 use crate::backend::getting_things_updated;
 use crate::functions::Value;
 use crate::graph::Node;
 use crate::parser;
 use crate::types::Coordinates;
+use crate::functions::Operation;
 use std::cmp;
 use std::env;
 use std::ffi::CString;
 use std::io::{self, BufRead, Write};
 use std::ptr;
-use std::time::Instant;
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
 
@@ -35,7 +35,7 @@ fn column_decoder(mut j: usize) -> String {
 }
 
 // , graph: &Graph
-fn print_grid(
+pub fn print_grid(
     start_x: usize,
     start_y: usize,
     r: usize,
@@ -54,43 +54,25 @@ fn print_grid(
             } else if j == start_y - 1 {
                 print!("{:>12}", i);
             } else {
-                if (grid[i][j].valid) {
+                if grid[i][j].valid {
                     print!("{:>12}", grid[i][j].node_value);
                 } else {
                     print!("{:>12}", "ERR");
                 }
-                // print!("{:>12}", grid[i][j].node_value);
-                // unsafe {
-                //     print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
-                // }
-                // print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
-                // if graph.matrix[i][j].is_none() {
-                //     print!("{:>12}", 0);
-                // }
-                // // Option<T> -> Option<&T> ->
-                // else if graph.matrix[i][j].as_ref().unwrap().valid {
-                //     unsafe {
-                //         print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
-                //     }
-                // }
-                // else {
-                //     print!("{:>12}", "ERR");
-                // }
             }
         }
         println!();
     }
 }
 
-fn display_status(x: i32, time_taken: f64) {
+pub fn display_status(x: i32, time_taken: f64) {
     print!("[{:.2}] ", time_taken);
     match x {
-        1 => print!("(ok) > "),
-        2 => print!("(invalid range) > "),
-        3 => print!("(unrecognized cmd) > "),
-        4 => print!("(invalid row/column) > "),
-        5 => print!("(cycle not allowed) > "),
-        6 => print!("(invalid range) > "),
+        1 => print!("(ok) > "),  // relevant
+        2 => print!("(invalid range) > "),  // not relevant to autograder - will have to change parser if want to // debug
+        3 => print!("(unrecognized cmd) > "),  // relevant
+        4 => print!("(invalid row/column) > "), // ig not relevant
+        5 => print!("(cycle not allowed) > "), // relevant
         _ => (),
     }
     io::stdout().flush().unwrap();
@@ -102,7 +84,7 @@ fn is_number(str: &str) -> bool {
 
 // , graph: &Graph // debug
 // this processes commands and prints the grid
-fn process_command(
+pub fn process_command(
     command: &str,
     start_x: &mut usize,
     start_y: &mut usize,
@@ -153,22 +135,37 @@ fn process_command(
     // let mut function: isize = -1;
     // work with enums only not functions
 
+    // debug - complete this
     match parser::validate(command, &r, &c) {
-        Some((Some(Value::Cell(row, col)), Some(Value::Oper(v1, v2, op)))) => {
+        Some((Some(Value::Cell(col, row)), Some(Value::Oper(v1, v2, op)))) => {
+            // Handle special operations
+            match op {
+                Operation::Scrollto => {
+                    *start_x = row as usize;
+                    *start_y = col as usize;
+                    if !(*is_disabled) {
+                        print_grid(*start_x, *start_y, r, c, grid);
+                    }
+                    return 1;
+                }
+                _ => {}
+            }
+
+
             let target_cell = Coordinates { row, col };
             let (value1, value2) = match (&*v1, &*v2) {
-                (Value::Cell(r1, c1), Value::Cell(r2, c2)) => (
+                (Value::Cell(c1,r1), Value::Cell(c2, r2)) => (
                     Coordinates { row: *r1, col: *c1 },
                     Coordinates { row: *r2, col: *c2 },
                 ),
-                (Value::Cell(r1, c1), Value::Const(val)) => (
+                (Value::Cell(c1, r1), Value::Const(val)) => (
                     Coordinates { row: *r1, col: *c1 },
                     Coordinates {
                         row: *val as i32,
                         col: -1,
                     },
                 ),
-                (Value::Const(val), Value::Cell(r2, c2)) => (
+                (Value::Const(val), Value::Cell(c2, r2)) => (
                     Coordinates {
                         row: *val as i32,
                         col: -1,
@@ -185,7 +182,13 @@ fn process_command(
                         col: -1,
                     },
                 ),
-                _ => return 3, // Invalid operands
+                _ => 
+                {
+                    if !(*is_disabled) {
+                        print_grid(*start_x, *start_y, r, c, grid);
+                    }
+                    return 3 // Invalid operands
+                }
             };
             let operation = op;
 
@@ -197,60 +200,37 @@ fn process_command(
 
             return status;
         }
-        _ => return 3, // If parsing fails or does not match expected structure
+        Some((None, Some(Value::Oper(v1, v2, op)))) => {
+            // Handle special operations
+            match op {
+                Operation::EnableOutput => {
+                    *is_disabled = false;
+                    print_grid(*start_x, *start_y, r, c, grid);
+                    return 1;
+                }
+                Operation::DisableOutput => {
+                    *is_disabled = true;
+                    return 1;
+                }
+                _ => {
+                    if !(*is_disabled) {
+                        print_grid(*start_x, *start_y, r, c, grid);
+                    }
+                    return 3 // Invalid operands
+                }
+            }
+        }
+        _ => {
+            if !(*is_disabled) {
+                print_grid(*start_x, *start_y, r, c, grid);
+            }
+            return 3 // Invalid operands
+        }
     }
     1
-    // let coord = parser::parse(command, r, c);
-    // let coord = parser::validate(command, &r, &c);
-
-    // if let Some((_, Some(ref value))) = coord {
-    //     match value {
-    //         parser::Value::Oper(left_operand, right_operand, operation) => {
-    //             function = *operation as isize;
-    //             if function == 13 {
-    //                 if let parser::Value::Cell(row, col) = **left_operand {
-    //                     *start_x = row;
-    //                     *start_y = col;
-    //                 }
-    //             }
-    //         }
-    //         _ => {}
-    //     }
-    // } else {
-    //     return 3;
-    // }
-    // match function {
-    //     12 => {
-    //         *is_disabled = true;
-    //         1
-    //     }
-    //     11 => {
-    //         *is_disabled = false;
-    //         print_grid(*start_x, *start_y, r, c, grid);
-    //         1
-    //     }
-    //     13 => {
-    //         if !(*is_disabled) {
-    //             print_grid(*start_x, *start_y, r, c, grid);
-    //         }
-    //         1
-    //     }
-    //     _ => {
-    //         if let Some(coords) = coord {
-    //             // let status = getting_things_updated(function, &coords[0], &coords[1], &coords[2], r, c);
-    //             let status = 1;
-    //             if !(*is_disabled) {
-    //                 print_grid(*start_x, *start_y, r, c, grid);
-    //             }
-    //             status
-    //         } else {
-    //             3
-    //         }
-    //     }
-    // }
 }
 
-fn process_first(x: usize, command: &[String], is_disabled: &mut bool) -> bool {
+pub fn process_first(x: usize, command: &[String], is_disabled: &mut bool) -> bool {
     if x != 3 {
         return false;
     }
@@ -265,66 +245,4 @@ fn process_first(x: usize, command: &[String], is_disabled: &mut bool) -> bool {
         return false;
     }
     true
-}
-
-fn main() {
-    let mut start_x = 1;
-    let mut start_y = 1;
-    let mut is_disabled = false;
-    let args: Vec<String> = env::args().collect();
-    // part of first processing
-    if !process_first(args.len(), &args, &mut is_disabled) {
-        return;
-    }
-    let r = args[1].parse::<usize>().unwrap();
-    let c = args[2].parse::<usize>().unwrap();
-    let start = Instant::now();
-    let mut grid = generate_grid(r, c);
-    if !is_disabled {
-        print_grid(start_x, start_y, r, c, &mut grid);
-    }
-    let duration = start.elapsed();
-    display_status(1, duration.as_secs_f64());
-
-    let stdin = io::stdin();
-    let mut command = String::new();
-
-    // let graph = create_graph(r + 1, c + 1);
-
-    loop {
-        command.clear();
-        let bytes_read = stdin.lock().read_line(&mut command).unwrap();
-        if bytes_read == 0 {
-            break;
-        }
-        // remove the trailing newline character
-        if command.ends_with('\n') {
-            command.pop();
-        }
-        if command.is_empty() {
-            print_grid(start_x, start_y, r, c, &mut grid);
-            print!("[0.0] (unrecognized cmd) > ");
-            io::stdout().flush().unwrap();
-            continue;
-        }
-
-        let start = Instant::now();
-        // , &graph // debug
-        let status = process_command(
-            &command,
-            &mut start_x,
-            &mut start_y,
-            r,
-            c,
-            &mut is_disabled,
-            &mut grid,
-        );
-        let duration = start.elapsed();
-
-        // quit status
-        if status == 0 {
-            break;
-        }
-        display_status(status, duration.as_secs_f64());
-    }
 }

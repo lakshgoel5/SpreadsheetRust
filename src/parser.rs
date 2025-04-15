@@ -42,7 +42,6 @@ pub fn validate(
                 )),
             ));
         } else {
-            eprintln!("Invalid cell address in scroll_to command");
             return None;
         }
     }

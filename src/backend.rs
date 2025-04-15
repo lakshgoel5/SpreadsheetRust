@@ -13,9 +13,9 @@ use crate::types::Coordinates;
 ///// debug -> in add_and _break check which ops you are taking  ---> done
 
 pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
-    (0..r)
+    (0..r+1)
         .map(|i| {
-            (0..c)
+            (0..c+1)
                 .map(|j| Node {
                     node_value: 0,
                     value1: Coordinates { row: -1, col: -1 },
@@ -227,13 +227,15 @@ pub fn getting_things_updated(
     // break previous inward dependecies (will remove the target from its previous parents)
     // add new dependencies of target in parent's vector
     // old_op :
+    // println!("Old op: {:?}", graph[target.row as usize][target.col as usize].op);// debug
     break_edges(graph, value1, value2, target, op, false); // old dependencies
     add_edges(graph, value1, value2, target, op, true); // new dependencies
     // check if new dependecies introduces cycle
     if has_cycle(target, graph) {
+        // println!("Cycle detected!"); // debug
         break_edges(graph, value1, value2, target, op, true); // new dependencies
         add_edges(graph, value1, value2, target, op, false); // old dependencies
-        return 6;
+        return 5;
     }
 
     // go to dependents of the cell and change their values
@@ -243,7 +245,7 @@ pub fn getting_things_updated(
     graph[target.row as usize][target.col as usize].value2.row = value2.row;
     graph[target.row as usize][target.col as usize].value2.col = value2.col;
 
-    evaluate_node(graph, target);
+    // evaluate_node(graph, target);
     update_topo(graph, target);
 
     1 // success
@@ -293,11 +295,42 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
     // extract value1 and value2 before borrowing node
     let value1 = graph[row][col].value1;
     let value2 = graph[row][col].value2;
+    //  check here it is going out of bounds (A1=3 - like first command it will go out of bounds)
+    // let value1_valid = graph[value1.row as usize][value1.col as usize].valid;
+    let value1_valid = if value1.row >= 0 && value1.col >= 0 &&
+        (value1.row as usize) < graph.len() &&
+        (value1.col as usize) < graph[0].len()
+    {
+        graph[value1.row as usize][value1.col as usize].valid
+    } else {
+        true // assume constants are always valid
+    };
+    let value2_valid = if value2.row >= 0 && value2.col >= 0 &&
+        (value2.row as usize) < graph.len() &&
+        (value2.col as usize) < graph[0].len()
+    {
+        graph[value2.row as usize][value2.col as usize].valid
+    } else {
+        true // assume constants are always valid
+    };
+    // let value2_valid = graph[value2.row as usize][value2.col as usize].valid;
+    let value1_node_value = if value1.row >= 0 && value1.col >= 0 &&
+        (value1.row as usize) < graph.len() &&
+        (value1.col as usize) < graph[0].len()
+    {
+        graph[value1.row as usize][value1.col as usize].node_value
+    } else {
+        value1.row // constant
+    };
 
-    let value1_valid = graph[value1.row as usize][value1.col as usize].valid;
-    let value2_valid = graph[value2.row as usize][value2.col as usize].valid;
-    let value1_node_value = graph[value1.row as usize][value1.col as usize].node_value;
-    let value2_node_value = graph[value2.row as usize][value2.col as usize].node_value;
+    let value2_node_value = if value2.row >= 0 && value2.col >= 0 &&
+        (value2.row as usize) < graph.len() &&
+        (value2.col as usize) < graph[0].len()
+    {
+        graph[value2.row as usize][value2.col as usize].node_value
+    } else {
+        value2.row // constant
+    };
     let op = graph[row][col].op;
 
     // evaluate range result before mutable borrow
@@ -478,9 +511,42 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
         // sleep function
         Operation::Slp => {
             // Handle sleep operation
-            // Sleep for a specified duration
-            // DEBUG - add this after testing
             // std::thread::sleep(std::time::Duration::from_secs(1));
+            // V
+            if node.value1.col == -1 && node.value2.col == -1 {
+                node.valid = true;
+                node.node_value = value1_node_value;
+                std::thread::sleep(std::time::Duration::from_secs(value1_node_value as u64));
+            }
+            // C
+            else {
+                if value1_valid {
+                    node.valid = true;
+                    node.node_value = value1_node_value;
+                    std::thread::sleep(std::time::Duration::from_secs(value1_node_value as u64));
+                } else {
+                    node.valid = false;
+                }
+            }
+        }
+        Operation::Cons => {
+            // Handle constant assignment
+            // No operation needed, just set the value
+            node.valid = true;
+            // V
+            if node.value1.col == -1 && node.value2.col == -1 {
+                node.valid = true;
+                node.node_value = value1_node_value;
+            }
+            // C
+            else {
+                if value1_valid {
+                    node.valid = true;
+                    node.node_value = value1_node_value;
+                } else {
+                    node.valid = false;
+                }
+            }
         }
         _ => {}
     }

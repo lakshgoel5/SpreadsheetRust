@@ -8,33 +8,67 @@ mod graph;
 mod parser;
 mod spreadsheet;
 mod types;
+use std::time::Instant;
+use std::io::{self, BufRead, Write};
 
 fn main() {
-    // decoding rows and columns
+    let mut start_x = 1;
+    let mut start_y = 1;
+    let mut is_disabled = false;
     let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
-        eprintln!("Usage: {} <rows> <columns>", args[0]);
-        std::process::exit(1);
+    // part of first processing
+    if !spreadsheet::process_first(args.len(), &args, &mut is_disabled) {
+        return;
     }
-    let rows: usize = args[1].parse().expect("Invalid number of rows");
-    let columns: usize = args[2].parse().expect("Invalid number of columns");
-    if rows > 999 || columns > 18278 {
-        eprintln!("Invalid input: rows and cols need to be within 999 and ZZZ respectively");
-        std::process::exit(1);
+    let r = args[1].parse::<usize>().unwrap();
+    let c = args[2].parse::<usize>().unwrap();
+    let start = Instant::now();
+    let mut grid = backend::generate_grid(r, c);
+    if !is_disabled {
+        spreadsheet::print_grid(start_x, start_y, r, c, &mut grid);
     }
+    let duration = start.elapsed();
+    spreadsheet::display_status(1, duration.as_secs_f64());
 
-    // reading command and replacing the trailing newline with null character
-    let mut cmd = String::new();
-    let _bytes_read = std::io::stdin()
-        .read_line(&mut cmd)
-        .expect("Failed to read command");
-    let cmd = String::from(cmd.trim());
+    let stdin = io::stdin();
+    let mut command = String::new();
 
-    // calling parser
-    let cell = parser::validate(&cmd, &rows, &columns);
-    if let Some(c) = cell {
-        println!("{:?}", c);
-    } else {
-        eprintln!("Invalid command");
+    // let graph = create_graph(r + 1, c + 1);
+
+    loop {
+        command.clear();
+        let bytes_read = stdin.lock().read_line(&mut command).unwrap();
+        if bytes_read == 0 {
+            break;
+        }
+        // remove the trailing newline character
+        if command.ends_with('\n') {
+            command.pop();
+        }
+        if command.is_empty() {
+            spreadsheet::print_grid(start_x, start_y, r, c, &mut grid);
+            print!("[0.0] (unrecognized cmd) > ");
+            io::stdout().flush().unwrap();
+            continue;
+        }
+
+        let start = Instant::now();
+        // , &graph // debug
+        let status = spreadsheet::process_command(
+            &command,
+            &mut start_x,
+            &mut start_y,
+            r,
+            c,
+            &mut is_disabled,
+            &mut grid,
+        );
+        let duration = start.elapsed();
+
+        // quit status
+        if status == 0 {
+            break;
+        }
+        spreadsheet::display_status(status, duration.as_secs_f64());
     }
 }
