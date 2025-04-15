@@ -12,27 +12,27 @@ pub struct Range {
 // check ERR flag
 
 // operand : operand type  --> use pattern matching here
-pub enum Operand {
-    Cell(Coordinates),
-    Const(i32),
-}
+// pub enum Operand {
+//     Cell(Coordinates),
+//     Const(i32),
+// }
 
-// Arithmetic operations : ADD SUB MUL DIV (b/w two operands - cell/value)
-pub struct ArithmeticOp {
-    pub val1: Operand,
-    pub val2: Operand,
-}
+// // Arithmetic operations : ADD SUB MUL DIV (b/w two operands - cell/value)
+// pub struct ArithmeticOp {
+//     pub val1: Operand,
+//     pub val2: Operand,
+// }
 
-pub enum FunctionType {
-    Range(Range),  // range based functions
-    Arithmetic(ArithmeticOp), // b/w two cells/ints int/cell
-    ConstantAssignment(Operand), // cell/value
-    Sleep(Operand), // sleep : cell/value
-}
-pub struct Function {
-    pub function: Operation,
-    pub function_type: FunctionType,
-}
+// pub enum FunctionType {
+//     Range(Range),  // range based functions
+//     Arithmetic(ArithmeticOp), // b/w two cells/ints int/cell
+//     ConstantAssignment(Operand), // cell/value
+//     Sleep(Operand), // sleep : cell/value
+// }
+// pub struct Function {
+//     pub function: Operation,
+//     pub function_type: FunctionType,
+// }
 
 // parser
 #[derive(Clone, Copy, Debug)]

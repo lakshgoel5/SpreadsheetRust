@@ -20,6 +20,9 @@ use crate::functions::Operation;
 //     }
 // }
 
+
+///// debug -> in add_and _break check which ops you are taking
+
 pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
     (0..r)
         .map(|i| {
@@ -228,12 +231,7 @@ pub fn break_edges(
 
 }
 
-pub fn has_cycle() -> bool {
-    // check for cycle using efficient DFS
-    // no need of visited and instack use dirty parent flags
-    
-    false
-}
+
 // returns status to process_command
 pub fn getting_things_updated(
     graph: &mut Vec<Vec<Node>>,
@@ -253,7 +251,7 @@ pub fn getting_things_updated(
     break_edges(graph, value1, value2, target, op, false);  // old dependencies
     add_edges(graph, value1, value2, target, op, true);  // new dependencies
     // check if new dependecies introduces cycle
-    if has_cycle() {
+    if has_cycle(target, graph) {
         break_edges(graph, value1, value2, target, op, true); // new dependencies
         add_edges(graph, value1, value2, target, op, false); // old dependencies
         6
@@ -262,4 +260,119 @@ pub fn getting_things_updated(
     // go to dependents of the cell and change their values
 
     1 // success
+}
+
+pub fn update_topo(graph: &mut Vec<Vec<Node>>, start: Coordinates) {
+    let mut stack = Vec::new();
+
+    topological_sort(graph, start, &mut stack);
+
+    while let Some(coord) = stack.pop() {
+        evaluate_node(graph, coord);
+    }
+
+    // Reset visited flags so next call works correctly
+    reset_visited(graph, start);
+}
+
+pub fn topological_sort(
+    graph: &mut Vec<Vec<Node>>,
+    node: Coordinates,
+    stack: &mut Vec<Coordinates>,
+) {
+    let (i, j) = (node.row as usize, node.col as usize);
+    let node_ref = &mut graph[i][j];
+
+    if node_ref.visited {
+        return;
+    }
+
+    node_ref.visited = true;
+
+    for dep in &node_ref.dependents {
+        topological_sort(graph, *dep, stack);
+    }
+
+    stack.push(node);
+}
+
+// function that sets node value according to its operation
+pub fn evaluate_node (graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
+    node = &mut graph[coord.row as usize][coord.col as usize];
+    match node.op {
+        Operation::Add => {
+            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
+            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
+            node.node_value = value1 + value2;
+        }
+        Operation::Sub => {
+            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
+            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
+            node.node_value = value1 - value2;
+        }
+        Operation::Mul => {
+            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
+            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
+            node.node_value = value1 * value2;
+        }
+        Operation::Div => {
+            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
+            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
+            if value2 != 0 {
+                node.node_value = value1 / value2;
+            } else {
+                node.node_value = 0; // Handle division by zero
+            }
+        }
+        Operation::Min => {
+            let value1 = graph[node.value1.row as usize][node.value1.col as usize].node_value;
+            let value2 = graph[node.value2.row as usize][node.value2.col as usize].node_value;
+            node.node_value = value1.min(value2);
+        }
+    }
+}
+
+pub fn has_cycle(target: Coordinates, graph: &mut Vec<Vec<Node>>) -> bool {
+    // check for cycle using iterative DFS
+    // use stack
+    // reset visited flags
+    let mut stack = vec![target];
+    graph[target.position.row as usize][target.position.col as usize].visited = true;
+    while let Some(node1) = stack.pop() {
+        let node = &mut graph[node1.position.row as usize][node1.position.col as usize];
+
+        for dep in &node.dependents {
+            if dep.row == target.row && dep.col == target.col {
+                // back edge to target → cycle
+                reset_visited(graph, target);
+                return true;
+            }
+
+            let dep_node = &mut graph[dep.row as usize][dep.col as usize];
+            if !dep_node.visited {
+                dep_node.visited = true;
+                stack.push(*dep);
+            }
+        }
+    }
+
+    reset_visited(graph, target);
+    false
+}
+
+// redo dfs to reset flags
+fn reset_visited(graph: &mut Vec<Vec<Node>>, start: Coordinates) {
+    let mut stack = vec![start];
+    graph[start.row as usize][start.col as usize].visited = false;
+
+    while let Some(node1) = stack.pop() {
+        let node = &mut graph[node1.position.row as usize][node1.position.col as usize];
+        for dep in &node.dependents {
+            let dep_node = &mut graph[dep.row as usize][dep.col as usize];
+            if dep_node.visited {
+                dep_node.visited = false;
+                stack.push(*dep);
+            }
+        }
+    }
 }

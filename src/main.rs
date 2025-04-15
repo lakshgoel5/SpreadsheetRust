@@ -5,8 +5,9 @@ use std::env;
 mod parser;
 mod backend;
 mod spreadsheet;
-// mod spreadsheet;
-// mod types;
+mod types;
+mod functions;
+mod graph;
 
 fn main() {
     // decoding rows and columns
