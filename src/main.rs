@@ -2,12 +2,12 @@ use std::env;
 // mod backend;
 // mod functions;
 // mod graph;
-mod parser;
 mod backend;
-mod spreadsheet;
-mod types;
 mod functions;
 mod graph;
+mod parser;
+mod spreadsheet;
+mod types;
 
 fn main() {
     // decoding rows and columns

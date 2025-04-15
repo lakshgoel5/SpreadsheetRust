@@ -1,14 +1,15 @@
 use crate::backend::generate_grid;
+use crate::backend::getting_things_updated;
+use crate::functions::Value;
 use crate::graph::Node;
 use crate::parser;
-use crate::functions::Value;
+use crate::types::Coordinates;
 use std::cmp;
 use std::env;
 use std::ffi::CString;
 use std::io::{self, BufRead, Write};
 use std::ptr;
 use std::time::Instant;
-use crate::backend::getting_things_updated;
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
 
@@ -53,7 +54,12 @@ fn print_grid(
             } else if j == start_y - 1 {
                 print!("{:>12}", i);
             } else {
-                print!("{:>12}", grid[i][j]);
+                if (grid[i][j].valid) {
+                    print!("{:>12}", grid[i][j].node_value);
+                } else {
+                    print!("{:>12}", "ERR");
+                }
+                // print!("{:>12}", grid[i][j].node_value);
                 // unsafe {
                 //     print!("{:>12}", GRID.as_ref().unwrap()[i][j]);
                 // }
@@ -149,21 +155,50 @@ fn process_command(
 
     match parser::validate(command, &r, &c) {
         Some((Some(Value::Cell(row, col)), Some(Value::Oper(v1, v2, op)))) => {
-            let target_cell = Value::Cell(row, col);
-            let val1 = v1.as_ref();
-            let val2 = v2.as_ref();
+            let target_cell = Coordinates { row, col };
+            let (value1, value2) = match (&*v1, &*v2) {
+                (Value::Cell(r1, c1), Value::Cell(r2, c2)) => (
+                    Coordinates { row: *r1, col: *c1 },
+                    Coordinates { row: *r2, col: *c2 },
+                ),
+                (Value::Cell(r1, c1), Value::Const(val)) => (
+                    Coordinates { row: *r1, col: *c1 },
+                    Coordinates {
+                        row: *val as i32,
+                        col: -1,
+                    },
+                ),
+                (Value::Const(val), Value::Cell(r2, c2)) => (
+                    Coordinates {
+                        row: *val as i32,
+                        col: -1,
+                    },
+                    Coordinates { row: *r2, col: *c2 },
+                ),
+                (Value::Const(val1), Value::Const(val2)) => (
+                    Coordinates {
+                        row: *val1 as i32,
+                        col: -1,
+                    },
+                    Coordinates {
+                        row: *val2 as i32,
+                        col: -1,
+                    },
+                ),
+                _ => return 3, // Invalid operands
+            };
             let operation = op;
-    
-            let status = getting_things_updated(grid, target_cell, val1, val2, operation, r, c, grid);
-    
+
+            let status = getting_things_updated(grid, target_cell, value1, value2, operation);
+
             if !(*is_disabled) {
                 print_grid(*start_x, *start_y, r, c, grid);
             }
-    
+
             return status;
         }
         _ => return 3, // If parsing fails or does not match expected structure
-    }    
+    }
     1
     // let coord = parser::parse(command, r, c);
     // let coord = parser::validate(command, &r, &c);
@@ -215,11 +250,7 @@ fn process_command(
     // }
 }
 
-fn process_first(
-    x: usize,
-    command: &[String],
-    is_disabled: &mut bool,
-) -> bool {
+fn process_first(x: usize, command: &[String], is_disabled: &mut bool) -> bool {
     if x != 3 {
         return false;
     }
@@ -242,11 +273,7 @@ fn main() {
     let mut is_disabled = false;
     let args: Vec<String> = env::args().collect();
     // part of first processing
-    if !process_first(
-        args.len(),
-        &args,
-        &mut is_disabled,
-    ) {
+    if !process_first(args.len(), &args, &mut is_disabled) {
         return;
     }
     let r = args[1].parse::<usize>().unwrap();

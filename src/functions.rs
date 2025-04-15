@@ -54,7 +54,7 @@ pub enum Operation {
 }
 #[derive(Debug)]
 pub enum Value {
-    Cell(usize, usize),
+    Cell(i32, i32),
     Const(isize),
     Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
 }
@@ -62,7 +62,11 @@ pub enum Value {
 // handle sleep individually
 
 // range based functions
-pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+pub fn max_function(
+    value1: Coordinates,
+    value2: Coordinates,
+    grid: &Vec<Vec<Node>>,
+) -> Option<i32> {
     // Both are cell references
     let mut max_val = std::i32::MIN;
     // bool flag = false;
@@ -80,7 +84,11 @@ pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec
     Some(max_val)
 }
 
-pub fn min_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+pub fn min_function(
+    value1: Coordinates,
+    value2: Coordinates,
+    grid: &Vec<Vec<Node>>,
+) -> Option<i32> {
     // Both are cell references
     let mut min_val = std::i32::MAX;
     // bool flag = false;
@@ -98,7 +106,11 @@ pub fn min_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec
     Some(min_val)
 }
 
-pub fn avg_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+pub fn avg_function(
+    value1: Coordinates,
+    value2: Coordinates,
+    grid: &Vec<Vec<Node>>,
+) -> Option<i32> {
     let mut sum = 0;
     let mut count = 0;
     for i in value1.row..=value2.row {
@@ -114,7 +126,11 @@ pub fn avg_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec
     if count == 0 { None } else { Some(sum / count) }
 }
 
-pub fn sum_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+pub fn sum_function(
+    value1: Coordinates,
+    value2: Coordinates,
+    grid: &Vec<Vec<Node>>,
+) -> Option<i32> {
     let mut sum = 0;
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
@@ -128,10 +144,14 @@ pub fn sum_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec
     Some(sum)
 }
 
-pub fn stdev_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
+pub fn stdev_function(
+    value1: Coordinates,
+    value2: Coordinates,
+    grid: &Vec<Vec<Node>>,
+) -> Option<i32> {
     let mut sum = 0f64;
     let mut count = 0;
-    
+
     // First pass: calculate sum and count
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
@@ -139,8 +159,7 @@ pub fn stdev_function(value1: Coordinates, value2: Coordinates, grid: &mut Vec<V
             if node.valid {
                 sum += node.node_value as f64;
                 count += 1;
-            }
-            else{
+            } else {
                 return None;
             }
         }

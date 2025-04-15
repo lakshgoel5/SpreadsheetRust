@@ -170,7 +170,6 @@ pub fn validate(
     }
 }
 
-
 pub fn is_cell(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
@@ -199,7 +198,7 @@ pub fn is_cell(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     if row > *rows || col > *columns {
         return None;
     }
-    Some(Value::Cell(col, row))
+    Some(Value::Cell(col as i32, row as i32))
 }
 
 pub fn is_const(exp: &str) -> Option<Value> {

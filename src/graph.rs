@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::types::Coordinates;
 use crate::functions::Operation;
+use crate::types::Coordinates;
 use std::fmt;
 #[derive(Debug)]
 
@@ -63,23 +63,23 @@ impl Node {
     }
     // topo sort -> no need -> already dependent lists present
 }
-/// remove graph will also improve memory usage
+// remove graph will also improve memory usage
 
 // debug this once
-impl fmt::Display for Node {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Node {{ node_value: {}, function: {}, value1: ({}, {}), value2: ({}, {}), position: ({}, {}), valid: {}, dependents: {:?} }}",
-            self.node_value,
-            self.value1.row,
-            self.value1.col,
-            self.value2.row,
-            self.value2.col,
-            self.position.row,
-            self.position.col,
-            self.valid,
-            self.dependents,
-        )
-    }
-}
+// impl fmt::Display for Node {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(
+//             f,
+//             "Node {{ node_value: {}, function: {}, value1: ({}, {}), value2: ({}, {}), position: ({}, {}), valid: {}, dependents: {:?} }}",
+//             self.node_value,
+//             self.value1.row,
+//             self.value1.col,
+//             self.value2.row,
+//             self.value2.col,
+//             self.position.row,
+//             self.position.col,
+//             self.valid,
+//             self.dependents,
+//         )
+//     }
+// }
