@@ -29,7 +29,7 @@ fn main() {
     let cmd = String::from(cmd.trim());
 
     // calling parser
-    let cell = parser::validate(&cmd, &rows, &columns);
+    let cell = parser::parser::validate(&cmd, &rows, &columns);
     if let Some(c) = cell {
         println!("{:?}", c);
     } else {
