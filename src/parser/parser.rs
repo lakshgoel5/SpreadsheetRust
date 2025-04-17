@@ -1,3 +1,11 @@
+/// Module responsible for validating and parsing commands given to the spreadsheet.
+///
+/// This includes:
+/// - Recognizing valid cell identifiers
+/// - Parsing constants and expressions
+/// - Constructing a `Value` AST representing operations or values
+/// - Supporting arithmetic, sleep, and range-based operations like SUM, AVG, etc.
+
 pub fn validate(cmd: &String, rows: &usize, columns: &usize) -> Option<(Option<Value>, Option<Value>)> {
     let Some((cell, exp)) = cmd.split_once('=') else {
         eprintln!("Could not find a valid exp being assigned to a valid cell");

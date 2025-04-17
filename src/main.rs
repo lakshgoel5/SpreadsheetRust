@@ -1,6 +1,12 @@
 use std::env;
 mod parser;
 
+/// Entry point of the spreadsheet application.
+///
+/// Depending on calling flag, either web-based spreadsheet is avtivated,
+/// or terminal based spreadsheet
+
+/// Should pass arguments to init_frontend
 fn main() {
     // decoding rows and columns
     let args: Vec<String> = env::args().collect();
