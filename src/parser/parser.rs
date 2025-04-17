@@ -6,6 +6,8 @@
 /// - Constructing a `Value` AST representing operations or values
 /// - Supporting arithmetic, sleep, and range-based operations like SUM, AVG, etc.
 
+use crate::common::Operation;
+
 pub fn validate(
     cmd: &String,
     rows: &usize,
@@ -36,25 +38,25 @@ pub fn validate(
                     '+' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::ADD)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Add)),
                         ));
                     }
                     '-' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::SUB)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Sub)),
                         ));
                     }
                     '*' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::MUL)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Mul)),
                         ));
                     }
                     '/' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::DIV)),
+                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Div)),
                         ));
                     }
                     _ => {
@@ -72,7 +74,7 @@ pub fn validate(
             Some(Value::Oper(
                 Box::new(val),
                 Box::new(Value::Const(0)),
-                Operation::CONS,
+                Operation::Cons,
             )),
         ));
     };
@@ -88,7 +90,7 @@ pub fn validate(
                 Some(Value::Oper(
                     Box::new(val),
                     Box::new(Value::Const(0)),
-                    Operation::SLP,
+                    Operation::Slp,
                 )),
             ));
         }
@@ -110,31 +112,31 @@ pub fn validate(
         "SUM" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::SUM)),
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Sum)),
             ));
         }
         "AVG" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::AVG)),
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Avg)),
             ));
         }
         "STDEV" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::STD)),
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Std)),
             ));
         }
         "MIN" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::MIN)),
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Min)),
             ));
         }
         "MAX" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::MAX)),
+                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
             ));
         }
         _ => {
@@ -142,20 +144,6 @@ pub fn validate(
             return Some((cell, None));
         }
     }
-}
-#[derive(Debug)]
-enum Operation {
-    CONS = 0,
-    ADD = 1,
-    SUB = 2,
-    MUL = 3,
-    DIV = 4,
-    MIN = 5,
-    MAX = 6,
-    AVG = 7,
-    SUM = 8,
-    STD = 9,
-    SLP = 10,
 }
 #[derive(Debug)]
 pub enum Value {
