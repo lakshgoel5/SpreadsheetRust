@@ -5,8 +5,8 @@
 /// - Parsing constants and expressions
 /// - Constructing a `Value` AST representing operations or values
 /// - Supporting arithmetic, sleep, and range-based operations like SUM, AVG, etc.
-
 use crate::common::Operation;
+use crate::common::Value;
 
 pub fn validate(
     cmd: &String,
@@ -144,12 +144,6 @@ pub fn validate(
             return Some((cell, None));
         }
     }
-}
-#[derive(Debug)]
-pub enum Value {
-    Cell(usize, usize),
-    Const(isize),
-    Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
 }
 
 pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
