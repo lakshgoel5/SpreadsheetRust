@@ -4,7 +4,8 @@
 pub enum Value {
     Cell(usize, usize),
     Const(isize),
-    Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
+    Oper(Option<Box<Value>>, Option<Box<Value>>, Operation), //value1 and value2, and the operation or command, respectively
+    None,
 }
 
 #[derive(Debug, Clone)]
@@ -26,4 +27,9 @@ pub enum Operation {
     EnableOutput,
     DisableOutput,
     ScrollTo,
+    Left,
+    Right,
+    Up,
+    Down,
+    Quit,
 }

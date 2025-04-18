@@ -38,25 +38,41 @@ pub fn validate(
                     '+' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Add)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Add,
+                            )),
                         ));
                     }
                     '-' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Sub)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Sub,
+                            )),
                         ));
                     }
                     '*' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Mul)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Mul,
+                            )),
                         ));
                     }
                     '/' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Div)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Div,
+                            )),
                         ));
                     }
                     _ => {
@@ -72,8 +88,8 @@ pub fn validate(
         return Some((
             cell,
             Some(Value::Oper(
-                Box::new(val),
-                Box::new(Value::Const(0)),
+                Some(Box::new(val)),
+                Some(Box::new(Value::Const(0))),
                 Operation::Cons,
             )),
         ));
@@ -88,8 +104,8 @@ pub fn validate(
             return Some((
                 cell,
                 Some(Value::Oper(
-                    Box::new(val),
-                    Box::new(Value::Const(0)),
+                    Some(Box::new(val)),
+                    Some(Box::new(Value::Const(0))),
                     Operation::Slp,
                 )),
             ));
@@ -112,31 +128,51 @@ pub fn validate(
         "SUM" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Sum)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Sum,
+                )),
             ));
         }
         "AVG" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Avg)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Avg,
+                )),
             ));
         }
         "STDEV" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Std)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Std,
+                )),
             ));
         }
         "MIN" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Min)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Min,
+                )),
             ));
         }
         "MAX" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Max,
+                )),
             ));
         }
         _ => {

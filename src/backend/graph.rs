@@ -10,7 +10,7 @@ use crate::common::Value;
 /// Contains Dependency list, value, function and a few booleans
 #[derive(Debug, Clone)]
 //clone trait used due to vec![vec![Cell::new(0); columns]; rows]
-pub struct Cell {
+pub struct Node {
     pub dependents: Vec<Value>,
     pub node_value: i32,
     pub function: Option<Value>,
@@ -18,10 +18,10 @@ pub struct Cell {
     pub valid: bool,
 }
 
-impl Cell {
-    ///Initialises a cell
+impl Node {
+    ///Initialises a Node
     pub fn new(val: i32) -> Self {
-        Cell {
+        Node {
             dependents: Vec::new(),
             node_value: val,
             function: None,
@@ -29,7 +29,7 @@ impl Cell {
             valid: false,
         }
     }
-    pub fn get_cell_value(&self) -> i32 {
+    pub fn get_node_value(&self) -> i32 {
         self.node_value
     }
 }
