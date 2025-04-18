@@ -1,5 +1,5 @@
 use spreadsheet_rust::backend::backend;
-use spreadsheet_rust::backend::backend::Backend;
+use spreadsheet_rust::backend::backend::*;
 
 #[test]
 fn test_init_backend() {
@@ -7,7 +7,7 @@ fn test_init_backend() {
     let grid = backend.get_grid();
     assert_eq!(grid.get_row_size(), 10);
     assert_eq!(grid.get_column_size(), 15);
-    assert_eq!(grid.get_cell(9, 14).get_cell_value(), 0)
+    assert_eq!(grid.get_cell(9, 14).get_node_value(), 0)
 }
 #[test]
 fn test_grid_new() {
