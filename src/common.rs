@@ -8,6 +8,23 @@ pub enum Value {
     None,
 }
 
+impl Value {
+    /// return row of Cell
+    pub fn row(&self) -> usize {
+        match self {
+            Value::Cell(row, _) => *row,
+            _ => panic!("Expected a Cell value"),
+        }
+    }
+    /// return column of Cell
+    pub fn col(&self) -> usize {
+        match self {
+            Value::Cell(_, col) => *col,
+            _ => panic!("Expected a Cell value"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 //Needed as Value has implemented a clone
 //Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
