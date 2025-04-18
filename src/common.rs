@@ -1,3 +1,4 @@
+/// Represents a value that can appear in a spreadsheet.
 #[derive(Debug)]
 pub enum Value {
     Cell(i32, i32),
