@@ -15,74 +15,28 @@ pub fn validate(
 ) -> Option<(Option<Value>, Option<Value>)> {
     match cmd.trim() {
         "enable_output" => {
-            return Some((
-                None,
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::EnableOutput,
-                )),
-            ));
+            return Some((None, Some(Value::Oper(None, None, Operation::EnableOutput))));
         }
         "disable_output" => {
             return Some((
                 None,
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::DisableOutput,
-                )),
+                Some(Value::Oper(None, None, Operation::DisableOutput)),
             ));
         }
         "w" => {
-            return Some((
-                None,
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::Up,
-                )),
-            ));
+            return Some((None, Some(Value::Oper(None, None, Operation::Up))));
         }
         "s" => {
-            return Some((
-                None,
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::Down,
-                )),
-            ));
+            return Some((None, Some(Value::Oper(None, None, Operation::Down))));
         }
         "a" => {
-            return Some((
-                None,
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::Left,
-                )),
-            ));
+            return Some((None, Some(Value::Oper(None, None, Operation::Left))));
         }
         "d" => {
-            return Some((
-                None,
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::Right,
-                )),
-            ));
+            return Some((None, Some(Value::Oper(None, None, Operation::Right))));
         }
         "q" => {
-            return Some((
-                None,
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::Quit,
-                )),
-            ));
+            return Some((None, Some(Value::Oper(None, None, Operation::Quit))));
         }
         _ => {} // Continue with the regular parsing for other commands
     }
@@ -93,11 +47,7 @@ pub fn validate(
         if let Some(cell) = cell {
             return Some((
                 Some(cell),
-                Some(Value::Oper(
-                    None,
-                    None,
-                    Operation::ScrollTo,
-                )),
+                Some(Value::Oper(None, None, Operation::ScrollTo)),
             ));
         } else {
             return None;

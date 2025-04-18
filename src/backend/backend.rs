@@ -52,7 +52,7 @@ impl Grid {
     pub fn get_node(&self, row: usize, column: usize) -> &Node {
         &self.cells_vec[row][column]
     }
-    pub fn get_node_value(&self, row: usize, column: usize) -> isize {
+    pub fn get_node_value(&self, row: usize, column: usize) -> Option<isize> {
         self.cells_vec[row][column].get_node_value()
     }
 }
@@ -66,11 +66,11 @@ impl Backend {
     ///Initializes Backend
     pub fn init_backend(rows: usize, columns: usize) -> Self {
         Backend {
-            grid: Grid::new(rows, columns),
+            grid: Grid::new(rows + 1, columns + 1),
         }
     }
     ///Returns the value of cell
-    pub fn get_node_value(&self, cell: Value) -> isize {
+    pub fn get_node_value(&self, cell: Value) -> Option<isize> {
         match cell {
             Value::Cell(row, col) => self.grid.get_node_value(row, col),
             _ => panic!("Expected a Cell value"),

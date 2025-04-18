@@ -29,7 +29,11 @@ impl Node {
             valid: false,
         }
     }
-    pub fn get_node_value(&self) -> isize {
-        self.node_value
+    pub fn get_node_value(&self) -> Option<isize> {
+        if self.valid {
+            Some(self.node_value)
+        } else {
+            None
+        }
     }
 }
