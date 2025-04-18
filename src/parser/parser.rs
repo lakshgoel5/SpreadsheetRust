@@ -13,6 +13,97 @@ pub fn validate(
     rows: &usize,
     columns: &usize,
 ) -> Option<(Option<Value>, Option<Value>)> {
+    match cmd.trim() {
+        "enable_output" => {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::EnableOutput,
+                )),
+            ));
+        }
+        "disable_output" => {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::DisableOutput,
+                )),
+            ));
+        }
+        "w" => {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::Up,
+                )),
+            ));
+        }
+        "s" => {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::Down,
+                )),
+            ));
+        }
+        "a" => {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::Left,
+                )),
+            ));
+        }
+        "d" => {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::Right,
+                )),
+            ));
+        }
+        "q" => {
+            return Some((
+                None,
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::Quit,
+                )),
+            ));
+        }
+        _ => {} // Continue with the regular parsing for other commands
+    }
+
+    if cmd.trim().starts_with("scroll_to ") {
+        let cell_name = cmd.trim()["scroll_to ".len()..].trim().to_string();
+        let cell = is_cell(&cell_name, rows, columns);
+        if let Some(cell) = cell {
+            return Some((
+                Some(cell),
+                Some(Value::Oper(
+                    None,
+                    None,
+                    Operation::ScrollTo,
+                )),
+            ));
+        } else {
+            return None;
+        }
+    }
+
     let Some((cell, exp)) = cmd.split_once('=') else {
         eprintln!("Could not find a valid exp being assigned to a valid cell");
         return None;
