@@ -1,0 +1,29 @@
+/// Represents a value that can appear in a spreadsheet.
+#[derive(Debug, Clone)]
+//Clone required for `Vec<Value>`(in graph.rs) to implement `Clone`
+pub enum Value {
+    Cell(usize, usize),
+    Const(isize),
+    Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
+}
+
+#[derive(Debug, Clone)]
+//Needed as Value has implemented a clone
+//Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
+//   |                                  ^^^^^^^^^ the trait `Clone` is not implemented for `Operation`
+pub enum Operation {
+    Cons,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Min,
+    Max,
+    Avg,
+    Sum,
+    Std,
+    Slp,
+    EnableOutput,
+    DisableOutput,
+    ScrollTo,
+}

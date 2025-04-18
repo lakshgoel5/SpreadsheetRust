@@ -1,2 +1,2 @@
-pub mod web;
 pub mod terminal;
+pub mod web;
