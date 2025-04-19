@@ -65,7 +65,7 @@ impl Frontend{
         }
     }
 
-    pub fn run_frontend(&self) {
+    pub fn run_frontend(&mut self) {
         self.print_grid();
         self.run_counter();
     }
@@ -115,6 +115,8 @@ impl Frontend{
                 self.print_enabled = true;
             }
             Status::ScrollTo(row, col) => {
+                self.start.assign_row(*row);
+                self.start.assign_col(*col);
                 return; //left debug
             }
             Status::Web => {
@@ -125,7 +127,7 @@ impl Frontend{
         }
     }
 
-    pub fn display_status(&self, status: Status, elapsed_time: Duration) {
+    pub fn display(&self, status: Status, elapsed_time: Duration) {
         self.print_grid();
         match status {
             Status::Success => println!("[{:?}] (Ok).", elapsed_time),
@@ -144,21 +146,21 @@ impl Frontend{
         }
     }
 
-    pub fn run_counter(&self) {
+    pub fn run_counter(&mut self) {
         let mut input = String::new();
         let stdin = std::io::stdin();
-        let mut backend = Backend::init_backend(10, 10); // Example grid size, adjust as needed
+
 
         loop {
             input.clear();
             let start_time = Instant::now();
             if stdin.read_line(&mut input).is_err() {
                 let elapsed_time = start_time.elapsed();
-                self.display_status(Status::UnrecognizedCmd, elapsed_time);
+                self.display(Status::UnrecognizedCmd, elapsed_time);
                 continue;
             }
             let command = input.trim().to_string();
-            let status = backend.process_command(self.dimension.row(), self.dimension.col(), command);
+            let status = self.backend.process_command(self.dimension.row(), self.dimension.col(), command);
             if status == Status::Quit {
                 break;
             }
