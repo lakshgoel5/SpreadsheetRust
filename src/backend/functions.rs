@@ -5,8 +5,9 @@ use crate::common::*;
 //would give you reference of grid reference and a node reference
 //write all functions given in common Operations
 // debug -> change this to Option for ERR cases
-pub fn max_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut max_val = isize::MIN;
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
             for i in row1..=row2 {
@@ -14,8 +15,7 @@ pub fn max_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    }
-                    else {
+                    } else {
                         if current_node.node_value > max_val {
                             max_val = current_node.node_value;
                         }
@@ -27,8 +27,9 @@ pub fn max_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     Some(max_val)
 }
 
-pub fn min_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn min_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut min_val = isize::MAX;
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
             for i in row1..=row2 {
@@ -36,8 +37,7 @@ pub fn min_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    }
-                    else {
+                    } else {
                         if current_node.node_value < min_val {
                             min_val = current_node.node_value;
                         }
@@ -49,8 +49,9 @@ pub fn min_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     Some(min_val)
 }
 
-pub fn sum_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn sum_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
             for i in row1..=row2 {
@@ -58,8 +59,7 @@ pub fn sum_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    }
-                    else {
+                    } else {
                         sum_val += current_node.node_value;
                     }
                 }
@@ -69,9 +69,10 @@ pub fn sum_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     Some(sum_val)
 }
 
-pub fn avg_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn avg_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
     let mut count = 0;
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
             for i in row1..=row2 {
@@ -86,10 +87,15 @@ pub fn avg_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
             }
         }
     }
-    if count == 0 { None } else { Some(sum_val / count) }
+    if count == 0 {
+        None
+    } else {
+        Some(sum_val / count)
+    }
 }
 
-pub fn std_dev_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn std_dev_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _)) = node.function.clone() {
         if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
             let mut sum = 0f64;
@@ -134,8 +140,8 @@ pub fn std_dev_function(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     None
 }
 
-
-pub fn add(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn add(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
             Value::Cell(row, col) => {
@@ -167,7 +173,8 @@ pub fn add(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     }
 }
 
-pub fn sub(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn sub(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
             Value::Cell(row, col) => {
@@ -199,7 +206,8 @@ pub fn sub(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     }
 }
 
-pub fn mul(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn mul(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
             Value::Cell(row, col) => {
@@ -231,7 +239,8 @@ pub fn mul(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     }
 }
 
-pub fn div(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
+    let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
             Value::Cell(row, col) => {
@@ -260,14 +269,14 @@ pub fn div(grid: &mut Grid, node: &mut Node) -> Option<isize> {
         if val2 != 0 {
             Some(val1 / val2)
         } else {
-            None  // only this case possible
+            None // only this case possible
         }
     } else {
         None
     }
 }
 
-pub fn slp(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     // // V
     // if node.value1.col == -1 && node.value2.col == -1 {
     //     node.valid = true;
@@ -285,7 +294,7 @@ pub fn slp(grid: &mut Grid, node: &mut Node) -> Option<isize> {
     Some(1)
 }
 
-pub fn cons(grid: &mut Grid, node: &mut Node) -> Option<isize> {
+pub fn cons(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     // let sleep_time = 0;
     // sleep_time
     Some(1)
