@@ -12,7 +12,7 @@ use crate::common::Value;
 //clone trait used due to vec![vec![Cell::new(0); columns]; rows]
 pub struct Cell {
     pub dependents: Vec<Value>,
-    pub node_value: i32,
+    pub node_value: isize,
     pub function: Option<Value>,
     pub visited: bool,
     pub valid: bool,
@@ -20,7 +20,7 @@ pub struct Cell {
 
 impl Cell {
     ///Initialises a cell
-    pub fn new(val: i32) -> Self {
+    pub fn new(val: isize) -> Self {
         Cell {
             dependents: Vec::new(),
             node_value: val,
@@ -29,7 +29,7 @@ impl Cell {
             valid: false,
         }
     }
-    pub fn get_cell_value(&self) -> i32 {
+    pub fn get_cell_value(&self) -> isize {
         self.node_value
     }
 }

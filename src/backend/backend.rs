@@ -17,7 +17,7 @@ pub struct Grid {
 pub struct Valgrid {
     pub rows: usize,
     pub columns: usize,
-    pub cells: Vec<Vec<i32>>,
+    pub cells: Vec<Vec<isize>>,
 }
 
 impl Grid {
