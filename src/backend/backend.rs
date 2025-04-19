@@ -21,6 +21,7 @@ pub struct Grid {
     cells_vec: Vec<Vec<Node>>,
 }
 ///Data structure to represent status of command
+#[derive(PartialEq)]
 pub enum Status {
     Success,
     InvalidRange,
@@ -35,7 +36,7 @@ pub enum Status {
     Left,
     Right,
     Quit,
-    Web
+    Web,
 }
 
 impl Grid {
@@ -93,7 +94,12 @@ impl Backend {
         Valgrid {
             rows: self.grid.get_row_size(),
             columns: self.grid.get_column_size(),
-            cells: self.grid.cells.iter().map(|row| row.iter().map(|cell| cell.node_value).collect()).collect(),
+            cells: self
+                .grid
+                .cells_vec
+                .iter()
+                .map(|row| row.iter().map(|cell| cell.node_value).collect())
+                .collect(),
         }
     }
     ///Iterates over the sequence of topological sort and updates values
@@ -270,7 +276,7 @@ impl Backend {
     }
     ///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
     pub fn process_command(&mut self, rows: usize, columns: usize, cmd: String) -> Status {
-        match parser::validate(&cmd, &rows, &columns) {
+        match parser::validate(&cmd, &columns, &rows) {
             Some((None, Some(Value::Oper(None, None, op)))) => {
                 return match op {
                     Operation::EnableOutput => Status::PrintEnabled,
@@ -291,7 +297,7 @@ impl Backend {
                 };
             }
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
-                return self.execute(Value::Cell(col, row), Some(Value::Oper(box1, box2, op)));
+                return self.execute(Value::Cell(row, col), Some(Value::Oper(box1, box2, op)));
             }
             _ => {
                 return Status::UnrecognizedCmd;
