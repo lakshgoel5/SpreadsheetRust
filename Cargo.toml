@@ -1,9 +1,5 @@
 [package]
-<<<<<<< HEAD
 name = "spreadsheet_rust"
-=======
-name = "yew-app"
->>>>>>> 409d7255910739018683fc07f03d4bd6f2f4325b
 version = "0.1.0"
 edition = "2024"
 
