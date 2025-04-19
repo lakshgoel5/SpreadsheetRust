@@ -4,9 +4,9 @@
 //breaking
 //cycle
 //reset
-use crate::common::Value;
-use crate::common::Operation;
 use crate::backend::backend::Grid;
+use crate::common::Operation;
+use crate::common::Value;
 ///Data structure for strong data of each cell
 /// Contains Dependency list, value, function and a few booleans
 #[derive(Debug, Clone)]
@@ -55,7 +55,7 @@ impl Node {
 // get_sequence
 
 // flag -> true: break previous dependencies
-pub fn break_edges(grid:&mut Grid, target: Value, func: Value, flag: bool) {
+pub fn break_edges(grid: &mut Grid, target: Value, func: Value, flag: bool) {
     // break edges
     if flag {
         // break previous dependencies
@@ -73,13 +73,13 @@ pub fn break_edges(grid:&mut Grid, target: Value, func: Value, flag: bool) {
                         }
                     }
                     Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
-                        match *box1{
+                        match *box1 {
                             (Some(Value::Cell(row1, col1))) => {
                                 grid.cells_vec[row1][col1].remove_dep(target.clone());
                             }
                             _ => {}
                         }
-                        match *box2{
+                        match *box2 {
                             (Some(Value::Cell(row1, col1))) => {
                                 grid.cells_vec[row1][col1].remove_dep(target.clone());
                             }
@@ -92,14 +92,14 @@ pub fn break_edges(grid:&mut Grid, target: Value, func: Value, flag: bool) {
     }
 }
 
-pub fn add_edges(grid:&mut Grid, target: Value, func: Value, flag: bool) {
+pub fn add_edges(grid: &mut Grid, target: Value, func: Value, flag: bool) {
     // add edges
 }
 
 /// Updates the edges of the graph based on target and function values.
 /// flag is true when previous dependencies are to be broken and new dependecies are to be added
 /// flag is false when only new dependencies are to be added and previous dependencies are to be broken (Circular dependency case)
-pub fn update_edges(grid: &mut Grid, target: Value, func: Value, flag:bool) {
+pub fn update_edges(grid: &mut Grid, target: Value, func: Value, flag: bool) {
     // target will always be a cell
     if let Some(Value::Cell(row, col)) = target {
         if let Some(Value::Oper(box1, box2, _oper)) = func {
@@ -111,11 +111,7 @@ pub fn update_edges(grid: &mut Grid, target: Value, func: Value, flag:bool) {
 }
 
 /// Checks for circular dependency in graph using DFS
-pub fn hasCycle(grid: &mut Grid, target: Value, func: Value) -> bool {
-    
-}
+pub fn hasCycle(grid: &mut Grid, target: Value, func: Value) -> bool {}
 
 /// Returns the sequence of topological sort starting from target cell
-pub fn get_sequence(grid: &mut Grid, target: Value, func: Value) -> Vec<Value> {
-
-}
+pub fn get_sequence(grid: &mut Grid, target: Value, func: Value) -> Vec<Value> {}

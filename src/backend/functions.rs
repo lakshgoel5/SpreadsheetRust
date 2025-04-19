@@ -14,8 +14,7 @@ pub fn max_function(grid: &Grid, node: &Node) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    }
-                    else {
+                    } else {
                         if current_node.node_value > max_val {
                             max_val = current_node.node_value;
                         }
@@ -36,8 +35,7 @@ pub fn min_function(grid: &Grid, node: &Node) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    }
-                    else {
+                    } else {
                         if current_node.node_value < min_val {
                             min_val = current_node.node_value;
                         }
@@ -58,8 +56,7 @@ pub fn sum_function(grid: &Grid, node: &Node) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    }
-                    else {
+                    } else {
                         sum_val += current_node.node_value;
                     }
                 }
@@ -86,7 +83,11 @@ pub fn avg_function(grid: &Grid, node: &Node) -> Option<isize> {
             }
         }
     }
-    if count == 0 { None } else { Some(sum_val / count) }
+    if count == 0 {
+        None
+    } else {
+        Some(sum_val / count)
+    }
 }
 
 pub fn std_dev_function(grid: &Grid, node: &Node) -> Option<isize> {
@@ -133,7 +134,6 @@ pub fn std_dev_function(grid: &Grid, node: &Node) -> Option<isize> {
     }
     None
 }
-
 
 pub fn add(grid: &Grid, node: &Node) -> Option<isize> {
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -260,7 +260,7 @@ pub fn div(grid: &Grid, node: &Node) -> Option<isize> {
         if val2 != 0 {
             Some(val1 / val2)
         } else {
-            None  // only this case possible
+            None // only this case possible
         }
     } else {
         None
