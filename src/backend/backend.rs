@@ -1,5 +1,7 @@
 use crate::backend::functions::*;
 use crate::backend::graph::Node;
+use crate::backend::graph::get_sequence;
+use crate::backend::graph::hasCycle;
 use crate::backend::graph::update_edges;
 use crate::common::{Operation, Value};
 use crate::parser::*;
@@ -51,7 +53,7 @@ impl Grid {
     pub fn get_column_size(&self) -> usize {
         self.columns
     }
-    pub fn get_node(&self, row: usize, column: usize) -> &mut Node {
+    pub fn get_node(&mut self, row: usize, column: usize) -> &mut Node {
         &mut self.cells_vec[row][column]
     }
     pub fn get_node_value(&self, row: usize, column: usize) -> Option<isize> {
@@ -97,13 +99,12 @@ impl Backend {
     ///Iterates over the sequence of topological sort and updates values
     fn update_grid(&mut self, sequence: Vec<Value>) {
         for cell in sequence {
-            if let Some(Value::Oper(box1, box2, oper)) =
+            if let Some(Value::Oper(_box1, _box2, oper)) =
                 self.grid.get_node(cell.row(), cell.col()).function.clone()
             {
                 match oper {
                     Operation::Sum => {
-                        let sum =
-                            sum_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let sum = sum_function(&mut self.grid, cell.row(), cell.col());
                         match sum {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -115,8 +116,7 @@ impl Backend {
                         }
                     }
                     Operation::Min => {
-                        let min =
-                            min_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let min = min_function(&mut self.grid, cell.row(), cell.col());
                         match min {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -128,8 +128,7 @@ impl Backend {
                         }
                     }
                     Operation::Max => {
-                        let max =
-                            max_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let max = max_function(&mut self.grid, cell.row(), cell.col());
                         match max {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -141,8 +140,7 @@ impl Backend {
                         }
                     }
                     Operation::Avg => {
-                        let avg =
-                            avg_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let avg = avg_function(&mut self.grid, cell.row(), cell.col());
                         match avg {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -154,10 +152,7 @@ impl Backend {
                         }
                     }
                     Operation::Std => {
-                        let std_dev = std_dev_function(
-                            &self.grid,
-                            &self.grid.get_node(cell.row(), cell.col()),
-                        );
+                        let std_dev = std_dev_function(&mut self.grid, cell.row(), cell.col());
                         match std_dev {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -169,7 +164,7 @@ impl Backend {
                         }
                     }
                     Operation::Add => {
-                        let ans = add(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let ans = add(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -181,7 +176,7 @@ impl Backend {
                         }
                     }
                     Operation::Sub => {
-                        let ans = sub(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let ans = sub(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -193,7 +188,7 @@ impl Backend {
                         }
                     }
                     Operation::Mul => {
-                        let ans = mul(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let ans = mul(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -205,7 +200,7 @@ impl Backend {
                         }
                     }
                     Operation::Div => {
-                        let ans = div(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let ans = div(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -217,7 +212,7 @@ impl Backend {
                         }
                     }
                     Operation::Slp => {
-                        let ans = slp(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let ans = slp(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -229,7 +224,7 @@ impl Backend {
                         }
                     }
                     Operation::Cons => {
-                        let ans = cons(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let ans = cons(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
                                 self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
@@ -248,21 +243,27 @@ impl Backend {
         }
     }
     ///Checks for cycles and accordingly updates dependencies
-    fn execute(&mut self, cell: Value, func: Value) -> Status {
+    fn execute(&mut self, cell: Value, func: Option<Value>) -> Status {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
-        if let Value::Oper(Some(box1), Some(box2), oper) = func {
-            if let (Value::Const(val1), Value::Const(val2)) = (*box1, *box2) {
+        if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = func.clone() {
+            if let (Value::Const(_val1), Value::Const(_val2)) = (*box1, *box2) {
                 update_edges(&mut self.grid, cell.clone(), func.clone(), true); //debug check //add break edges
-                let sequence = get_sequence(&self.grid, cell.clone(), func.clone());
-                update_grid(&mut self.grid, sequence.clone());
+                // change cell's parameters here
+                let node = self.grid.get_node(cell.row(), cell.col());
+                node.function = func.clone();
+                let sequence = get_sequence(&mut self.grid, cell.clone(), func.clone());
+                self.update_grid(sequence.clone());
             } else {
                 update_edges(&mut self.grid, cell.clone(), func.clone(), true);
-                if (has_cycle(&mut self.grid, cell.clone(), func.clone())) {
+                if hasCycle(&mut self.grid, cell.clone(), func.clone()) {
                     update_edges(&mut self.grid, cell.clone(), func.clone(), false);
                     return Status::CircularDependency;
                 }
-                let sequence = get_sequence(&self.grid, cell.clone(), func.clone());
-                update_grid(&mut self.grid, sequence.clone());
+                // change cell's parameters here
+                let node = self.grid.get_node(cell.row(), cell.col());
+                node.function = func.clone();
+                let sequence = get_sequence(&mut self.grid, cell.clone(), func.clone());
+                self.update_grid(sequence.clone());
             }
         }
         Status::Success
@@ -290,7 +291,7 @@ impl Backend {
                 };
             }
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
-                return self.execute(Value::Cell(col, row), Value::Oper(box1, box2, op));
+                return self.execute(Value::Cell(col, row), Some(Value::Oper(box1, box2, op)));
             }
             _ => {
                 return Status::UnrecognizedCmd;
