@@ -1,5 +1,5 @@
 /// Represents a value that can appear in a spreadsheet.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 //Clone required for `Vec<Value>`(in graph.rs) to implement `Clone`
 pub enum Value {
     Cell(usize, usize),
