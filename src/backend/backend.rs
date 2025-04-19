@@ -2,6 +2,7 @@ use crate::backend::functions::*;
 use crate::backend::graph::Node;
 use crate::common::{Operation, Value};
 use crate::parser::*;
+use crate::backend::graph::update_edges;
 /// Control Unit for data processing and updating values in Spreadsheeet.
 /// The `Grid` struct is designed to store and manage a grid of `Cell` objects.
 
@@ -17,7 +18,7 @@ pub struct Grid {
     columns: usize,
     cells_vec: Vec<Vec<Node>>,
 }
-
+///Data structure to represent status of command
 pub enum Status {
     Success,
     InvalidRange,
@@ -84,24 +85,24 @@ impl Backend {
             {
                 match oper {
                     Operation::Sum => {
-                        let sum = sum(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let sum = sum_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
                         self.grid.cells_vec[cell.row()][cell.col()].node_value = sum;
                     }
                     Operation::Min => {
-                        let min = min(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let min = min_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
                         self.grid.cells_vec[cell.row()][cell.col()].node_value = min;
                     }
                     Operation::Max => {
-                        let max = max(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let max = max_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
                         self.grid.cells_vec[cell.row()][cell.col()].node_value = max;
                     }
                     Operation::Avg => {
-                        let avg = avg(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                        let avg = avg_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
                         self.grid.cells_vec[cell.row()][cell.col()].node_value = avg as isize;
                     }
                     Operation::Std => {
                         let std_dev =
-                            std_dev(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
+                            std_dev_function(&self.grid, &self.grid.get_node(cell.row(), cell.col()));
                         self.grid.cells_vec[cell.row()][cell.col()].node_value = std_dev as isize;
                     }
                     Operation::Add => {
@@ -140,13 +141,13 @@ impl Backend {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
         if let Value::Oper(Some(box1), Some(box2), oper) = func {
             if let (Value::Const(val1), Value::Const(val2)) = (*box1, *box2) {
-                update_edges(&self.grid, cell.clone(), func.clone()); //debug check //add break edges
+                update_edges(&self.grid, cell.clone(), func.clone(), true); //debug check //add break edges
                 let sequence = get_sequence(&self.grid, cell.clone(), func.clone());
                 update_grid(&self.grid, sequence.clone());
             } else {
-                update_edges(&self.grid, cell.clone(), func.clone());
+                update_edges(&self.grid, cell.clone(), func.clone(),true);
                 if (has_cycle(&self.grid, cell.clone(), func.clone())) {
-                    update_edges(&self.grid, cell.clone(), func.clone());
+                    update_edges(&self.grid, cell.clone(), func.clone(),false);
                     return Status::CircularDependency;
                 }
                 let sequence = get_sequence(&self.grid, cell.clone(), func.clone());
@@ -156,7 +157,7 @@ impl Backend {
         Status::Success
     }
     ///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
-    pub fn process_command(rows: usize, columns: usize, cmd: String) -> Status {
+    pub fn process_command(&self, rows: usize, columns: usize, cmd: String) -> Status {
         match parser::validate(&cmd, &rows, &columns) {
             Some((None, Some(Value::Oper(None, None, op)))) => {
                 return match op {
@@ -177,7 +178,7 @@ impl Backend {
                 };
             }
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
-                return Self::execute(Value::Cell(col, row), Value::Oper(box1, box2, op));
+                return self.execute(Value::Cell(col, row), Value::Oper(box1, box2, op));
             }
             _ => {
                 return Status::UnrecognizedCmd;
