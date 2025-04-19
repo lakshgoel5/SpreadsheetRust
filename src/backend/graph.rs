@@ -30,8 +30,12 @@ impl Node {
             valid: true,
         }
     }
-    pub fn get_node_value(&self) -> isize {
-        self.node_value
+    pub fn get_node_value(&self) -> Option<isize> {
+        if self.valid {
+            Some(self.node_value)
+        } else {
+            None
+        }
     }
     pub fn remove_dep(&mut self, cell: Value) {
         self.dependents.retain(|x| x != &cell);

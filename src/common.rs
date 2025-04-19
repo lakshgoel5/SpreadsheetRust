@@ -23,6 +23,26 @@ impl Value {
             _ => panic!("Expected a Cell value"),
         }
     }
+
+
+    pub fn assign_row(&mut self, new_row: usize) {
+        match self {
+            Value::Cell(row, _) => {
+                *row = new_row;
+            }
+            _ => panic!("Expected a Cell value"),
+        }
+    }
+
+
+    pub fn assign_col(&mut self, new_col: usize) {
+        match self {
+            Value::Cell(_, col) => {
+                *col = new_col;
+            }
+            _ => panic!("Expected a Cell value"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,4 +69,5 @@ pub enum Operation {
     Up,
     Down,
     Quit,
+    Web
 }

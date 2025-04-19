@@ -1,17 +1,32 @@
 use std::env;
+mod backend;
 mod common;
+mod frontend;
 mod parser;
+use std::process::{Command, Stdio};
+use std::thread;
+use spreadsheet_rust::frontend::terminal::Frontend;
 
 /// Entry point of the spreadsheet application.
 ///
-/// Depending on calling flag, either web-based spreadsheet is avtivated,
-/// or terminal based spreadsheet
-///
-/// Should pass arguments to init_frontend
+/// By default starts terminal spreadsheet. If the user enters 'web' command,
+/// it will launch the web interface in a separate thread while keeping 
+/// the terminal interface running.
 fn main() {
-    //argc argv
-    //check r and c ka bound
-    //check flag
-    //if flag is terminal -> call termal ka init_frontend
-    //if not -> call web ka init_frontend
+    let args: Vec<String> = env::args().collect();
+    
+    // Default rows and columns if not specified
+    let rows = if args.len() > 1 {
+        args[1].parse::<usize>().unwrap_or(10)
+    } else {
+        10
+    };
+    
+    let columns = if args.len() > 2 {
+        args[2].parse::<usize>().unwrap_or(10)
+    } else {
+        10
+    };
+    let frontend = Frontend::init_frontend(rows, columns);
+    frontend.run_frontend();
 }

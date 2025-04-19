@@ -14,7 +14,7 @@ pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    } else if current_node.node_value > max_val {
+                    }  else if current_node.node_value > max_val {
                         max_val = current_node.node_value;
                     }
                 }

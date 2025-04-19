@@ -35,6 +35,7 @@ pub enum Status {
     Left,
     Right,
     Quit,
+    Web
 }
 
 impl Grid {
@@ -55,12 +56,18 @@ impl Grid {
     pub fn get_node(&mut self, row: usize, column: usize) -> &mut Node {
         &mut self.cells_vec[row][column]
     }
-    pub fn get_node_value(&self, row: usize, column: usize) -> isize {
+    pub fn get_node_value(&self, row: usize, column: usize) -> Option<isize> {
         self.cells_vec[row][column].get_node_value()
     }
     // pub fn get_node_mut(&mut self, row: usize, column: usize) -> &mut Node {
     //     &mut self.cells_vec[row][column]
     // }
+}
+
+pub struct Valgrid {
+    pub rows: usize,
+    pub columns: usize,
+    pub cells: Vec<Vec<isize>>,
 }
 
 ///Struct that contains data structure as well as methods
@@ -72,14 +79,21 @@ impl Backend {
     ///Initializes Backend
     pub fn init_backend(rows: usize, columns: usize) -> Self {
         Backend {
-            grid: Grid::new(rows, columns),
+            grid: Grid::new(rows + 1, columns + 1),
         }
     }
     ///Returns the value of cell
-    pub fn get_node_value(&self, cell: Value) -> isize {
+    pub fn get_node_value(&self, cell: Value) -> Option<isize> {
         match cell {
             Value::Cell(row, col) => self.grid.get_node_value(row, col),
             _ => panic!("Expected a Cell value"),
+        }
+    }
+    pub fn get_valgrid(&self) -> Valgrid {
+        Valgrid {
+            rows: self.grid.get_row_size(),
+            columns: self.grid.get_column_size(),
+            cells: self.grid.cells.iter().map(|row| row.iter().map(|cell| cell.node_value).collect()).collect(),
         }
     }
     ///Iterates over the sequence of topological sort and updates values
@@ -266,6 +280,7 @@ impl Backend {
                     Operation::Up => Status::Up,
                     Operation::Down => Status::Down,
                     Operation::Quit => Status::Quit,
+                    Operation::Web => Status::Web,
                     _ => Status::UnrecognizedCmd,
                 };
             }
