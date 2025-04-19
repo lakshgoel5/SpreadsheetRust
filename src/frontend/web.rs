@@ -20,12 +20,6 @@ fn number_to_column_label(num: usize) -> String {
     result
 }
 
-#[derive(Clone, PartialEq)]
-struct SelectedCell {
-    row: usize,
-    col: usize,
-}
-
 #[function_component(App)]
 pub fn app() -> Html {
     let backend = backend::Backend::init_backend(30, 182);
@@ -34,7 +28,6 @@ pub fn app() -> Html {
     let rows2 = use_state(|| 20usize);
     let cols1 = use_state(|| 1usize);
     let cols2 = use_state(|| 20usize);
-    let selected_cell = use_state(|| None::<SelectedCell>);
 
     let on_rows1_change = {
         let rows1 = rows1.clone();
@@ -76,13 +69,6 @@ pub fn app() -> Html {
         })
     };
 
-    let on_cell_click = {
-        let selected_cell = selected_cell.clone();
-        Callback::from(move |cell: SelectedCell| {
-            selected_cell.set(Some(cell));
-        })
-    };
-
     html! {
         <div>
             <div class="controls">
@@ -119,23 +105,8 @@ pub fn app() -> Html {
                             html! {
                                 <tr>
                                     <th>{ row }</th>
-                                    { for (*cols1..=*cols2).map(|col| {
-                                        let is_selected = selected_cell.as_ref()
-                                            .map_or(false, |sel| sel.row == row && sel.col == col);
-                                        let cell = SelectedCell { row, col };
-                                        let onclick = {
-                                            let on_cell_click = on_cell_click.clone();
-                                            let cell = cell.clone();
-                                            Callback::from(move |_| on_cell_click.emit(cell.clone()))
-                                        };
-                                        html! {
-                                            <td 
-                                                onclick={onclick}
-                                                class={if is_selected { "selected" } else { "" }}
-                                            >
-                                                { table.cells[row-1][col-1] }
-                                            </td>
-                                        }
+                                    { for (*cols1..=*cols2).map(|col| html! {
+                                        <td>{ table.cells[row-1][col-1] }</td>
                                     }) }
                                 </tr>
                             }
