@@ -1,5 +1,4 @@
 use crate::backend::backend::Grid;
-use crate::backend::graph::Node;
 use crate::common::*;
 
 //would give you reference of grid reference and a node reference
@@ -15,10 +14,8 @@ pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    } else {
-                        if current_node.node_value > max_val {
-                            max_val = current_node.node_value;
-                        }
+                    } else if current_node.node_value > max_val {
+                        max_val = current_node.node_value;
                     }
                 }
             }
@@ -37,10 +34,8 @@ pub fn min_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
-                    } else {
-                        if current_node.node_value < min_val {
-                            min_val = current_node.node_value;
-                        }
+                    } else if current_node.node_value < min_val {
+                        min_val = current_node.node_value;
                     }
                 }
             }
@@ -277,26 +272,50 @@ pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 }
 
 pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
-    // // V
-    // if node.value1.col == -1 && node.value2.col == -1 {
-    //     node.valid = true;
-    //     node.node_value = value1_node_value;
-    //     std::thread::sleep(std::time::Duration::from_secs(value1_node_value as u64));
-    // }
-    // // C
-    // else if value1_valid {
-    //     node.valid = true;
-    //     node.node_value = value1_node_value;
-    //     std::thread::sleep(std::time::Duration::from_secs(value1_node_value as u64));
-    // } else {
-    //     node.valid = false;
-    // }
-    Some(1)
+    let node = grid.get_node(row, col);
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
+        // check value1
+        let val1 = match *box1 {
+            Value::Cell(row, col) => {
+                let node = grid.get_node(row, col);
+                if !node.valid {
+                    return None;
+                }
+                node.node_value
+            }
+            Value::Const(c) => c,
+            _ => return None,
+        };
+        // sleep for that amount of time
+        std::thread::sleep(std::time::Duration::from_secs(val1 as u64));
+        // return value to be set to the cell
+        Some(val1)
+    } else {
+        None
+    }
 }
 
 pub fn cons(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     // let sleep_time = 0;
     // sleep_time
-    Some(1)
+    let node = grid.get_node(row, col);
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
+        // check value1
+        let val1 = match *box1 {
+            Value::Cell(row, col) => {
+                let node = grid.get_node(row, col);
+                if !node.valid {
+                    return None;
+                }
+                node.node_value
+            }
+            Value::Const(c) => c,
+            _ => return None,
+        };
+        // return value to be set to the cell
+        Some(val1)
+    } else {
+        None
+    }
 }
 // slp and cons -> left

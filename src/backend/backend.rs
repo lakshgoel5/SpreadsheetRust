@@ -231,8 +231,8 @@ impl Backend {
     ///Checks for cycles and accordingly updates dependencies
     fn execute(&mut self, cell: Value, func: Option<Value>) -> Status {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
-        if let Some(Value::Oper(Some(box1), Some(box2), oper)) = func.clone() {
-            if let (Value::Const(val1), Value::Const(val2)) = (*box1, *box2) {
+        if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = func.clone() {
+            if let (Value::Const(_val1), Value::Const(_val2)) = (*box1, *box2) {
                 update_edges(&mut self.grid, cell.clone(), func.clone(), true); //debug check //add break edges
                 // change cell's parameters here
                 let node = self.grid.get_node(cell.row(), cell.col());
