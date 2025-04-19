@@ -24,7 +24,6 @@ impl Value {
         }
     }
 
-
     pub fn assign_row(&mut self, new_row: usize) {
         match self {
             Value::Cell(row, _) => {
@@ -33,7 +32,6 @@ impl Value {
             _ => panic!("Expected a Cell value"),
         }
     }
-
 
     pub fn assign_col(&mut self, new_col: usize) {
         match self {
@@ -69,5 +67,5 @@ pub enum Operation {
     Up,
     Down,
     Quit,
-    Web
+    Web,
 }

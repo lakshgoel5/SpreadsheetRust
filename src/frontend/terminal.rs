@@ -1,15 +1,17 @@
+use std::io;
+use std::io::Write;
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
 //run_counter -> while loop for argument, process_command(r,c, string), Print_grid() : return void
 //display_status
 use crate::backend::backend::*;
 use crate::common::Value;
-use std::time::{Duration, Instant};
 use crate::frontend::web::start_web_app;
+use std::time::{Duration, Instant};
 
 pub struct Frontend {
-    start : Value,
-    dimension : Value,
+    start: Value,
+    dimension: Value,
     backend: Backend,
     print_enabled: bool,
 }
@@ -25,8 +27,7 @@ pub fn column_decoder(mut j: usize) -> String {
     cc.into_iter().collect()
 }
 
-impl Frontend{
-
+impl Frontend {
     pub fn print_grid(&self) {
         if !self.print_enabled {
             return;
@@ -34,8 +35,8 @@ impl Frontend{
         let location = self.start.clone();
         let dimension = self.dimension.clone();
         if let (Value::Cell(start_x, start_y), Value::Cell(rows, cols)) = (location, dimension) {
-            for i in start_x..start_x + rows {
-                for j in start_y..start_y + cols {
+            for i in start_x - 1..start_x + rows {
+                for j in start_y - 1 ..start_y + cols {
                     if i == start_x - 1 && j == start_y - 1 {
                         print!("{:>12}", " ");
                     } else if i == start_x - 1 {
@@ -57,8 +58,8 @@ impl Frontend{
     }
     pub fn init_frontend(rows: usize, columns: usize) -> Self {
         let backend = Backend::init_backend(rows, columns);
-        Frontend{
-            start: Value::Cell(0, 0),
+        Frontend {
+            start: Value::Cell(1, 1),
             dimension: Value::Cell(rows, columns),
             backend,
             print_enabled: true,
@@ -66,17 +67,16 @@ impl Frontend{
     }
 
     pub fn run_frontend(&mut self) {
-        self.print_grid();
+        self.display(Status::Success, Duration::from_secs(0).as_secs_f64());
         self.run_counter();
     }
 
-    fn execute_status(&mut self, status: &Status){
-        match status{
+    fn execute_status(&mut self, status: &Status) {
+        match status {
             Status::Left => {
                 if self.start.col() > 10 {
                     self.start.assign_col(self.start.col() - 10);
-                }
-                else {
+                } else {
                     self.start.assign_col(1);
                 }
                 return;
@@ -84,8 +84,7 @@ impl Frontend{
             Status::Right => {
                 if self.start.col() < self.dimension.col() - 10 {
                     self.start.assign_col(self.start.col() + 10);
-                }
-                else{
+                } else {
                     self.start.assign_col(self.dimension.col() - 9); //debug
                 }
                 return;
@@ -93,8 +92,7 @@ impl Frontend{
             Status::Up => {
                 if self.start.row() > 10 {
                     self.start.assign_row(self.start.row() - 10);
-                }
-                else {
+                } else {
                     self.start.assign_row(1);
                 }
                 return;
@@ -102,9 +100,8 @@ impl Frontend{
             Status::Down => {
                 if self.start.row() < self.dimension.row() - 10 {
                     self.start.assign_row(self.start.row() + 10);
-                }
-                else {
-                    self.start.assign_row(self.dimension.row()-9);
+                } else {
+                    self.start.assign_row(self.dimension.row() - 9);
                 }
                 return;
             }
@@ -127,46 +124,48 @@ impl Frontend{
         }
     }
 
-    pub fn display(&self, status: Status, elapsed_time: Duration) {
+    pub fn display(&self, status: Status, elapsed_time: f64) {
         self.print_grid();
         match status {
-            Status::Success => println!("[{:?}] (Ok).", elapsed_time),
-            Status::InvalidRange => println!("[{:?}] (Invalid Range).", elapsed_time),
-            Status::UnrecognizedCmd => println!("[{:?}] (Unrecognized command)", elapsed_time),
-            Status::InvalidRowColumn => println!("[{:?}] (Invalid row or column)", elapsed_time),
-            Status::CircularDependency => println!("[{:?}] (Cycle not allowed)", elapsed_time),
-            Status::PrintEnabled => println!("[{:?}] (Ok)", elapsed_time),
-            Status::PrintDisabled => println!("[{:?}] (Ok)", elapsed_time),
-            Status::ScrollTo(row, col) => println!("[{:?}] (Ok)", elapsed_time),
-            Status::Up => println!("[{:?}] (Ok)", elapsed_time),
-            Status::Down => println!("[{:?}] (Ok)", elapsed_time),
-            Status::Left => println!("[{:?}] (Ok)", elapsed_time),
-            Status::Right => println!("[{:?}] (Ok)", elapsed_time),
+            Status::Success => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::InvalidRange => print!("[{:.2}] (invalid range) ", elapsed_time),
+            Status::UnrecognizedCmd => print!("[{:.2}] (unrecognized command) ", elapsed_time),
+            Status::InvalidRowColumn => print!("[{:.2}] (invalid row or column) ", elapsed_time),
+            Status::CircularDependency => print!("[{:.2}] (cycle not allowed) ", elapsed_time),
+            Status::PrintEnabled => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::PrintDisabled => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::ScrollTo(row, col) => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::Up => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::Down => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::Left => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::Right => print!("[{:.2}] (ok) ", elapsed_time),
             _ => (),
         }
+        io::stdout().flush().unwrap();
     }
 
     pub fn run_counter(&mut self) {
         let mut input = String::new();
         let stdin = std::io::stdin();
 
-
         loop {
             input.clear();
-            let start_time = Instant::now();
+
             if stdin.read_line(&mut input).is_err() {
-                let elapsed_time = start_time.elapsed();
-                self.display(Status::UnrecognizedCmd, elapsed_time);
+                self.display(Status::UnrecognizedCmd, Duration::from_secs(0).as_secs_f64());
                 continue;
             }
+            let start_time = Instant::now();
             let command = input.trim().to_string();
-            let status = self.backend.process_command(self.dimension.row(), self.dimension.col(), command);
+            let status =
+                self.backend
+                    .process_command(self.dimension.row(), self.dimension.col(), command);
             if status == Status::Quit {
                 break;
             }
             self.execute_status(&status);
             let elapsed_time = start_time.elapsed();
-            self.display(status, elapsed_time);
+            self.display(status, elapsed_time.as_secs_f64());
         }
     }
 }
