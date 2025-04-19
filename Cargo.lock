@@ -622,15 +622,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-<<<<<<< HEAD
 version = "0.2.172"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d750af042f7ef4f724306de029d18836c26c1765a54a6a3f094cbd23a7267ffa"
-=======
-version = "0.2.171"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c19937216e9d3aa9956d9bb8dfc0b0c8beb6058fc4f7a4dc4d850edf86a237d6"
->>>>>>> 906f516102b89752072825234502b3a63380ad5a
 
 [[package]]
 name = "log"
@@ -773,15 +767,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-<<<<<<< HEAD
 version = "1.0.95"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
-=======
-version = "1.0.94"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a31971752e70b8b2686d7e46ec17fb38dad4051d94024c88df49b667caea9c84"
->>>>>>> 906f516102b89752072825234502b3a63380ad5a
 dependencies = [
  "unicode-ident",
 ]
@@ -906,7 +894,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
 name = "spreadsheet_rust"
 version = "0.1.0"
 dependencies = [
@@ -916,8 +903,6 @@ dependencies = [
 ]
 
 [[package]]
-=======
->>>>>>> 906f516102b89752072825234502b3a63380ad5a
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1225,18 +1210,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "yew-app"
-version = "0.1.0"
-dependencies = [
- "wasm-bindgen",
- "web-sys",
- "yew",
-]
-
-[[package]]
->>>>>>> 906f516102b89752072825234502b3a63380ad5a
 name = "yew-macro"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

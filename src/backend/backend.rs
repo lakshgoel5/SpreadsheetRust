@@ -9,56 +9,56 @@ use crate::backend::graph::Cell;
 
 ///Data structure to represent sheet
 pub struct Grid {
-    rows: usize,
-    columns: usize,
-    cells: Vec<Vec<Cell>>,
+rows: usize,
+columns: usize,
+cells: Vec<Vec<Cell>>,
 }
 
 pub struct Valgrid {
-    pub rows: usize,
-    pub columns: usize,
-    pub cells: Vec<Vec<isize>>,
+pub rows: usize,
+pub columns: usize,
+pub cells: Vec<Vec<isize>>,
 }
 
 impl Grid {
-    ///Function to initialize grid. Arguments are size of grid.
-    pub fn new(rows: usize, columns: usize) -> Self {
-        Grid {
-            rows,
-            columns,
-            cells: vec![vec![Cell::new(0); columns]; rows],
-        }
-    }
-    pub fn get_row_size(&self) -> usize {
-        self.rows
-    }
-    pub fn get_column_size(&self) -> usize {
-        self.columns
-    }
-    pub fn get_cell(&self, row: usize, column: usize) -> &Cell {
-        &self.cells[row][column]
-    }
+///Function to initialize grid. Arguments are size of grid.
+pub fn new(rows: usize, columns: usize) -> Self {
+Grid {
+rows,
+columns,
+cells: vec![vec![Cell::new(0); columns]; rows],
+}
+}
+pub fn get_row_size(&self) -> usize {
+self.rows
+}
+pub fn get_column_size(&self) -> usize {
+self.columns
+}
+pub fn get_cell(&self, row: usize, column: usize) -> &Cell {
+&self.cells[row][column]
+}
 }
 
 ///Struct that contains data structure as well as methods
 pub struct Backend {
-    grid: Grid,
+grid: Grid,
 }
 
 impl Backend {
-    ///Initializes Backend
-    pub fn init_backend(rows: usize, columns: usize) -> Self {
-        Backend {
-            grid: Grid::new(rows, columns),
-        }
-    }
-    ///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
-    // fn process_command(rows: usize, columns: usize, cmd: String) -> Self {}
-    pub fn get_valgrid(&self) -> Valgrid {
-        Valgrid {
-            rows: self.grid.get_row_size(),
-            columns: self.grid.get_column_size(),
-            cells: self.grid.cells.iter().map(|row| row.iter().map(|cell| cell.node_value).collect()).collect(),
-        }
-    }
+///Initializes Backend
+pub fn init_backend(rows: usize, columns: usize) -> Self {
+Backend {
+grid: Grid::new(rows, columns),
+}
+}
+///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
+// fn process_command(rows: usize, columns: usize, cmd: String) -> Self {}
+pub fn get_valgrid(&self) -> Valgrid {
+Valgrid {
+rows: self.grid.get_row_size(),
+columns: self.grid.get_column_size(),
+cells: self.grid.cells.iter().map(|row| row.iter().map(|cell| cell.node_value).collect()).collect(),
+}
+}
 }
