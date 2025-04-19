@@ -14,6 +14,12 @@ pub struct Grid {
     cells: Vec<Vec<Cell>>,
 }
 
+pub struct Valgrid {
+    pub rows: usize,
+    pub columns: usize,
+    pub cells: Vec<Vec<i32>>,
+}
+
 impl Grid {
     ///Function to initialize grid. Arguments are size of grid.
     pub fn new(rows: usize, columns: usize) -> Self {
@@ -48,7 +54,11 @@ impl Backend {
     }
     ///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
     // fn process_command(rows: usize, columns: usize, cmd: String) -> Self {}
-    pub fn get_grid(&self) -> &Grid {
-        &self.grid
+    pub fn get_valgrid(&self) -> Valgrid {
+        Valgrid {
+            rows: self.grid.get_row_size(),
+            columns: self.grid.get_column_size(),
+            cells: self.grid.cells.iter().map(|row| row.iter().map(|cell| cell.node_value).collect()).collect(),
+        }
     }
 }
