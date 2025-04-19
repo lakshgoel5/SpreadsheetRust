@@ -4,9 +4,9 @@
 //breaking
 //cycle
 //reset
-use crate::common::Value;
-use crate::common::Operation;
 use crate::backend::backend::Grid;
+use crate::common::Operation;
+use crate::common::Value;
 ///Data structure for strong data of each cell
 /// Contains Dependency list, value, function and a few booleans
 #[derive(Debug, Clone)]
@@ -27,7 +27,7 @@ impl Node {
             node_value: val,
             function: None,
             visited: false,
-            valid: false,
+            valid: true,
         }
     }
     pub fn get_node_value(&self) -> isize {
@@ -51,54 +51,117 @@ impl Node {
 // get_sequence
 
 // flag -> true: break previous dependencies
-pub fn break_edges(grid:&mut Grid, target: Value, func: Value, flag: bool) {
+/// Function to break edges concerned with target cell in the graph depending on flag
+pub fn break_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool) {
     // break edges
+    let old_func: Option<Value>;
     if flag {
-        // break previous dependencies
-        if let Some(Value::Cell(row, col)) = target {
-            if let Some(Value::Oper(box1, box2, oper)) = func {
-                match oper {
-                    Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
-                        if let Some(Value::Cell(row1, col1)) = *box1 {
-                            if let Some(Value::Cell(row2, col2)) = *box2 {
-                                let node1 = grid.get_node(row1, col1);
-                                let node2 = grid.get_node(row2, col2);
-                                node1.remove_dep(target.clone());
-                                node2.remove_dep(target.clone());
+        // break old dependencies (stored in grid)
+        old_func = grid.get_node(target.row(), target.col()).function.clone();
+    } else {
+        old_func = func;
+    }
+    if let Some(Value::Oper(box1, box2, oper)) = old_func {
+        match oper {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                if let Some(Value::Cell(row1, col1)) = box1.as_deref() {
+                    if let Some(Value::Cell(row2, col2)) = box2.as_deref() {
+                        for i in *row1..=*row2 {
+                            for j in *col1..=*col2 {
+                                let node = grid.get_node(i, j);
+                                node.remove_dep(target.clone());
                             }
-                        }
-                    }
-                    Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
-                        match *box1{
-                            (Some(Value::Cell(row1, col1))) => {
-                                grid.cells_vec[row1][col1].remove_dep(target.clone());
-                            }
-                            _ => {}
-                        }
-                        match *box2{
-                            (Some(Value::Cell(row1, col1))) => {
-                                grid.cells_vec[row1][col1].remove_dep(target.clone());
-                            }
-                            _ => {}
                         }
                     }
                 }
             }
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
+                if let Some(boxed_val) = box1 {
+                    if let Value::Cell(row1, col1) = &*boxed_val {
+                        let node1 = grid.get_node(*row1, *col1);
+                        node1.remove_dep(target.clone());
+                    }
+                }
+                if let Some(boxed_val) = box2 {
+                    if let Value::Cell(row1, col1) = &*boxed_val {
+                        let node1 = grid.get_node(*row1, *col1);
+                        node1.remove_dep(target.clone());
+                    }
+                }
+            }
+            Operation::Cons | Operation::Slp => {
+                // C
+                if let Some(Value::Cell(row1, col1)) = box1.as_deref() {
+                    let node1 = grid.get_node(*row1, *col1);
+                    node1.remove_dep(target.clone());
+                }
+                // V -> do nothing
+            }
+            _ => {}
         }
     }
 }
 
-pub fn add_edges(grid:&mut Grid, target: Value, func: Value, flag: bool) {
+// flag -> true: add new dependencies
+/// Function to add edges concerned with target cell in the graph depending on flag
+pub fn add_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool) {
     // add edges
+    let old_func: Option<Value>;
+    if flag {
+        // add new dependencies
+        old_func = func;
+    } else {
+        old_func = grid.get_node(target.row(), target.col()).function.clone();
+    }
+    if let Some(Value::Oper(box1, box2, oper)) = old_func {
+        match oper {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                if let Some(Value::Cell(row1, col1)) = box1.as_deref() {
+                    if let Some(Value::Cell(row2, col2)) = box2.as_deref() {
+                        for i in *row1..=*row2 {
+                            for j in *col1..=*col2 {
+                                let node = grid.get_node(i, j);
+                                node.add_dep(target.clone());
+                            }
+                        }
+                    }
+                }
+            }
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
+                if let Some(boxed_val) = box1 {
+                    if let Value::Cell(row1, col1) = &*boxed_val {
+                        let node1 = grid.get_node(*row1, *col1);
+                        node1.add_dep(target.clone());
+                    }
+                }
+                if let Some(boxed_val) = box2 {
+                    if let Value::Cell(row1, col1) = &*boxed_val {
+                        let node1 = grid.get_node(*row1, *col1);
+                        node1.add_dep(target.clone());
+                    }
+                }
+            }
+            Operation::Cons | Operation::Slp => {
+                // C
+                if let Some(Value::Cell(row1, col1)) = box1.as_deref() {
+                    let node1 = grid.get_node(*row1, *col1);
+                    node1.add_dep(target.clone());
+                }
+                // V -> do nothing
+            }
+            _ => {}
+        }
+    }
 }
 
 /// Updates the edges of the graph based on target and function values.
 /// flag is true when previous dependencies are to be broken and new dependecies are to be added
 /// flag is false when only new dependencies are to be added and previous dependencies are to be broken (Circular dependency case)
-pub fn update_edges(grid: &mut Grid, target: Value, func: Value, flag:bool) {
+pub fn update_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool) {
+    // so here in update edges -> func will contain the 3 value tuple (new)
     // target will always be a cell
-    if let Some(Value::Cell(row, col)) = target {
-        if let Some(Value::Oper(box1, box2, _oper)) = func {
+    if let Value::Cell(row, col) = target {
+        if let Some(Value::Oper(ref box1, ref box2, ref _oper)) = func {
             // passing target row col to access the node in functions
             break_edges(grid, target.clone(), func.clone(), flag);
             add_edges(grid, target.clone(), func.clone(), flag);
@@ -107,11 +170,73 @@ pub fn update_edges(grid: &mut Grid, target: Value, func: Value, flag:bool) {
 }
 
 /// Checks for circular dependency in graph using DFS
-pub fn hasCycle(grid: &mut Grid, target: Value, func: Value) -> bool {
-    
+pub fn hasCycle(grid: &mut Grid, target: Value, func: Option<Value>) -> bool {
+    let mut stack = vec![target.clone()];
+    let node = grid.get_node(target.row(), target.col());
+    node.visited = true;
+    while let Some(Value::Cell(row, col)) = stack.pop() {
+        let dependents = grid.get_node(row, col).dependents.clone();
+        for dep in dependents {
+            if let Value::Cell(dep_r, dep_c) = dep {
+                let dep_node = grid.get_node(dep_r, dep_c);
+                if dep_node.visited {
+                    // cycle detected
+                    reset_visited(grid, target.clone());
+                    return true;
+                } else {
+                    dep_node.visited = true;
+                    stack.push(dep);
+                }
+            }
+        }
+    }
+    reset_visited(grid, target.clone());
+    false
+}
+
+/// This function does dfs in order to efficiently reset visited flags to false
+pub fn reset_visited(grid: &mut Grid, start: Value) {
+    if let Value::Cell(row, col) = start {
+        let mut stack = vec![start];
+        grid.get_node(row, col).visited = false;
+
+        while let Some(Value::Cell(r, c)) = stack.pop() {
+            let dependents = grid.get_node(r, c).dependents.clone();
+
+            for dep in dependents {
+                if let Value::Cell(dep_r, dep_c) = dep {
+                    let dep_node = grid.get_node(dep_r, dep_c);
+                    if dep_node.visited {
+                        dep_node.visited = false;
+                        stack.push(dep);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Returns the sequence of topological sort starting from target cell
-pub fn get_sequence(grid: &mut Grid, target: Value, func: Value) -> Vec<Value> {
+pub fn get_sequence(grid: &mut Grid, target: Value, func: Option<Value>) -> Vec<Value> {
+    let mut stack = Vec::new();
+    topological_sort(grid, target, &mut stack);
+    return stack;
+}
 
+pub fn topological_sort(grid: &mut Grid, target: Value, stack: &mut Vec<Value>) {
+    if let Value::Cell(row, col) = target {
+        let node = grid.get_node(row, col);
+        if node.visited {
+            return;
+        }
+        node.visited = true;
+
+        for dep in node.dependents.clone() {
+            topological_sort(grid, dep, stack);
+            // if let Value::Cell(dep_row, dep_col) = dep {
+            //     topological_sort(grid, Value::Cell(dep_row, dep_col), stack);
+            // }
+        }
+        stack.push(target);
+    }
 }
