@@ -292,14 +292,14 @@ impl Backend {
             }
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(None, None, op)))) => {
                 return match op {
-                    Operation::ScrollTo => Status::ScrollTo(col,row),
+                    Operation::ScrollTo => Status::ScrollTo(col, row),
                     _ => Status::UnrecognizedCmd,
                 };
             }
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
                 // change here
                 // either have to change parser or change the inside parts of box1 and box2
-                return self.execute(Value::Cell(col,row), Some(Value::Oper(box1, box2, op)));
+                return self.execute(Value::Cell(col, row), Some(Value::Oper(box1, box2, op)));
             }
             _ => {
                 return Status::UnrecognizedCmd;

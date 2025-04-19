@@ -27,14 +27,13 @@ fn main() {
     } else {
         10
     };
-    if rows > 999 || rows < 1{
+    if rows > 999 || rows < 1 {
         return;
     }
 
-    if columns > 18278 || columns < 1{
+    if columns > 18278 || columns < 1 {
         return;
     }
-
 
     let mut frontend = Frontend::init_frontend(rows, columns);
     frontend.run_frontend();

@@ -1,6 +1,6 @@
+use std::cmp;
 use std::io;
 use std::io::Write;
-use std::cmp;
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
 //run_counter -> while loop for argument, process_command(r,c, string), Print_grid() : return void
@@ -39,7 +39,7 @@ impl Frontend {
             let max_x = cmp::min(9 + start_x, rows);
             let max_y = cmp::min(9 + start_y, cols);
             for i in start_x - 1..=max_x {
-                for j in start_y - 1 ..=max_y {
+                for j in start_y - 1..=max_y {
                     if i == start_x - 1 && j == start_y - 1 {
                         print!("{:>12}", " ");
                     } else if i == start_x - 1 {
@@ -155,7 +155,10 @@ impl Frontend {
             input.clear();
 
             if stdin.read_line(&mut input).is_err() {
-                self.display(Status::UnrecognizedCmd, Duration::from_secs(0).as_secs_f64());
+                self.display(
+                    Status::UnrecognizedCmd,
+                    Duration::from_secs(0).as_secs_f64(),
+                );
                 continue;
             }
             let start_time = Instant::now();
