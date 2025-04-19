@@ -62,9 +62,11 @@
                 max-height: 80vh;
                 position: relative;
                 margin-bottom: 20px;
+                pointer-events: none;
             }
 
             table {
+                pointer-events: auto;
                 border-collapse: collapse;
                 white-space: nowrap;
                 width: 100%;
@@ -75,10 +77,16 @@
                 margin: 16px 0;
             }
 
+            td.selected {
+                background-color: #e3f2fd;
+                outline: 2px solid #50a0d0;
+            }
+
             th, td {
                 min-width: 100px;
                 border: 1px solid #ccc;
                 padding: 8px;
+                cursor: pointer;
             }
 
             thead th {
@@ -133,11 +141,11 @@
                 border: 1px solid var(--border-color);
             }
         </style>
-    <link rel="modulepreload" href="/spreadsheet_rust-9d9affeab6039366.js" crossorigin="anonymous" integrity="sha384-DgUHCqfK/kMtABPeXL70HNZ22J/Mcd+W78yKkUknYItAo7/Fm/sopi6cH4qx7B+A"><link rel="preload" href="/spreadsheet_rust-9d9affeab6039366_bg.wasm" crossorigin="anonymous" integrity="sha384-tp9E2iio/YGHFlhypO7Q7mbioJPIFU9v5WByG6hNP88JOFy6G2vLfhg1+MeMnDts" as="fetch" type="application/wasm"></head>
+    <link rel="modulepreload" href="/spreadsheet_rust-17d5f2a3c07761f.js" crossorigin="anonymous" integrity="sha384-VmZ9bNubp7GIH8abe93FyBhdh5gDz9sZsyaxq7WJE/QDva2sjMq4nPHCXOXDAtvi"><link rel="preload" href="/spreadsheet_rust-17d5f2a3c07761f_bg.wasm" crossorigin="anonymous" integrity="sha384-0MmOWaLPs6Y+NRkt4HPjDJ0jUUeNH1HeOiy2quHJw+5xO7Kg1tqmtxblm/jqgTj8" as="fetch" type="application/wasm"></head>
     <body>
 <script type="module">
-import init, * as bindings from '/spreadsheet_rust-9d9affeab6039366.js';
-const wasm = await init({ module_or_path: '/spreadsheet_rust-9d9affeab6039366_bg.wasm' });
+import init, * as bindings from '/spreadsheet_rust-17d5f2a3c07761f.js';
+const wasm = await init({ module_or_path: '/spreadsheet_rust-17d5f2a3c07761f_bg.wasm' });
 
 
 window.wasmBindings = bindings;
