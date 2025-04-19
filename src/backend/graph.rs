@@ -27,7 +27,7 @@ impl Node {
             node_value: val,
             function: None,
             visited: false,
-            valid: false,
+            valid: true,
         }
     }
     pub fn get_node_value(&self) -> isize {
@@ -61,45 +61,43 @@ pub fn break_edges(grid:&mut Grid, target: Value, func: Option<Value>, flag: boo
     else {
         old_func = func;
     }
-    if let Some(Value::Cell(row, col)) = target {
-        if let Some(Value::Oper(box1, box2, oper)) = old_func {
-            match oper {
-                Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
-                    if let Some(Value::Cell(row1, col1)) = *box1 {
-                        if let Some(Value::Cell(row2, col2)) = *box2 {
-                            for i in row1..=row2 {
-                                for j in col1..=col2 {
-                                    let node = grid.get_node(i, j);
-                                    node.remove_dep(target.clone());
-                                }
+    if let Some(Value::Oper(box1, box2, oper)) = old_func {
+        match oper {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                if let Some(Value::Cell(row1, col1)) = *box1 {
+                    if let Some(Value::Cell(row2, col2)) = *box2 {
+                        for i in row1..=row2 {
+                            for j in col1..=col2 {
+                                let node = grid.get_node(i, j);
+                                node.remove_dep(target.clone());
                             }
                         }
                     }
                 }
-                Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
-                    if let Some(boxed_val) = box1 {
-                        if let Value::Cell(row1, col1) = **boxed_val {
-                            let node1 = grid.get_node(row1, col1);
-                            node1.remove_dep(target.clone());
-                        }
-                    }
-                    if let Some(boxed_val) = box2 {
-                        if let Value::Cell(row1, col1) = **boxed_val {
-                            let node1 = grid.get_node(row1, col1);
-                            node1.remove_dep(target.clone());
-                        }
-                    }
-                }
-                Operation::Cons | Operation::Slp => {
-                    // C
-                    if let Some(Value::Cell(row1, col1)) = *box1 {
+            }
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
+                if let Some(boxed_val) = box1 {
+                    if let Value::Cell(row1, col1) = **boxed_val {
                         let node1 = grid.get_node(row1, col1);
                         node1.remove_dep(target.clone());
                     }
-                    // V -> do nothing
                 }
-                _ => {}
+                if let Some(boxed_val) = box2 {
+                    if let Value::Cell(row1, col1) = **boxed_val {
+                        let node1 = grid.get_node(row1, col1);
+                        node1.remove_dep(target.clone());
+                    }
+                }
             }
+            Operation::Cons | Operation::Slp => {
+                // C
+                if let Some(Value::Cell(row1, col1)) = *box1 {
+                    let node1 = grid.get_node(row1, col1);
+                    node1.remove_dep(target.clone());
+                }
+                // V -> do nothing
+            }
+            _ => {}
         }
     }
 }
@@ -115,45 +113,43 @@ pub fn add_edges(grid:&mut Grid, target: Value, func: Option<Value>, flag: bool)
     else {
         old_func = grid.get_node(target.row(), target.col()).function.clone();
     }
-    if let Some(Value::Cell(row, col)) = target {
-        if let Some(Value::Oper(box1, box2, oper)) = old_func {
-            match oper {
-                Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
-                    if let Some(Value::Cell(row1, col1)) = *box1 {
-                        if let Some(Value::Cell(row2, col2)) = *box2 {
-                            for i in row1..=row2 {
-                                for j in col1..=col2 {
-                                    let node = grid.get_node(i, j);
-                                    node.add_dep(target.clone());
-                                }
+    if let Some(Value::Oper(box1, box2, oper)) = old_func {
+        match oper {
+            Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
+                if let Some(Value::Cell(row1, col1)) = *box1 {
+                    if let Some(Value::Cell(row2, col2)) = *box2 {
+                        for i in row1..=row2 {
+                            for j in col1..=col2 {
+                                let node = grid.get_node(i, j);
+                                node.add_dep(target.clone());
                             }
                         }
                     }
                 }
-                Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
-                    if let Some(boxed_val) = box1 {
-                        if let Value::Cell(row1, col1) = **boxed_val {
-                            let node1 = grid.get_node(row1, col1);
-                            node1.add_dep(target.clone());
-                        }
-                    }
-                    if let Some(boxed_val) = box2 {
-                        if let Value::Cell(row1, col1) = **boxed_val {
-                            let node1 = grid.get_node(row1, col1);
-                            node1.add_dep(target.clone());
-                        }
-                    }
-                }
-                Operation::Cons | Operation::Slp => {
-                    // C
-                    if let Some(Value::Cell(row1, col1)) = *box1 {
+            }
+            Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => {
+                if let Some(boxed_val) = box1 {
+                    if let Value::Cell(row1, col1) = **boxed_val {
                         let node1 = grid.get_node(row1, col1);
                         node1.add_dep(target.clone());
                     }
-                    // V -> do nothing
                 }
-                _ => {}
+                if let Some(boxed_val) = box2 {
+                    if let Value::Cell(row1, col1) = **boxed_val {
+                        let node1 = grid.get_node(row1, col1);
+                        node1.add_dep(target.clone());
+                    }
+                }
             }
+            Operation::Cons | Operation::Slp => {
+                // C
+                if let Some(Value::Cell(row1, col1)) = *box1 {
+                    let node1 = grid.get_node(row1, col1);
+                    node1.add_dep(target.clone());
+                }
+                // V -> do nothing
+            }
+            _ => {}
         }
     }
 }
@@ -164,8 +160,8 @@ pub fn add_edges(grid:&mut Grid, target: Value, func: Option<Value>, flag: bool)
 pub fn update_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag:bool) {
     // so here in update edges -> func will contain the 3 value tuple (new)
     // target will always be a cell
-    if let Some(Value::Cell(row, col)) = target {
-        if let Some(Value::Oper(box1, box2, _oper)) = func {
+    if let Value::Cell(row, col) = target {
+        if let Some(Value::Oper(box1, box2, ref _oper)) = func {
             // passing target row col to access the node in functions
             break_edges(grid, target.clone(), func.clone(), flag);
             add_edges(grid, target.clone(), func.clone(), flag);
@@ -175,8 +171,9 @@ pub fn update_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag:bo
 
 /// Checks for circular dependency in graph using DFS
 pub fn hasCycle(grid: &mut Grid, target: Value, func: Option<Value>) -> bool {
-    let mut stack = vec![target];
-    grid[target.row()][target.col()].visited = true;
+    let mut stack = vec![target.clone()];
+    let node = grid.get_node(target.row(), target.col());
+    node.visited = true;
     while let Some(Value::Cell(row, col)) = stack.pop() {
         let dependents = grid.get_node(row, col).dependents.clone();
         for dep in dependents {
@@ -232,7 +229,7 @@ pub fn topological_sort (
     target: Value,
     stack: &mut Vec<Value>,
 ) {
-    if let Some(Value::Cell(row, col)) = target {
+    if let Value::Cell(row, col) = target {
         let node = grid.get_node(row, col);
         if node.visited {
             return;
