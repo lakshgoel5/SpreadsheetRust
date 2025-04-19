@@ -223,7 +223,9 @@ pub fn reset_visited(grid: &mut Grid, start: Value) {
 /// Returns the sequence of topological sort starting from target cell
 pub fn get_sequence(grid: &mut Grid, target: Value, func: Option<Value>) -> Vec<Value> {
     let mut stack = Vec::new();
-    topological_sort(grid, target, &mut stack);
+    topological_sort(grid, target.clone(), &mut stack);
+    stack.reverse();
+    reset_visited(grid, target.clone());
     return stack;
 }
 
