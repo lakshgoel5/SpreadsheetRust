@@ -208,6 +208,7 @@ pub fn validate(
             ));
         }
         "MAX" => {
+            println!("Max");
             return Some((
                 cell,
                 Some(Value::Oper(
@@ -252,7 +253,7 @@ pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
     if row > *rows || col > *columns {
         return None;
     }
-    return Some(Value::Cell(col, row));
+    return Some(Value::Cell(row, col));
 }
 
 pub fn is_const(exp: &String) -> Option<Value> {
