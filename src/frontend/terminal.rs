@@ -1,6 +1,6 @@
+use std::cmp;
 use std::io;
 use std::io::Write;
-use std::cmp;
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
 //run_counter -> while loop for argument, process_command(r,c, string), Print_grid() : return void
@@ -36,11 +36,10 @@ impl Frontend {
         let location = self.start.clone();
         let dimension = self.dimension.clone();
         if let (Value::Cell(start_x, start_y), Value::Cell(rows, cols)) = (location, dimension) {
-            println!("rows: {}, cols: {}", rows, cols); // debug
             let max_x = cmp::min(9 + start_x, rows);
             let max_y = cmp::min(9 + start_y, cols);
             for i in start_x - 1..=max_x {
-                for j in start_y - 1 ..=max_y {
+                for j in start_y - 1..=max_y {
                     if i == start_x - 1 && j == start_y - 1 {
                         print!("{:>12}", " ");
                     } else if i == start_x - 1 {
@@ -118,7 +117,6 @@ impl Frontend {
             Status::ScrollTo(row, col) => {
                 self.start.assign_row(*row);
                 self.start.assign_col(*col);
-                println!("Scrolling to row: {}, col: {}", row, col); // debug
                 return; //left debug
             }
             Status::Web => {
@@ -130,21 +128,20 @@ impl Frontend {
     }
 
     pub fn display(&self, status: Status, elapsed_time: f64) {
-        println!("at display"); // debug
         self.print_grid();
         match status {
-            Status::Success => print!("[{:.2}] (ok) ", elapsed_time),
-            Status::InvalidRange => print!("[{:.2}] (invalid range) ", elapsed_time),
-            Status::UnrecognizedCmd => print!("[{:.2}] (unrecognized command) ", elapsed_time),
-            Status::InvalidRowColumn => print!("[{:.2}] (invalid row or column) ", elapsed_time),
-            Status::CircularDependency => print!("[{:.2}] (cycle not allowed) ", elapsed_time),
-            Status::PrintEnabled => print!("[{:.2}] (ok) ", elapsed_time),
-            Status::PrintDisabled => print!("[{:.2}] (ok) ", elapsed_time),
-            Status::ScrollTo(row, col) => print!("[{:.2}] (ok) ", elapsed_time),
-            Status::Up => print!("[{:.2}] (ok) ", elapsed_time),
-            Status::Down => print!("[{:.2}] (ok) ", elapsed_time),
-            Status::Left => print!("[{:.2}] (ok) ", elapsed_time),
-            Status::Right => print!("[{:.2}] (ok) ", elapsed_time),
+            Status::Success => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::InvalidRange => print!("[{:.2}] (invalid range) > ", elapsed_time),
+            Status::UnrecognizedCmd => print!("[{:.2}] (unrecognized command) > ", elapsed_time),
+            Status::InvalidRowColumn => print!("[{:.2}] (invalid row or column) > ", elapsed_time),
+            Status::CircularDependency => print!("[{:.2}] (cycle not allowed) > ", elapsed_time),
+            Status::PrintEnabled => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::PrintDisabled => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::ScrollTo(row, col) => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::Up => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::Down => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::Left => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::Right => print!("[{:.2}] (ok) > ", elapsed_time),
             _ => (),
         }
         io::stdout().flush().unwrap();
@@ -158,7 +155,10 @@ impl Frontend {
             input.clear();
 
             if stdin.read_line(&mut input).is_err() {
-                self.display(Status::UnrecognizedCmd, Duration::from_secs(0).as_secs_f64());
+                self.display(
+                    Status::UnrecognizedCmd,
+                    Duration::from_secs(0).as_secs_f64(),
+                );
                 continue;
             }
             let start_time = Instant::now();

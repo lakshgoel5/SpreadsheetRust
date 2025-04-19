@@ -51,12 +51,13 @@ pub fn validate(
                 Some(Value::Oper(None, None, Operation::ScrollTo)),
             ));
         } else {
+            // println!("Invalid cell name");
             return None;
         }
     }
 
     let Some((cell, exp)) = cmd.split_once('=') else {
-        eprintln!("Could not find a valid exp being assigned to a valid cell");
+        // eprintln!("Could not find a valid exp being assigned to a valid cell");
         return None;
     };
 
@@ -118,7 +119,7 @@ pub fn validate(
                         ));
                     }
                     _ => {
-                        eprintln!("Invalid operation");
+                        // eprintln!("Invalid operation");
                         return None;
                     } //This case is not possible, just for compilation
                 }
@@ -160,7 +161,7 @@ pub fn validate(
     let end = is_cell(&end, rows, columns)?;
     if let (Value::Cell(r, c), Value::Cell(r2, c2)) = (&start, &end) {
         if r > r2 || c > c2 {
-            eprintln!("Invalid range, start is greater than end");
+            // eprintln!("Invalid range, start is greater than end");
             return None;
         }
     } else {
@@ -208,7 +209,6 @@ pub fn validate(
             ));
         }
         "MAX" => {
-            println!("Max");
             return Some((
                 cell,
                 Some(Value::Oper(
@@ -219,13 +219,13 @@ pub fn validate(
             ));
         }
         _ => {
-            eprintln!("Invalid operation");
+            // eprintln!("Invalid operation");
             return Some((cell, None));
         }
     }
 }
 
-pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
+pub fn is_cell(exp: &String, columns: &usize, rows: &usize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
 
