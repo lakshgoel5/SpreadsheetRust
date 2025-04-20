@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //topo sort
 //node
 //adding
@@ -51,20 +52,19 @@ impl Node {
 }
 
 // update_edges
-// hasCycle
+// has_cycle
 // get_sequence
 
 // flag -> true: break previous dependencies
 /// Function to break edges concerned with target cell in the graph depending on flag
 pub fn break_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool) {
     // break edges
-    let old_func: Option<Value>;
-    if flag {
+    let old_func: Option<Value> = if flag {
         // break old dependencies (stored in grid)
-        old_func = grid.get_node(target.row(), target.col()).function.clone();
+        grid.get_node(target.row(), target.col()).function.clone()
     } else {
-        old_func = func;
-    }
+        func
+    };
     if let Some(Value::Oper(box1, box2, oper)) = old_func {
         match oper {
             Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
@@ -110,13 +110,13 @@ pub fn break_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bo
 /// Function to add edges concerned with target cell in the graph depending on flag
 pub fn add_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool) {
     // add edges
-    let old_func: Option<Value>;
-    if flag {
+    let old_func: Option<Value> = if flag {
         // add new dependencies
-        old_func = func;
+        func
     } else {
-        old_func = grid.get_node(target.row(), target.col()).function.clone();
-    }
+        grid.get_node(target.row(), target.col()).function.clone()
+    };
+
     if let Some(Value::Oper(box1, box2, oper)) = old_func {
         match oper {
             Operation::Sum | Operation::Avg | Operation::Max | Operation::Min => {
@@ -164,8 +164,8 @@ pub fn add_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool
 pub fn update_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool) {
     // so here in update edges -> func will contain the 3 value tuple (new)
     // target will always be a cell
-    if let Value::Cell(row, col) = target {
-        if let Some(Value::Oper(ref box1, ref box2, ref _oper)) = func {
+    if let Value::Cell(_, _) = target {
+        if let Some(Value::Oper(ref _box1, ref _box2, ref _oper)) = func {
             // passing target row col to access the node in functions
             break_edges(grid, target.clone(), func.clone(), flag);
             add_edges(grid, target.clone(), func.clone(), flag);
@@ -174,7 +174,7 @@ pub fn update_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: b
 }
 
 /// Checks for circular dependency in graph using DFS
-pub fn hasCycle(grid: &mut Grid, target: Value, func: Option<Value>) -> bool {
+pub fn has_cycle(grid: &mut Grid, target: Value) -> bool {
     let mut stack = vec![target.clone()];
     let node = grid.get_node(target.row(), target.col());
     node.visited = true;
@@ -221,12 +221,12 @@ pub fn reset_visited(grid: &mut Grid, start: Value) {
 }
 
 /// Returns the sequence of topological sort starting from target cell
-pub fn get_sequence(grid: &mut Grid, target: Value, func: Option<Value>) -> Vec<Value> {
+pub fn get_sequence(grid: &mut Grid, target: Value) -> Vec<Value> {
     let mut stack = Vec::new();
     topological_sort(grid, target.clone(), &mut stack);
     stack.reverse();
     reset_visited(grid, target.clone());
-    return stack;
+    stack
 }
 
 pub fn topological_sort(grid: &mut Grid, target: Value, stack: &mut Vec<Value>) {

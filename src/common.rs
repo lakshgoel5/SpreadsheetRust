@@ -5,7 +5,6 @@ pub enum Value {
     Cell(usize, usize),
     Const(isize),
     Oper(Option<Box<Value>>, Option<Box<Value>>, Operation), //value1 and value2, and the operation or command, respectively
-    None,
 }
 
 impl Value {

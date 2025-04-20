@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::cmp;
 use std::io;
 use std::io::Write;
@@ -82,13 +83,12 @@ impl Frontend {
                 } else {
                     self.start.assign_col(1);
                 }
-                return;
             }
             Status::Right => {
                 if (self.start.col() as isize) < (self.dimension.col() as isize) - 10 {
-                    self.start.assign_col(cmp::min(self.start.col() + 10,self.dimension.col() - 9));
+                    self.start
+                        .assign_col(cmp::min(self.start.col() + 10, self.dimension.col() - 9));
                 }
-                return;
             }
             Status::Up => {
                 if self.start.row() > 10 {
@@ -96,13 +96,12 @@ impl Frontend {
                 } else {
                     self.start.assign_row(1);
                 }
-                return;
             }
             Status::Down => {
                 if (self.start.row() as isize) < (self.dimension.row() as isize) - 10 {
-                    self.start.assign_row(cmp::min(self.start.row() + 10, self.dimension.row()-9));
+                    self.start
+                        .assign_row(cmp::min(self.start.row() + 10, self.dimension.row() - 9));
                 }
-                return;
             }
             Status::PrintDisabled => {
                 self.print_enabled = false;
@@ -113,11 +112,9 @@ impl Frontend {
             Status::ScrollTo(row, col) => {
                 self.start.assign_row(*row);
                 self.start.assign_col(*col);
-                return; //left debug
             }
             Status::Web => {
                 start_web_app();
-                return; //left debug
             }
             _ => (),
         }
@@ -133,7 +130,7 @@ impl Frontend {
             Status::CircularDependency => print!("[{:.2}] (cycle not allowed) > ", elapsed_time),
             Status::PrintEnabled => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::PrintDisabled => print!("[{:.2}] (ok) > ", elapsed_time),
-            Status::ScrollTo(row, col) => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::ScrollTo(_, _) => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::Up => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::Down => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::Left => print!("[{:.2}] (ok) > ", elapsed_time),

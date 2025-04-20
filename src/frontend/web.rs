@@ -122,6 +122,7 @@ pub fn start_web_app() {
     yew::Renderer::<App>::new().render();
 }
 
+#[allow(dead_code)]
 fn main() {
     start_web_app();
 }

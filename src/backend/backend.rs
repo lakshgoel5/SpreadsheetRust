@@ -1,19 +1,18 @@
+#![allow(dead_code)]
 use crate::backend::functions::*;
 use crate::backend::graph::Node;
 use crate::backend::graph::get_sequence;
-use crate::backend::graph::hasCycle;
+use crate::backend::graph::has_cycle;
 use crate::backend::graph::update_edges;
 use crate::common::{Operation, Value};
 use crate::parser::*;
-/// Control Unit for data processing and updating values in Spreadsheeet.
-/// The `Grid` struct is designed to store and manage a grid of `Cell` objects.
-
 //init_backend(r,c) -> generate a grid of all nodes : returns void
 //execute(value::cell, value::oper) -> update_edges(Node, value::oper), hasCycle(Box<>, value::cell), get_sequence(Box<>, value::cell), update_grid(sequence) -> return status
 //update_grid(sequence) -> loop assign to Node = <functions>(Box<>, value::oper -> return bool
 //process_command(r,c, string, value::Cell) -> parser, execute(value::cell, value::oper): return status
 //get_value(value::cell): returns a cell_value
-
+/// Control Unit for data processing and updating values in Spreadsheeet.
+/// The `Grid` struct is designed to store and manage a grid of `Cell` objects.
 ///Data structure to represent sheet
 pub struct Grid {
     rows: usize,
@@ -257,18 +256,18 @@ impl Backend {
                 // change cell's parameters here
                 let node = self.grid.get_node(cell.row(), cell.col());
                 node.function = func.clone();
-                let sequence = get_sequence(&mut self.grid, cell.clone(), func.clone());
+                let sequence = get_sequence(&mut self.grid, cell.clone());
                 self.update_grid(sequence.clone());
             } else {
                 update_edges(&mut self.grid, cell.clone(), func.clone(), true);
-                if hasCycle(&mut self.grid, cell.clone(), func.clone()) {
+                if has_cycle(&mut self.grid, cell.clone()) {
                     update_edges(&mut self.grid, cell.clone(), func.clone(), false);
                     return Status::CircularDependency;
                 }
                 // change cell's parameters here
                 let node = self.grid.get_node(cell.row(), cell.col());
                 node.function = func.clone();
-                let sequence = get_sequence(&mut self.grid, cell.clone(), func.clone());
+                let sequence = get_sequence(&mut self.grid, cell.clone());
                 self.update_grid(sequence.clone());
             }
         }
@@ -277,33 +276,27 @@ impl Backend {
     ///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
     pub fn process_command(&mut self, rows: usize, columns: usize, cmd: String) -> Status {
         match parser::validate(&cmd, &columns, &rows) {
-            Some((None, Some(Value::Oper(None, None, op)))) => {
-                return match op {
-                    Operation::EnableOutput => Status::PrintEnabled,
-                    Operation::DisableOutput => Status::PrintDisabled,
-                    Operation::Left => Status::Left,
-                    Operation::Right => Status::Right,
-                    Operation::Up => Status::Up,
-                    Operation::Down => Status::Down,
-                    Operation::Quit => Status::Quit,
-                    Operation::Web => Status::Web,
-                    _ => Status::UnrecognizedCmd,
-                };
-            }
-            Some((Some(Value::Cell(col, row)), Some(Value::Oper(None, None, op)))) => {
-                return match op {
-                    Operation::ScrollTo => Status::ScrollTo(col, row),
-                    _ => Status::UnrecognizedCmd,
-                };
-            }
+            Some((None, Some(Value::Oper(None, None, op)))) => match op {
+                Operation::EnableOutput => Status::PrintEnabled,
+                Operation::DisableOutput => Status::PrintDisabled,
+                Operation::Left => Status::Left,
+                Operation::Right => Status::Right,
+                Operation::Up => Status::Up,
+                Operation::Down => Status::Down,
+                Operation::Quit => Status::Quit,
+                Operation::Web => Status::Web,
+                _ => Status::UnrecognizedCmd,
+            },
+            Some((Some(Value::Cell(col, row)), Some(Value::Oper(None, None, op)))) => match op {
+                Operation::ScrollTo => Status::ScrollTo(col, row),
+                _ => Status::UnrecognizedCmd,
+            },
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
                 // change here
                 // either have to change parser or change the inside parts of box1 and box2
-                return self.execute(Value::Cell(col, row), Some(Value::Oper(box1, box2, op)));
+                self.execute(Value::Cell(col, row), Some(Value::Oper(box1, box2, op)))
             }
-            _ => {
-                return Status::UnrecognizedCmd;
-            }
+            _ => Status::UnrecognizedCmd,
         }
     }
     pub fn get_grid(&self) -> &Grid {

@@ -4,8 +4,6 @@ mod common;
 mod frontend;
 mod parser;
 use spreadsheet_rust::frontend::terminal::Frontend;
-use std::process::{Command, Stdio};
-use std::thread;
 
 /// Entry point of the spreadsheet application.
 ///
@@ -27,11 +25,11 @@ fn main() {
     } else {
         10
     };
-    if rows > 999 || rows < 1 {
+    if !(1..=999).contains(&rows) {
         return;
     }
 
-    if columns > 18278 || columns < 1 {
+    if !(1..=18278).contains(&columns) {
         return;
     }
 
