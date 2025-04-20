@@ -55,20 +55,8 @@
             }
 
             /* Table Styles */
-            .table-container {
-                max-width: 100%;
-                overflow-x: auto;
-                overflow-y: auto;
-                max-height: 80vh;
-                position: relative;
-                margin-bottom: 20px;
-                pointer-events: none;
-            }
-
             table {
-                pointer-events: auto;
                 border-collapse: collapse;
-                white-space: nowrap;
                 width: 100%;
                 background: white;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -77,39 +65,12 @@
                 margin: 16px 0;
             }
 
-            td.selected {
-                background-color: #e3f2fd;
-                outline: 2px solid #50a0d0;
-            }
-
-            th, td {
-                min-width: 100px;
-                border: 1px solid #ccc;
-                padding: 8px;
-                cursor: pointer;
-            }
-
-            thead th {
-                position: sticky;
-                top: 0;
-                background-color: #f0f0f0;
-                z-index: 1;
-            }
-
-            /* First column (row numbers) */
-            tbody th:first-child {
-                position: sticky;
-                left: 0;
-                background-color: #f0f0f0;
-                z-index: 1;
-            }
-
-            /* Corner cell (top-left) */
-            thead th:first-child {
-                position: sticky;
-                left: 0;
-                z-index: 2;
-                background-color: #f0f0f0;
+            td {
+                padding: 12px;
+                border: 1px solid var(--border-color);
+                text-align: right;
+                font-size: 14px;
+                transition: background-color 0.2s;
             }
 
             tr:nth-child(even) {
@@ -139,75 +100,13 @@
                 border-radius: 4px;
                 margin-bottom: 16px;
                 border: 1px solid var(--border-color);
-                display: flex;
-                gap: 20px;
-                margin-bottom: 20px;
-                padding: 10px;
-                background: #f5f5f5;
-                border-radius: 4px;
-            }
-
-            .controls input[type="number"],
-            .controls select {
-                padding: 4px 8px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                width: 80px;
-            }
-
-            .controls label {
-                font-weight: 500;
-                margin-right: 8px;
-            }
-
-            /* Chart styles */
-            .chart-container {
-                background: white;
-                padding: 20px;
-                border-radius: 4px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                margin-top: 20px;
-                height: 400px;
-                border-radius: 4px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-
-            .chart-container svg {
-                overflow: visible;
-            }
-
-            .chart-container text {
-                font-family: system-ui, -apple-system, sans-serif;
-                font-size: 12px;
-            }
-
-            .chart-controls {
-                background: var(--header-bg);
-                padding: 16px;
-                border-radius: 4px;
-                margin: 16px 0;
-                border: 1px solid var(--border-color);
-                display: flex;
-                gap: 16px;
-                align-items: center;
-            }
-
-            .chart-controls select {
-                padding: 8px;
-                border-radius: 4px;
-                border: 1px solid var(--border-color);
-            }
-
-            .chart-controls span {
-                color: #666;
-                font-size: 14px;
             }
         </style>
-    <link rel="modulepreload" href="/spreadsheet_rust-695820f0d20be73e.js" crossorigin="anonymous" integrity="sha384-rNMHdap3ieuE2UXaSMSil0BPVtTMowcsQGZ0BQn7/Qt6YGc0936E9pg6m2Yr+62L"><link rel="preload" href="/spreadsheet_rust-695820f0d20be73e_bg.wasm" crossorigin="anonymous" integrity="sha384-k9JDsUp5GijjhdKKTOsJUFv4dkJ/Qlc5eQEz1Tao0IUFAhb75U/yxynHhN9JPRk8" as="fetch" type="application/wasm"></head>
+    <link rel="modulepreload" href="/spreadsheet_rust-4910afc7414f56bf.js" crossorigin="anonymous" integrity="sha384-ESJvBJL1zJI1e9OIpc/rXQDa2X02nVGj4x8RBmguuzH5xVVyH+193J048DCQXZBl"><link rel="preload" href="/spreadsheet_rust-4910afc7414f56bf_bg.wasm" crossorigin="anonymous" integrity="sha384-f1u2tvo549gKjlKdW3sEFKOpRyqCiI0Gr1bNt92Xum2xcTo4EC84uq1F8Aic7D0a" as="fetch" type="application/wasm"></head>
     <body>
 <script type="module">
-import init, * as bindings from '/spreadsheet_rust-695820f0d20be73e.js';
-const wasm = await init({ module_or_path: '/spreadsheet_rust-695820f0d20be73e_bg.wasm' });
+import init, * as bindings from '/spreadsheet_rust-4910afc7414f56bf.js';
+const wasm = await init({ module_or_path: '/spreadsheet_rust-4910afc7414f56bf_bg.wasm' });
 
 
 window.wasmBindings = bindings;

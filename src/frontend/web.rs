@@ -95,14 +95,23 @@ pub fn app() -> Html {
     let get_column_data = {
         let table = table.clone();
         move |col: usize| -> Vec<(f32, f32, Option<Rc<dyn Labeller>>)> {
-            table.cells
+            // Collect and normalize data
+            let mut values: Vec<(f32, f32, Option<Rc<dyn Labeller>>)> = table.cells
                 .iter()
                 .enumerate()
+                .take(20)
                 .map(|(i, row)| {
                     let val = row[col - 1] as f32;
-                    (i as f32, val, None)
+                    (i as f32, val.max(0.1), None) // Ensure positive values
                 })
-                .collect()
+                .collect();
+
+            // Handle edge case
+            if values.is_empty() {
+                values = vec![(0.0, 1.0, None)];
+            }
+
+            values
         }
     };
 
@@ -147,52 +156,78 @@ pub fn app() -> Html {
 
             {if let Some(col) = *selected_column_for_chart {
                 let data = get_column_data(col);
-                let max_y = data.iter().map(|(_, y, _)| *y).fold(f32::NEG_INFINITY, f32::max);
-                let min_y = data.iter().map(|(_, y, _)| *y).fold(f32::INFINITY, f32::min);
-                let y_range = max_y - min_y;
-                let y_max = max_y + y_range * 0.1;
-                let y_min = if min_y > 0.0 { min_y * 0.9 } else { min_y - y_range * 0.1 }.max(0.0);
+                let y_max = data.iter().map(|(_, y, _)| *y).fold(0.0f32, |a, b| a.max(b));
                 let x_max = data.len() as f32;
-                let x_step = (x_max / 10.0).max(1.0);
-                let y_step = ((y_max - y_min) / 10.0).max(1.0);
-                
+
+                // SVG dimensions
+                let width = 800.0;
+                let height = 500.0;
+                let margin = 60.0;
+                let chart_width = width - 2.0 * margin;
+                let chart_height = height - 2.0 * margin;
+
+                let x_scale = Rc::new(LinearScale::new(
+                    Range { start: 0.0, end: x_max },
+                    1.0
+                )) as Rc<dyn Scale<Scalar = f32>>;
+
+                let y_scale = Rc::new(LinearScale::new(
+                    Range { start: 0.0, end: y_max * 1.1 },
+                    (y_max / 5.0).max(1.0)
+                )) as Rc<dyn Scale<Scalar = f32>>;
+
                 html! {
-                    <div class="chart-container" style="margin: 20px; padding: 20px; border: 1px solid #ccc;">
-                        <div style="width: 800px; height: 500px; position: relative;">
-                            <svg width="800" height="500" style="position: absolute; top: 0; left: 0;">
-                                <Axis<f32>
-                                    name="x-axis"
-                                    orientation={Orientation::Bottom}
-                                    scale={Rc::new(LinearScale::new(Range { start: 0.0, end: x_max }, x_step)) as Rc<dyn Scale<Scalar = f32>>}
-                                    tick_len={5.0}
-                                    x1={50.0}
-                                    y1={450.0}
-                                    xy2={750.0}
-                                    title="Row"
-                                />
+                    <div class="chart-container">
+                        <svg 
+                            width={width.to_string()}
+                            height={height.to_string()}
+                            style="background: white;"
+                        >
+                            // Y-axis (left side)
+                            <g transform={format!("translate({},{})", margin, margin)}>
                                 <Axis<f32>
                                     name="y-axis"
                                     orientation={Orientation::Left}
-                                    scale={Rc::new(LinearScale::new(Range { start: y_min, end: y_max }, y_step)) as Rc<dyn Scale<Scalar = f32>>}
+                                    scale={y_scale.clone()}
                                     tick_len={5.0}
-                                    x1={50.0}
-                                    y1={50.0}
-                                    xy2={450.0}
+                                    x1={0.0}
+                                    y1={0.0}
+                                    xy2={chart_height}
                                     title="Value"
                                 />
-                                <Series<f32, f32>
-                                    data={Rc::new(data)}
-                                    height={400.0}
-                                    width={700.0}
-                                    x={50.0}
-                                    y={50.0}
-                                    horizontal_scale={Rc::new(LinearScale::new(Range { start: 0.0, end: x_max }, x_step)) as Rc<dyn Scale<Scalar = f32>>}
-                                    vertical_scale={Rc::new(LinearScale::new(Range { start: y_min, end: y_max }, y_step)) as Rc<dyn Scale<Scalar = f32>>}
-                                    name={format!("Column {}", number_to_column_label(col))}
-                                    series_type={if (*chart_type).as_str() == "bar" { Type::Bar(BarType::Rise) } else { Type::Line }}
+                            </g>
+
+                            // X-axis (bottom)
+                            <g transform={format!("translate({},{})", margin, height - margin)}>
+                                <Axis<f32>
+                                    name="x-axis"
+                                    orientation={Orientation::Bottom}
+                                    scale={x_scale.clone()}
+                                    tick_len={5.0}
+                                    x1={0.0}
+                                    y1={0.0}
+                                    xy2={chart_width}
+                                    title="Row"
                                 />
-                            </svg>
-                        </div>
+                            </g>
+
+                            // Chart series
+                            <g transform={format!("translate({},{})", margin, height - margin)}>
+                                <g transform="scale(1,-1)">
+                                    <Series<f32, f32>
+                                        data={Rc::new(data)}
+                                        height={chart_height}
+                                        width={chart_width}
+                                        x={0.0}
+                                        y={0.0}
+                                        horizontal_scale={x_scale}
+                                        vertical_scale={y_scale}
+                                        name={format!("Column {}", number_to_column_label(col))}
+                                        series_type={if (*chart_type).as_str() == "bar" { Type::Bar(BarType::Rise) } else { Type::Line }}
+                                    />
+                                </g>
+                            </g>
+                        </svg>
                     </div>
                 }
             } else {
