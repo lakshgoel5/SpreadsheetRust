@@ -2,29 +2,28 @@
 #[derive(Debug, Clone, PartialEq)]
 //Clone required for `Vec<Value>`(in graph.rs) to implement `Clone`
 pub enum Value {
-    Cell(isize, isize),
+    Cell(usize, usize),
     Const(isize),
     Oper(Option<Box<Value>>, Option<Box<Value>>, Operation), //value1 and value2, and the operation or command, respectively
-    None,
 }
 
 impl Value {
     /// return row of Cell
-    pub fn row(&self) -> isize {
+    pub fn row(&self) -> usize {
         match self {
             Value::Cell(row, _) => *row,
             _ => panic!("Expected a Cell value"),
         }
     }
     /// return column of Cell
-    pub fn col(&self) -> isize {
+    pub fn col(&self) -> usize {
         match self {
             Value::Cell(_, col) => *col,
             _ => panic!("Expected a Cell value"),
         }
     }
 
-    pub fn assign_row(&mut self, new_row: isize) {
+    pub fn assign_row(&mut self, new_row: usize) {
         match self {
             Value::Cell(row, _) => {
                 *row = new_row;
@@ -33,7 +32,7 @@ impl Value {
         }
     }
 
-    pub fn assign_col(&mut self, new_col: isize) {
+    pub fn assign_col(&mut self, new_col: usize) {
         match self {
             Value::Cell(_, col) => {
                 *col = new_col;

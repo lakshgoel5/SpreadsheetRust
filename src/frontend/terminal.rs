@@ -1,5 +1,5 @@
+#![allow(dead_code)]
 use std::cmp;
-use std::process::Command;
 use std::io;
 use std::io::Write;
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
@@ -8,9 +8,8 @@ use std::io::Write;
 //display_status
 use crate::backend::backend::*;
 use crate::common::Value;
+use crate::frontend::web::start_web_app;
 use std::time::{Duration, Instant};
-use serde_json;
-use std::fs;
 
 pub struct Frontend {
     start: Value,
@@ -19,7 +18,7 @@ pub struct Frontend {
     print_enabled: bool,
 }
 
-pub fn column_decoder(mut j: isize) -> String {
+pub fn column_decoder(mut j: usize) -> String {
     let mut cc = Vec::new();
     while j > 0 {
         j -= 1;
@@ -61,7 +60,7 @@ impl Frontend {
             eprintln!("Invalid location or dimension values provided.");
         }
     }
-    pub fn init_frontend(rows: isize, columns: isize) -> Self {
+    pub fn init_frontend(rows: usize, columns: usize) -> Self {
         let backend = Backend::init_backend(rows, columns);
         Frontend {
             start: Value::Cell(1, 1),
@@ -84,15 +83,12 @@ impl Frontend {
                 } else {
                     self.start.assign_col(1);
                 }
-                return;
             }
             Status::Right => {
-                if self.start.col() < self.dimension.col() - 10 {
-                    self.start.assign_col(self.start.col() + 10);
-                } else {
-                    self.start.assign_col(self.dimension.col() - 9); //debug
+                if (self.start.col() as isize) < (self.dimension.col() as isize) - 10 {
+                    self.start
+                        .assign_col(cmp::min(self.start.col() + 10, self.dimension.col() - 9));
                 }
-                return;
             }
             Status::Up => {
                 if self.start.row() > 10 {
@@ -100,15 +96,12 @@ impl Frontend {
                 } else {
                     self.start.assign_row(1);
                 }
-                return;
             }
             Status::Down => {
-                if self.start.row() < self.dimension.row() - 10 {
-                    self.start.assign_row(self.start.row() + 10);
-                } else {
-                    self.start.assign_row(self.dimension.row() - 9);
+                if (self.start.row() as isize) < (self.dimension.row() as isize) - 10 {
+                    self.start
+                        .assign_row(cmp::min(self.start.row() + 10, self.dimension.row() - 9));
                 }
-                return;
             }
             Status::PrintDisabled => {
                 self.print_enabled = false;
@@ -119,20 +112,9 @@ impl Frontend {
             Status::ScrollTo(row, col) => {
                 self.start.assign_row(*row);
                 self.start.assign_col(*col);
-                return; //left debug
             }
             Status::Web => {
-                let valgrid = self.backend.get_valgrid();
-                let json = serde_json::to_string(&valgrid).unwrap();
-                fs::write("grid.json", json).expect("Failed to write grid state");
-
-                Command::new("trunk")
-                .arg("serve")
-                .arg("--open")
-                .spawn()
-                .expect("Failed to start trunk");
-                // start_web_app();
-                // return; //left debug
+                start_web_app();
             }
             _ => (),
         }
@@ -148,7 +130,7 @@ impl Frontend {
             Status::CircularDependency => print!("[{:.2}] (cycle not allowed) > ", elapsed_time),
             Status::PrintEnabled => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::PrintDisabled => print!("[{:.2}] (ok) > ", elapsed_time),
-            Status::ScrollTo(row, col) => print!("[{:.2}] (ok) > ", elapsed_time),
+            Status::ScrollTo(_, _) => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::Up => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::Down => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::Left => print!("[{:.2}] (ok) > ", elapsed_time),
@@ -184,9 +166,5 @@ impl Frontend {
             let elapsed_time = start_time.elapsed();
             self.display(status, elapsed_time.as_secs_f64());
         }
-    }
-
-    pub fn worksmaybe(&self) {
-        println!("Yes it works!");
     }
 }

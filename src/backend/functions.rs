@@ -4,7 +4,7 @@ use crate::common::*;
 //would give you reference of grid reference and a node reference
 //write all functions given in common Operations
 // debug -> change this to Option for ERR cases
-pub fn max_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut max_val = isize::MIN;
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -24,7 +24,7 @@ pub fn max_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     Some(max_val)
 }
 
-pub fn min_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn min_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut min_val = isize::MAX;
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -44,7 +44,7 @@ pub fn min_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     Some(min_val)
 }
 
-pub fn sum_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn sum_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -64,7 +64,7 @@ pub fn sum_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     Some(sum_val)
 }
 
-pub fn avg_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn avg_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
     let mut count = 0;
     let node = grid.get_node(row, col);
@@ -89,7 +89,7 @@ pub fn avg_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     }
 }
 
-pub fn std_dev_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn std_dev_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _)) = node.function.clone() {
         if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
@@ -135,7 +135,7 @@ pub fn std_dev_function(grid: &mut Grid, row: isize, col: isize) -> Option<isize
     None
 }
 
-pub fn add(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn add(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
@@ -168,7 +168,7 @@ pub fn add(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     }
 }
 
-pub fn sub(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn sub(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
@@ -201,7 +201,7 @@ pub fn sub(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     }
 }
 
-pub fn mul(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn mul(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
@@ -234,7 +234,7 @@ pub fn mul(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     }
 }
 
-pub fn div(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
         let val1 = match *box1 {
@@ -271,9 +271,9 @@ pub fn div(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     }
 }
 
-pub fn slp(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
+    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = node.function.clone() {
         // check value1
         let val1 = match *box1 {
             Value::Cell(row, col) => {
@@ -295,11 +295,11 @@ pub fn slp(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
     }
 }
 
-pub fn cons(grid: &mut Grid, row: isize, col: isize) -> Option<isize> {
+pub fn cons(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     // let sleep_time = 0;
     // sleep_time
     let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
+    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = node.function.clone() {
         // check value1
         let val1 = match *box1 {
             Value::Cell(row, col) => {

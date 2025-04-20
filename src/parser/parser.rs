@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /// Module responsible for validating and parsing commands given to the spreadsheet.
 ///
 /// This includes:
@@ -8,10 +9,67 @@
 use crate::common::Operation;
 use crate::common::Value;
 
+fn is_cell(exp: &str, columns: &usize, rows: &usize) -> Option<Value> {
+    let mut col = 0;
+    let mut row = 0;
+
+    let chars: Vec<char> = exp.chars().collect();
+    let mut i = 0;
+    while i < 3 {
+        if chars[i].is_alphabetic() {
+            col = col * 26 + (chars[i] as u8 - b'A') as usize + 1;
+        } else {
+            break;
+        }
+        i += 1;
+    }
+    if exp.chars().count() - i > 3 || i == 0 {
+        return None;
+    }
+    while i < exp.chars().count() {
+        if chars[i].is_numeric() {
+            row = row * 10 + (chars[i] as u8 - b'0') as usize;
+        } else {
+            return None;
+        }
+        i += 1;
+    }
+    if row > *rows || col > *columns {
+        return None;
+    }
+    Some(Value::Cell(row, col))
+}
+
+fn is_const(exp: &str) -> Option<Value> {
+    // let mut ans = 0;
+    // for c in exp.chars() {
+    //     if c.is_numeric() {
+    //         ans = ans*10 + (c as u8 - '0' as u8) as usize;
+    //     } else {
+    //         return None;
+    //     }
+    // }
+    // return Some(Value::Const(ans));
+    match exp.parse::<isize>() {
+        Ok(ans) => Some(Value::Const(ans)),
+        Err(_) => None,
+    }
+}
+
+fn is_cell_or_const(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
+    if let Some(constant) = is_const(exp) {
+        Some(constant)
+    } else if let Some(cell) = is_cell(exp, rows, columns) {
+        return Some(cell);
+    } else {
+        return None;
+    }
+}
+
 pub fn validate(
-    cmd: &String,
-    rows: &isize,
-    columns: &isize,
+    cmd: &str,
+    rows: &usize,
+    columns: &usize,
 ) -> Option<(Option<Value>, Option<Value>)> {
     match cmd.trim() {
         "web" => return Some((None, Some(Value::Oper(None, None, Operation::Web)))),
@@ -38,9 +96,6 @@ pub fn validate(
         }
         "q" => {
             return Some((None, Some(Value::Oper(None, None, Operation::Quit))));
-        }
-        "web" => {
-            return Some((None, Some(Value::Oper(None, None, Operation::Web))));
         }
         _ => {} // Continue with the regular parsing for other commands
     }
@@ -70,16 +125,17 @@ pub fn validate(
     let Some((operation, range)) = exp.split_once('(') else {
         // basic math operations or constant (0-4)
         let val = (String::from(exp)).trim().to_string();
-        let operators = vec!["+", "-", "*", "/"];
+        let operators = ["+", "-", "*", "/"];
         for (i, c) in val.chars().enumerate() {
             if i == 0 && c == '-' {
                 continue;
             }
             if operators.contains(&c.to_string().as_str()) {
-                let op1 = (&val[..i]).trim().to_string();
-                let op2 = &val[i + 1..].trim().to_string();
-                let op1 = is_cell_or_const(&op1.to_string(), rows, columns)?;
-                let op2 = is_cell_or_const(&op2.to_string(), rows, columns)?;
+                let op1_str = val[..i].trim();
+                let op2_str = val[i + 1..].trim();
+                let op1 = is_cell_or_const(op1_str, rows, columns)?;
+                let op2 = is_cell_or_const(op2_str, rows, columns)?;
+
                 match c {
                     '+' => {
                         return Some((
@@ -144,7 +200,7 @@ pub fn validate(
 
     let Some((start, end)) = range.split_once(':') else {
         // SLEEP (the keyword 'SLEEP' is not checked for, it is taken fro granted)
-        let val = String::from(range);
+        let val = range;
         let val = is_cell_or_const(&val, rows, columns);
         if let Some(val) = val {
             return Some((
@@ -171,117 +227,50 @@ pub fn validate(
         return None;
     }
     match operation {
-        "SUM" => {
-            return Some((
-                cell,
-                Some(Value::Oper(
-                    Some(Box::new(start)),
-                    Some(Box::new(end)),
-                    Operation::Sum,
-                )),
-            ));
-        }
-        "AVG" => {
-            return Some((
-                cell,
-                Some(Value::Oper(
-                    Some(Box::new(start)),
-                    Some(Box::new(end)),
-                    Operation::Avg,
-                )),
-            ));
-        }
-        "STDEV" => {
-            return Some((
-                cell,
-                Some(Value::Oper(
-                    Some(Box::new(start)),
-                    Some(Box::new(end)),
-                    Operation::Std,
-                )),
-            ));
-        }
-        "MIN" => {
-            return Some((
-                cell,
-                Some(Value::Oper(
-                    Some(Box::new(start)),
-                    Some(Box::new(end)),
-                    Operation::Min,
-                )),
-            ));
-        }
-        "MAX" => {
-            return Some((
-                cell,
-                Some(Value::Oper(
-                    Some(Box::new(start)),
-                    Some(Box::new(end)),
-                    Operation::Max,
-                )),
-            ));
-        }
+        "SUM" => Some((
+            cell,
+            Some(Value::Oper(
+                Some(Box::new(start)),
+                Some(Box::new(end)),
+                Operation::Sum,
+            )),
+        )),
+        "AVG" => Some((
+            cell,
+            Some(Value::Oper(
+                Some(Box::new(start)),
+                Some(Box::new(end)),
+                Operation::Avg,
+            )),
+        )),
+        "STDEV" => Some((
+            cell,
+            Some(Value::Oper(
+                Some(Box::new(start)),
+                Some(Box::new(end)),
+                Operation::Std,
+            )),
+        )),
+        "MIN" => Some((
+            cell,
+            Some(Value::Oper(
+                Some(Box::new(start)),
+                Some(Box::new(end)),
+                Operation::Min,
+            )),
+        )),
+        "MAX" => Some((
+            cell,
+            Some(Value::Oper(
+                Some(Box::new(start)),
+                Some(Box::new(end)),
+                Operation::Max,
+            )),
+        )),
         _ => {
             // eprintln!("Invalid operation");
-            return Some((cell, None));
+            Some((cell, None))
         }
-    }
-}
-
-pub fn is_cell(exp: &String, columns: &isize, rows: &isize) -> Option<Value> {
-    let mut col = 0;
-    let mut row = 0;
-
-    let chars: Vec<char> = exp.chars().collect();
-    let mut i = 0;
-    while i < 3 {
-        if chars[i].is_alphabetic() {
-            col = col * 26 + (chars[i] as u8 - 'A' as u8) as isize + 1;
-        } else {
-            break;
-        }
-        i += 1;
-    }
-    if exp.chars().count() - i > 3 || i == 0 {
-        return None;
-    }
-    while i < exp.chars().count() {
-        if chars[i].is_numeric() {
-            row = row * 10 + (chars[i] as u8 - '0' as u8) as isize;
-        } else {
-            return None;
-        }
-        i += 1;
-    }
-    if row > *rows || col > *columns {
-        return None;
-    }
-    return Some(Value::Cell(row, col));
-}
-
-pub fn is_const(exp: &String) -> Option<Value> {
-    // let mut ans = 0;
-    // for c in exp.chars() {
-    //     if c.is_numeric() {
-    //         ans = ans*10 + (c as u8 - '0' as u8) as isize;
-    //     } else {
-    //         return None;
-    //     }
-    // }
-    // return Some(Value::Const(ans));
-    match exp.parse::<isize>() {
-        Ok(ans) => Some(Value::Const(ans)),
-        Err(_) => None,
-    }
-}
-
-pub fn is_cell_or_const(exp: &String, rows: &isize, columns: &isize) -> Option<Value> {
-    if let Some(constant) = is_const(exp) {
-        return Some(constant);
-    } else if let Some(cell) = is_cell(exp, rows, columns) {
-        return Some(cell);
-    } else {
-        return None;
     }
 }
 

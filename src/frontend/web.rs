@@ -4,6 +4,7 @@ use serde_json;
 use std::fs;
 use std::ops::Range;
 use crate::backend::backend::Valgrid;
+use crate::backend::backend::Backend;
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
@@ -39,42 +40,120 @@ struct SelectedCell {
 pub fn app() -> Html {
     // let backend = Backend::init_backend(30, 182);
     // let table = backend.get_valgrid();
-    let table: Valgrid = {
-        let path = std::env::current_dir()
-            .map(|p| p.join("grid.json"))
-            .unwrap_or_else(|_| "grid.json".into());
+
+    // let table: Valgrid = {
+    //     let path = std::env::current_dir()
+    //         .map(|p| p.join("grid.json"))
+    //         .unwrap_or_else(|_| "grid.json".into());
             
-        match fs::read_to_string(path) {
-            Ok(json) => match serde_json::from_str(&json) {
-                Ok(grid) => grid,
-                Err(e) => {
-                    web_sys::console::error_1(&format!("Failed to parse grid.json: {}", e).into());
-                    // Return a default grid as fallback
-                    Valgrid { 
-                        cells: vec![vec![0; 20]; 20],
-                        rows: 20,
-                        columns: 20
-                    }
-                }
-            },
-            Err(e) => {
-                web_sys::console::error_1(&format!("Failed to read grid.json: {}", e).into());
-                // Return a default grid as fallback
-                Valgrid { 
-                    cells: vec![vec![0; 20]; 20],
-                    rows: 20,
-                    columns: 20
-                }
-            }
-        }
-    };
+    //     match fs::read_to_string(path) {
+    //         Ok(json) => match serde_json::from_str(&json) {
+    //             Ok(grid) => grid,
+    //             Err(e) => {
+    //                 web_sys::console::error_1(&format!("Failed to parse grid.json: {}", e).into());
+    //                 // Return a default grid as fallback
+    //                 Valgrid { 
+    //                     cells: vec![vec![0; 20]; 20],
+    //                     rows: 20,
+    //                     columns: 20
+    //                 }
+    //             }
+    //         },
+    //         Err(e) => {
+    //             web_sys::console::error_1(&format!("Failed to read grid.json: {}", e).into());
+    //             // Return a default grid as fallback
+    //             Valgrid { 
+    //                 cells: vec![vec![0; 20]; 20],
+    //                 rows: 20,
+    //                 columns: 20
+    //             }
+    //         }
+    //     }
+    // };
+
+    // initialize backend table here
+
+    let backend = use_mut_ref(|| Backend::init_backend(100, 100)); // debug i dont know the desired dimensions
+    // let table = backend.borrow().get_valgrid();
+
+    let table = use_state(|| backend.borrow().get_valgrid());
+    // let update_table = {
+    //     let backend = backend.clone();
+    //     let table = table.clone();
+    //     Callback::from(move |_| {
+    //         table.set(backend.borrow().get_valgrid());
+    //     })
+    // };
+
+    let max_rows = table.rows;  // will change for checking bounds
+    let max_cols = table.columns;
+
     let rows1 = use_state(|| 1usize);
     let rows2 = use_state(|| 20usize);
     let cols1 = use_state(|| 1usize);
     let cols2 = use_state(|| 20usize);
+    let row_range = *rows1..=(*rows2).min(table.rows - 1);
+    let col_range = *cols1..=(*cols2).min(table.columns - 1);
     let selected_cell = use_state(|| None::<SelectedCell>);
     let selected_column_for_chart = use_state(|| None::<usize>);
     let chart_type = use_state(|| "bar".to_string());
+
+    let status_message = use_state(|| "".to_string());
+    let formula_input = use_state(|| "".to_string());
+    let on_formula_input = {
+        let formula_input = formula_input.clone();
+        Callback::from(move |e: InputEvent| {
+            let input = e.target_unchecked_into::<web_sys::HtmlInputElement>();
+            formula_input.set(input.value());
+        })
+    };
+
+    let on_submit_formula = {
+        let selected_cell = selected_cell.clone();
+        let formula_input = formula_input.clone();
+        let backend = backend.clone();
+        let table = table.clone(); // 🟢 <- add this
+        let status_message = status_message.clone(); // 👈 new
+    
+        Callback::from(move |_| {
+            if let Some(cell) = &*selected_cell {
+                let col_label = number_to_column_label(cell.col);
+                let row_number = (cell.row).to_string();
+                let target_cell = format!("{}{}", col_label, row_number);
+                let formula = (*formula_input).clone();
+                let command = format!("{}={}", target_cell, formula);
+    
+                let mut backend_ref = backend.borrow_mut();
+                //web_sys::console::log_1(&format!("Selected cell row={}, col={} => {}", cell.row, cell.col, target_cell).into());
+                // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
+                let status = backend_ref.process_command((100 as usize), (100 as usize), command.clone());
+                match status {
+                    crate::backend::backend::Status::Success => {
+                        status_message.set(format!("✅ {} updated successfully", target_cell));
+                        table.set(backend_ref.get_valgrid());
+                    }
+                    crate::backend::backend::Status::CircularDependency => {
+                        status_message.set(format!("❌ Cycle detected in formula for {}", target_cell));
+                    }
+                    crate::backend::backend::Status::InvalidRange => {
+                        status_message.set(format!("⚠️ Invalid range in formula '{}'", formula));
+                    }
+                    crate::backend::backend::Status::InvalidRowColumn => {
+                        status_message.set(format!("⚠️ Invalid cell reference in '{}'", formula));
+                    }
+                    crate::backend::backend::Status::UnrecognizedCmd => {
+                        status_message.set(format!("⚠️ Unrecognized command"));
+                    }
+                    _ => {
+                        // Optional: silently ignore other statuses
+                        status_message.set("ℹ️ No update performed.".to_string());
+                    }
+                }
+                // 🟢 now update the table right here:
+                table.set(backend_ref.get_valgrid());
+            }
+        })
+    };
 
     let on_rows1_change = {
         let rows1 = rows1.clone();
@@ -163,18 +242,43 @@ pub fn app() -> Html {
 
     html! {
         <div>
+            <style>
+            {"
+                .selected {
+                    background-color: #ffeeba;
+                    border: 2px solid #ff9900;
+                }
+                .status-bar p {
+                    font-weight: bold;
+                    margin: 10px;
+                    color: #333;
+                }            
+            "}
+            </style>
+            <div class="formula-bar">
+                <input
+                    type="text"
+                    value={(*formula_input).clone()}
+                    oninput={on_formula_input}
+                    placeholder="Enter formula e.g. A1+A2"
+                />
+                <button onclick={on_submit_formula}>{"Apply"}</button>
+            </div>
+            <div class="status-bar">
+                <p>{ (*status_message).clone() }</p>
+            </div>
             <div class="controls">
                 <div>
                     <label>{"Rows: "}</label>
-                    <input type="number" value={(*rows1).to_string()} oninput={on_rows1_change} min="1" max="30"/>
+                    <input type="number" value={(*rows1).to_string()} oninput={on_rows1_change} min="1" max="100"/>
                     {" to "}
-                    <input type="number" value={(*rows2).to_string()} oninput={on_rows2_change} min="1" max="30"/>
+                    <input type="number" value={(*rows2).to_string()} oninput={on_rows2_change} min="1" max="100"/>
                 </div>
                 <div>
                     <label>{"Columns: "}</label>
-                    <input type="number" value={(*cols1).to_string()} oninput={on_cols1_change} min="1" max="182"/>
+                    <input type="number" value={(*cols1).to_string()} oninput={on_cols1_change} min="1" max="100"/>
                     {" to "}
-                    <input type="number" value={(*cols2).to_string()} oninput={on_cols2_change} min="1" max="182"/>
+                    <input type="number" value={(*cols2).to_string()} oninput={on_cols2_change} min="1" max="100"/>
                 </div>
                 <div>
                     <label>{"Chart Type: "}</label>
@@ -283,12 +387,17 @@ pub fn app() -> Html {
                         </tr>
                     </thead>
                     <tbody>
-                        { for (*rows1..=*rows2).map(|row| {
+                        { for row_range.clone().map(|row| {
                             html! {
                                 <tr>
                                     <th>{ row }</th>
-                                    { for (*cols1..=*cols2).map(|col| {
-                                        let cell_value = table.cells[row - 1][col - 1].to_string();
+                                    { for col_range.clone().map(|col| {
+                                        // let cell_value = table.cells[row - 1][col - 1].to_string();
+                                        let cell_value = table.cells
+                                            .get(row)
+                                            .and_then(|r| r.get(col))
+                                            .map(|v| v.to_string())
+                                            .unwrap_or_else(|| "ERR".to_string());
                                         let is_selected = selected_cell.as_ref()
                                             .map(|sc| sc.row == row && sc.col == col)
                                             .unwrap_or(false);

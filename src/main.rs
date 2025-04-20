@@ -40,7 +40,7 @@ fn main() {
         return;
     }
     #[cfg(not(target_arch = "wasm32"))]
-    let mut frontend = Frontend::init_frontend(rows, columns);
+    let mut frontend = Frontend::init_frontend((rows as usize), (columns as usize));
     #[cfg(not(target_arch = "wasm32"))]
     frontend.run_frontend();
 
