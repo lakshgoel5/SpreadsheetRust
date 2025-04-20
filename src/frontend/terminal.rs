@@ -85,10 +85,8 @@ impl Frontend {
                 return;
             }
             Status::Right => {
-                if self.start.col() < self.dimension.col() - 10 {
-                    self.start.assign_col(self.start.col() + 10);
-                } else {
-                    self.start.assign_col(self.dimension.col() - 9); //debug
+                if (self.start.col() as isize) < (self.dimension.col() as isize) - 10 {
+                    self.start.assign_col(cmp::min(self.start.col() + 10,self.dimension.col() - 9));
                 }
                 return;
             }
@@ -101,10 +99,8 @@ impl Frontend {
                 return;
             }
             Status::Down => {
-                if self.start.row() < self.dimension.row() - 10 {
-                    self.start.assign_row(self.start.row() + 10);
-                } else {
-                    self.start.assign_row(self.dimension.row() - 9);
+                if (self.start.row() as isize) < (self.dimension.row() as isize) - 10 {
+                    self.start.assign_row(cmp::min(self.start.row() + 10, self.dimension.row()-9));
                 }
                 return;
             }
