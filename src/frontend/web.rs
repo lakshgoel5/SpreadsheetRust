@@ -38,6 +38,7 @@ struct SelectedCell {
 
 #[function_component(App)]
 pub fn app() -> Html {
+    let formula_input_ref = use_node_ref();
     // let backend = Backend::init_backend(30, 182);
     // let table = backend.get_valgrid();
 
@@ -77,6 +78,7 @@ pub fn app() -> Html {
     // let table = backend.borrow().get_valgrid();
 
     let table = use_state(|| backend.borrow().get_valgrid());
+    let is_formula_building = use_state(|| false);
     // let update_table = {
     //     let backend = backend.clone();
     //     let table = table.clone();
@@ -114,7 +116,8 @@ pub fn app() -> Html {
         let backend = backend.clone();
         let table = table.clone(); // 🟢 <- add this
         let status_message = status_message.clone(); // 👈 new
-    
+
+        let is_formula_building = is_formula_building.clone();
         Callback::from(move |_| {
             if let Some(cell) = &*selected_cell {
                 let col_label = number_to_column_label(cell.col);
@@ -151,6 +154,10 @@ pub fn app() -> Html {
                 }
                 // 🟢 now update the table right here:
                 table.set(backend_ref.get_valgrid());
+
+                // ✅ reset formula input and mode
+                formula_input.set("".to_string());
+                is_formula_building.set(false);
             }
         })
     };
@@ -196,11 +203,35 @@ pub fn app() -> Html {
     };
 
     let on_cell_click = {
+        let formula_input = formula_input.clone();
         let selected_cell = selected_cell.clone();
+        let is_formula_building = is_formula_building.clone();
+        let input_ref = formula_input_ref.clone();
+    
         Callback::from(move |cell: SelectedCell| {
-            selected_cell.set(Some(cell));
+            if *is_formula_building {
+                let label = format!("{}{}", number_to_column_label(cell.col), cell.row);
+    
+                if let Some(input) = input_ref.cast::<web_sys::HtmlInputElement>() {
+                    let mut current = (*formula_input).clone();
+                    let start = input.selection_start().unwrap_or(None).unwrap_or(current.len() as u32) as usize;
+                    let end = input.selection_end().unwrap_or(None).unwrap_or(current.len() as u32) as usize;
+    
+                    current.replace_range(start..end, &label);
+                    formula_input.set(current);
+    
+                    // move cursor after inserted text
+                    let new_pos = (start + label.len()) as u32;
+                    input.set_selection_start(Some(new_pos)).ok();
+                    input.set_selection_end(Some(new_pos)).ok();
+                    input.focus().ok();
+                }
+            } else {
+                selected_cell.set(Some(cell));
+            }
         })
     };
+    
 
     let get_column_data = {
         let table = table.clone();
@@ -257,10 +288,26 @@ pub fn app() -> Html {
             </style>
             <div class="formula-bar">
                 <input
+                    ref={formula_input_ref.clone()}
                     type="text"
                     value={(*formula_input).clone()}
                     oninput={on_formula_input}
-                    placeholder="Enter formula e.g. A1+A2"
+                    onfocus={Callback::from({
+                        let is_formula_building = is_formula_building.clone();
+                        let input_ref = formula_input_ref.clone();
+                        move |_| {
+                            is_formula_building.set(true);
+                            if let Some(input) = input_ref.cast::<web_sys::HtmlInputElement>() {
+                                input.focus().ok(); // Reinforce focus
+                            }
+                        }
+                    })}
+                    
+                    // onblur={Callback::from({
+                    //     let is_formula_building = is_formula_building.clone();
+                    //     move |_| is_formula_building.set(false)
+                    // })}
+                    placeholder="Enter formula eg. SUM(B1:B10)"
                 />
                 <button onclick={on_submit_formula}>{"Apply"}</button>
             </div>
