@@ -287,9 +287,8 @@ impl Backend {
                 Operation::Web => Status::Web,
                 _ => Status::UnrecognizedCmd,
             },
-            Some((Some(Value::Cell(col, row)), Some(Value::Oper(None, None, op)))) => match op {
-                Operation::ScrollTo => Status::ScrollTo(col, row),
-                _ => Status::UnrecognizedCmd,
+            Some((Some(Value::Cell(col, row)), Some(Value::Oper(None, None, Operation::ScrollTo)))) => {
+                 Status::ScrollTo(col, row)
             },
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
                 // change here
