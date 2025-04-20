@@ -5,6 +5,7 @@ use crate::backend::graph::hasCycle;
 use crate::backend::graph::update_edges;
 use crate::common::{Operation, Value};
 use crate::parser::*;
+use serde::{Serialize, Deserialize};
 /// Control Unit for data processing and updating values in Spreadsheeet.
 /// The `Grid` struct is designed to store and manage a grid of `Cell` objects.
 
@@ -16,8 +17,8 @@ use crate::parser::*;
 
 ///Data structure to represent sheet
 pub struct Grid {
-    rows: usize,
-    columns: usize,
+    rows: isize,
+    columns: isize,
     cells_vec: Vec<Vec<Node>>,
 }
 ///Data structure to represent status of command
@@ -30,7 +31,7 @@ pub enum Status {
     CircularDependency,
     PrintEnabled,
     PrintDisabled,
-    ScrollTo(usize, usize),
+    ScrollTo(isize, isize),
     Up,
     Down,
     Left,
@@ -41,34 +42,34 @@ pub enum Status {
 
 impl Grid {
     ///Function to initialize grid. Arguments are size of grid.
-    pub fn new(rows: usize, columns: usize) -> Self {
+    pub fn new(rows: isize, columns: isize) -> Self {
         Grid {
             rows,
             columns,
-            cells_vec: vec![vec![Node::new(0); columns]; rows],
+            cells_vec: vec![vec![Node::new(0); columns as usize]; rows as usize],
         }
     }
-    pub fn get_row_size(&self) -> usize {
+    pub fn get_row_size(&self) -> isize {
         self.rows
     }
-    pub fn get_column_size(&self) -> usize {
+    pub fn get_column_size(&self) -> isize {
         self.columns
     }
-    pub fn get_node(&mut self, row: usize, column: usize) -> &mut Node {
-        &mut self.cells_vec[row][column]
+    pub fn get_node(&mut self, row: isize, column: isize) -> &mut Node {
+        &mut self.cells_vec[row as usize][column as usize]
     }
-    pub fn get_node_value(&self, row: usize, column: usize) -> Option<isize> {
-        self.cells_vec[row][column].get_node_value()
+    pub fn get_node_value(&self, row: isize, column: isize) -> Option<isize> {
+        self.cells_vec[row as usize][column as usize].get_node_value()
     }
-    // pub fn get_node_mut(&mut self, row: usize, column: usize) -> &mut Node {
+    // pub fn get_node_mut(&mut self, row: isize, column: isize) -> &mut Node {
     //     &mut self.cells_vec[row][column]
     // }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Valgrid {
-    pub rows: usize,
-    pub columns: usize,
+    pub rows: isize,
+    pub columns: isize,
     pub cells: Vec<Vec<isize>>,
 }
 
@@ -79,7 +80,7 @@ pub struct Backend {
 
 impl Backend {
     ///Initializes Backend
-    pub fn init_backend(rows: usize, columns: usize) -> Self {
+    pub fn init_backend(rows: isize, columns: isize) -> Self {
         Backend {
             grid: Grid::new(rows + 1, columns + 1),
         }
@@ -87,7 +88,7 @@ impl Backend {
     ///Returns the value of cell
     pub fn get_node_value(&self, cell: Value) -> Option<isize> {
         match cell {
-            Value::Cell(row, col) => self.grid.get_node_value(row, col),
+            Value::Cell(row, col) => self.grid.get_node_value(row , col),
             _ => panic!("Expected a Cell value"),
         }
     }
@@ -114,11 +115,11 @@ impl Backend {
                         let sum = sum_function(&mut self.grid, cell.row(), cell.col());
                         match sum {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -126,11 +127,11 @@ impl Backend {
                         let min = min_function(&mut self.grid, cell.row(), cell.col());
                         match min {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -138,11 +139,11 @@ impl Backend {
                         let max = max_function(&mut self.grid, cell.row(), cell.col());
                         match max {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -150,11 +151,11 @@ impl Backend {
                         let avg = avg_function(&mut self.grid, cell.row(), cell.col());
                         match avg {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -162,11 +163,11 @@ impl Backend {
                         let std_dev = std_dev_function(&mut self.grid, cell.row(), cell.col());
                         match std_dev {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -174,11 +175,11 @@ impl Backend {
                         let ans = add(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -186,11 +187,11 @@ impl Backend {
                         let ans = sub(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -198,11 +199,11 @@ impl Backend {
                         let ans = mul(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -210,11 +211,11 @@ impl Backend {
                         let ans = div(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -222,11 +223,11 @@ impl Backend {
                         let ans = slp(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -234,11 +235,11 @@ impl Backend {
                         let ans = cons(&mut self.grid, cell.row(), cell.col());
                         match ans {
                             Some(val) => {
-                                self.grid.cells_vec[cell.row()][cell.col()].node_value = val;
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = true;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].node_value = val;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = true;
                             }
                             None => {
-                                self.grid.cells_vec[cell.row()][cell.col()].valid = false;
+                                self.grid.cells_vec[cell.row() as usize][cell.col() as usize].valid = false;
                             }
                         }
                     }
@@ -276,7 +277,7 @@ impl Backend {
         Status::Success
     }
     ///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
-    pub fn process_command(&mut self, rows: usize, columns: usize, cmd: String) -> Status {
+    pub fn process_command(&mut self, rows: isize, columns: isize, cmd: String) -> Status {
         match parser::validate(&cmd, &columns, &rows) {
             Some((None, Some(Value::Oper(None, None, op)))) => {
                 return match op {

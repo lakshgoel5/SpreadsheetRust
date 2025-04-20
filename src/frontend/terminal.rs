@@ -1,4 +1,5 @@
 use std::cmp;
+use std::process::Command;
 use std::io;
 use std::io::Write;
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
@@ -7,8 +8,9 @@ use std::io::Write;
 //display_status
 use crate::backend::backend::*;
 use crate::common::Value;
-use crate::frontend::web::start_web_app;
 use std::time::{Duration, Instant};
+use serde_json;
+use std::fs;
 
 pub struct Frontend {
     start: Value,
@@ -17,7 +19,7 @@ pub struct Frontend {
     print_enabled: bool,
 }
 
-pub fn column_decoder(mut j: usize) -> String {
+pub fn column_decoder(mut j: isize) -> String {
     let mut cc = Vec::new();
     while j > 0 {
         j -= 1;
@@ -59,7 +61,7 @@ impl Frontend {
             eprintln!("Invalid location or dimension values provided.");
         }
     }
-    pub fn init_frontend(rows: usize, columns: usize) -> Self {
+    pub fn init_frontend(rows: isize, columns: isize) -> Self {
         let backend = Backend::init_backend(rows, columns);
         Frontend {
             start: Value::Cell(1, 1),
@@ -120,8 +122,17 @@ impl Frontend {
                 return; //left debug
             }
             Status::Web => {
-                start_web_app();
-                return; //left debug
+                let valgrid = self.backend.get_valgrid();
+                let json = serde_json::to_string(&valgrid).unwrap();
+                fs::write("grid.json", json).expect("Failed to write grid state");
+
+                Command::new("trunk")
+                .arg("serve")
+                .arg("--open")
+                .spawn()
+                .expect("Failed to start trunk");
+                // start_web_app();
+                // return; //left debug
             }
             _ => (),
         }
@@ -173,5 +184,9 @@ impl Frontend {
             let elapsed_time = start_time.elapsed();
             self.display(status, elapsed_time.as_secs_f64());
         }
+    }
+
+    pub fn worksmaybe(&self) {
+        println!("Yes it works!");
     }
 }

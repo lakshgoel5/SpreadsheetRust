@@ -1,7 +1,9 @@
 use yew::prelude::*;
 use std::rc::Rc;
+use serde_json;
+use std::fs;
 use std::ops::Range;
-use crate::backend::backend::Backend;
+use crate::backend::backend::Valgrid;
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
@@ -35,8 +37,37 @@ struct SelectedCell {
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let backend = Backend::init_backend(30, 182);
-    let table = backend.get_valgrid();
+    // let backend = Backend::init_backend(30, 182);
+    // let table = backend.get_valgrid();
+    let table: Valgrid = {
+        let path = std::env::current_dir()
+            .map(|p| p.join("grid.json"))
+            .unwrap_or_else(|_| "grid.json".into());
+            
+        match fs::read_to_string(path) {
+            Ok(json) => match serde_json::from_str(&json) {
+                Ok(grid) => grid,
+                Err(e) => {
+                    web_sys::console::error_1(&format!("Failed to parse grid.json: {}", e).into());
+                    // Return a default grid as fallback
+                    Valgrid { 
+                        cells: vec![vec![0; 20]; 20],
+                        rows: 20,
+                        columns: 20
+                    }
+                }
+            },
+            Err(e) => {
+                web_sys::console::error_1(&format!("Failed to read grid.json: {}", e).into());
+                // Return a default grid as fallback
+                Valgrid { 
+                    cells: vec![vec![0; 20]; 20],
+                    rows: 20,
+                    columns: 20
+                }
+            }
+        }
+    };
     let rows1 = use_state(|| 1usize);
     let rows2 = use_state(|| 20usize);
     let cols1 = use_state(|| 1usize);
@@ -289,5 +320,6 @@ pub fn app() -> Html {
 }
 
 pub fn start_web_app() {
+    println!("Starting web PP----------------------------------------------");
     yew::Renderer::<App>::new().render();
 }

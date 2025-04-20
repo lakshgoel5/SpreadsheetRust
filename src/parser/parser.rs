@@ -10,8 +10,8 @@ use crate::common::Value;
 
 pub fn validate(
     cmd: &String,
-    rows: &usize,
-    columns: &usize,
+    rows: &isize,
+    columns: &isize,
 ) -> Option<(Option<Value>, Option<Value>)> {
     match cmd.trim() {
         "web" => return Some((None, Some(Value::Oper(None, None, Operation::Web)))),
@@ -38,6 +38,9 @@ pub fn validate(
         }
         "q" => {
             return Some((None, Some(Value::Oper(None, None, Operation::Quit))));
+        }
+        "web" => {
+            return Some((None, Some(Value::Oper(None, None, Operation::Web))));
         }
         _ => {} // Continue with the regular parsing for other commands
     }
@@ -225,7 +228,7 @@ pub fn validate(
     }
 }
 
-pub fn is_cell(exp: &String, columns: &usize, rows: &usize) -> Option<Value> {
+pub fn is_cell(exp: &String, columns: &isize, rows: &isize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
 
@@ -233,7 +236,7 @@ pub fn is_cell(exp: &String, columns: &usize, rows: &usize) -> Option<Value> {
     let mut i = 0;
     while i < 3 {
         if chars[i].is_alphabetic() {
-            col = col * 26 + (chars[i] as u8 - 'A' as u8) as usize + 1;
+            col = col * 26 + (chars[i] as u8 - 'A' as u8) as isize + 1;
         } else {
             break;
         }
@@ -244,7 +247,7 @@ pub fn is_cell(exp: &String, columns: &usize, rows: &usize) -> Option<Value> {
     }
     while i < exp.chars().count() {
         if chars[i].is_numeric() {
-            row = row * 10 + (chars[i] as u8 - '0' as u8) as usize;
+            row = row * 10 + (chars[i] as u8 - '0' as u8) as isize;
         } else {
             return None;
         }
@@ -260,7 +263,7 @@ pub fn is_const(exp: &String) -> Option<Value> {
     // let mut ans = 0;
     // for c in exp.chars() {
     //     if c.is_numeric() {
-    //         ans = ans*10 + (c as u8 - '0' as u8) as usize;
+    //         ans = ans*10 + (c as u8 - '0' as u8) as isize;
     //     } else {
     //         return None;
     //     }
@@ -272,7 +275,7 @@ pub fn is_const(exp: &String) -> Option<Value> {
     }
 }
 
-pub fn is_cell_or_const(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
+pub fn is_cell_or_const(exp: &String, rows: &isize, columns: &isize) -> Option<Value> {
     if let Some(constant) = is_const(exp) {
         return Some(constant);
     } else if let Some(cell) = is_cell(exp, rows, columns) {
