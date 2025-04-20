@@ -1,42 +1,40 @@
 use std::env;
+mod backend;
 mod common;
 mod frontend;
-mod backend;
+mod parser;
+use spreadsheet_rust::frontend::terminal::Frontend;
+use std::process::{Command, Stdio};
+use std::thread;
 
 /// Entry point of the spreadsheet application.
 ///
-/// Depending on calling flag, either web-based spreadsheet is avtivated,
-/// or terminal based spreadsheet
-///
-/// Should pass arguments to init_frontend
+/// By default starts terminal spreadsheet. If the user enters 'web' command,
+/// it will launch the web interface in a separate thread while keeping
+/// the terminal interface running.
 fn main() {
-    // // decoding rows and columns
-    // let args: Vec<String> = env::args().collect();
-    // if args.len() != 3 {
-    //     eprintln!("Usage: {} <rows> <columns>", args[0]);
-    //     std::process::exit(1);
-    // }
-    // let rows: usize = args[1].parse().expect("Invalid number of rows");
-    // let columns: usize = args[2].parse().expect("Invalid number of columns");
-    // if rows > 999 || columns > 18278 {
-    //     eprintln!("Invalid input: rows and cols need to be within 999 and ZZZ respectively");
-    //     std::process::exit(1);
-    // }
+    let args: Vec<String> = env::args().collect();
 
-    // // reading command and replacing the trailing newline with null character
-    // let mut cmd = String::new();
-    // let _bytes_read = std::io::stdin()
-    //     .read_line(&mut cmd)
-    //     .expect("Failed to read command");
-    // let cmd = String::from(cmd.trim());
+    // Default rows and columns if not specified
+    let rows = if args.len() > 1 {
+        args[1].parse::<usize>().unwrap_or(10)
+    } else {
+        10
+    };
 
-    // // calling parser
-    // let cell = parser::parser::validate(&cmd, &rows, &columns);
-    // if let Some(c) = cell {
-    //     println!("{:?}", c);
-    // } else {
-    //     eprintln!("Invalid command");
-    // }
+    let columns = if args.len() > 2 {
+        args[2].parse::<usize>().unwrap_or(10)
+    } else {
+        10
+    };
+    if rows > 999 || rows < 1 {
+        return;
+    }
 
-    frontend::web::start_web_app();
+    if columns > 18278 || columns < 1 {
+        return;
+    }
+
+    let mut frontend = Frontend::init_frontend(rows, columns);
+    frontend.run_frontend();
 }

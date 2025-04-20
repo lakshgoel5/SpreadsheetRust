@@ -13,8 +13,51 @@ pub fn validate(
     rows: &usize,
     columns: &usize,
 ) -> Option<(Option<Value>, Option<Value>)> {
+    match cmd.trim() {
+        "web" => return Some((None, Some(Value::Oper(None, None, Operation::Web)))),
+        "enable_output" => {
+            return Some((None, Some(Value::Oper(None, None, Operation::EnableOutput))));
+        }
+        "disable_output" => {
+            return Some((
+                None,
+                Some(Value::Oper(None, None, Operation::DisableOutput)),
+            ));
+        }
+        "w" => {
+            return Some((None, Some(Value::Oper(None, None, Operation::Up))));
+        }
+        "s" => {
+            return Some((None, Some(Value::Oper(None, None, Operation::Down))));
+        }
+        "a" => {
+            return Some((None, Some(Value::Oper(None, None, Operation::Left))));
+        }
+        "d" => {
+            return Some((None, Some(Value::Oper(None, None, Operation::Right))));
+        }
+        "q" => {
+            return Some((None, Some(Value::Oper(None, None, Operation::Quit))));
+        }
+        _ => {} // Continue with the regular parsing for other commands
+    }
+
+    if cmd.trim().starts_with("scroll_to ") {
+        let cell_name = cmd.trim()["scroll_to ".len()..].trim().to_string();
+        let cell = is_cell(&cell_name, rows, columns);
+        if let Some(cell) = cell {
+            return Some((
+                Some(cell),
+                Some(Value::Oper(None, None, Operation::ScrollTo)),
+            ));
+        } else {
+            // println!("Invalid cell name");
+            return None;
+        }
+    }
+
     let Some((cell, exp)) = cmd.split_once('=') else {
-        eprintln!("Could not find a valid exp being assigned to a valid cell");
+        // eprintln!("Could not find a valid exp being assigned to a valid cell");
         return None;
     };
 
@@ -38,29 +81,45 @@ pub fn validate(
                     '+' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Add)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Add,
+                            )),
                         ));
                     }
                     '-' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Sub)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Sub,
+                            )),
                         ));
                     }
                     '*' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Mul)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Mul,
+                            )),
                         ));
                     }
                     '/' => {
                         return Some((
                             cell,
-                            Some(Value::Oper(Box::new(op1), Box::new(op2), Operation::Div)),
+                            Some(Value::Oper(
+                                Some(Box::new(op1)),
+                                Some(Box::new(op2)),
+                                Operation::Div,
+                            )),
                         ));
                     }
                     _ => {
-                        eprintln!("Invalid operation");
+                        // eprintln!("Invalid operation");
                         return None;
                     } //This case is not possible, just for compilation
                 }
@@ -72,8 +131,8 @@ pub fn validate(
         return Some((
             cell,
             Some(Value::Oper(
-                Box::new(val),
-                Box::new(Value::Const(0)),
+                Some(Box::new(val)),
+                Some(Box::new(Value::Const(0))),
                 Operation::Cons,
             )),
         ));
@@ -88,8 +147,8 @@ pub fn validate(
             return Some((
                 cell,
                 Some(Value::Oper(
-                    Box::new(val),
-                    Box::new(Value::Const(0)),
+                    Some(Box::new(val)),
+                    Some(Box::new(Value::Const(0))),
                     Operation::Slp,
                 )),
             ));
@@ -102,7 +161,7 @@ pub fn validate(
     let end = is_cell(&end, rows, columns)?;
     if let (Value::Cell(r, c), Value::Cell(r2, c2)) = (&start, &end) {
         if r > r2 || c > c2 {
-            eprintln!("Invalid range, start is greater than end");
+            // eprintln!("Invalid range, start is greater than end");
             return None;
         }
     } else {
@@ -112,41 +171,61 @@ pub fn validate(
         "SUM" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Sum)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Sum,
+                )),
             ));
         }
         "AVG" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Avg)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Avg,
+                )),
             ));
         }
         "STDEV" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Std)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Std,
+                )),
             ));
         }
         "MIN" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Min)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Min,
+                )),
             ));
         }
         "MAX" => {
             return Some((
                 cell,
-                Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
+                Some(Value::Oper(
+                    Some(Box::new(start)),
+                    Some(Box::new(end)),
+                    Operation::Max,
+                )),
             ));
         }
         _ => {
-            eprintln!("Invalid operation");
+            // eprintln!("Invalid operation");
             return Some((cell, None));
         }
     }
 }
 
-pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
+pub fn is_cell(exp: &String, columns: &usize, rows: &usize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
 
@@ -174,7 +253,7 @@ pub fn is_cell(exp: &String, rows: &usize, columns: &usize) -> Option<Value> {
     if row > *rows || col > *columns {
         return None;
     }
-    return Some(Value::Cell(col, row));
+    return Some(Value::Cell(row, col));
 }
 
 pub fn is_const(exp: &String) -> Option<Value> {
