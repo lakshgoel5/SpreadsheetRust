@@ -119,7 +119,9 @@ impl Frontend {
                     .arg("serve")
                     .arg("--open")
                     .spawn()
-                    .expect("Failed to start trunk");
+                    .expect("Failed to start trunk")
+                    .wait()
+                    .expect("Failed to wait for trunk process");
             }
             _ => (),
         }

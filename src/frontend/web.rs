@@ -132,7 +132,7 @@ pub fn app() -> Html {
                 //web_sys::console::log_1(&format!("Selected cell row={}, col={} => {}", cell.row, cell.col, target_cell).into());
                 // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
                 let status =
-                    backend_ref.process_command(100 as usize, 100 as usize, command.clone());
+                    backend_ref.process_command(100_usize, 100_usize, command.clone());
                 match status {
                     crate::backend::backend::Status::Success => {
                         status_message.set(format!("✅ {} updated successfully", target_cell));
@@ -149,7 +149,7 @@ pub fn app() -> Html {
                         status_message.set(format!("⚠️ Invalid cell reference in '{}'", formula));
                     }
                     crate::backend::backend::Status::UnrecognizedCmd => {
-                        status_message.set(format!("⚠️ Unrecognized command"));
+                        status_message.set(("⚠️ Unrecognized command").to_string());
                     }
                     _ => {
                         // Optional: silently ignore other statuses
@@ -242,6 +242,7 @@ pub fn app() -> Html {
         })
     };
 
+    #[allow(clippy::type_complexity)]
     let get_column_data = {
         let table = table.clone();
         move |col: usize| -> Vec<(f32, f32, Option<Rc<dyn Labeller>>)> {
@@ -430,14 +431,13 @@ pub fn app() -> Html {
                     <thead>
                         <tr>
                             <th></th>
-                            { for (*cols1..=*cols2).map(|col| {
+                            { for (*cols1..=*cols2).map(|column| {
                                 let onclick = {
                                     let on_chart_column_select = on_chart_column_select.clone();
-                                    let col = col.clone();
-                                    Callback::from(move |_| on_chart_column_select.emit(col))
+                                    Callback::from(move |_| on_chart_column_select.emit(column))
                                 };
                                 html! {
-                                    <th onclick={onclick}>{ number_to_column_label(col) }</th>
+                                    <th onclick={onclick}>{ number_to_column_label(column) }</th>
                                 }
                             }) }
                         </tr>
@@ -459,8 +459,6 @@ pub fn app() -> Html {
                                             .unwrap_or(false);
                                         let onclick = {
                                             let on_cell_click = on_cell_click.clone();
-                                            let row = row;
-                                            let col = col;
                                             Callback::from(move |_| {
                                                 on_cell_click.emit(SelectedCell { row, col });
                                             })
