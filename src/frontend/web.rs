@@ -15,6 +15,16 @@ use yew_chart::{
     series::{BarType, Labeller, Series, Type},
 };
 
+/// Converts a numeric column index to an Excel-style column label.
+///
+/// # Arguments
+///
+/// * `num` - The column number (1-based index) to convert
+///
+/// # Returns
+///
+/// A String representation of the column (e.g., 1 -> "A", 27 -> "AA")
+/// Returns an empty string if num is 0
 fn number_to_column_label(num: usize) -> String {
     if num == 0 {
         return String::new();
@@ -33,46 +43,22 @@ fn number_to_column_label(num: usize) -> String {
     result
 }
 
+/// Represents a selected cell in the spreadsheet grid.
+///
+/// Contains the row and column indices of the currently selected cell.
 #[derive(Clone, PartialEq)]
 struct SelectedCell {
     row: usize,
     col: usize,
 }
 
+/// Main component for the web-based spreadsheet application.
+///
+/// Manages the state and user interactions for the web UI, including
+/// formula input, cell selection, range viewing, and charting capabilities.
 #[function_component(App)]
 pub fn app() -> Html {
     let formula_input_ref = use_node_ref();
-    // let backend = Backend::init_backend(30, 182);
-    // let table = backend.get_valgrid();
-
-    // let table: Valgrid = {
-    //     let path = std::env::current_dir()
-    //         .map(|p| p.join("grid.json"))
-    //         .unwrap_or_else(|_| "grid.json".into());
-    //     match fs::read_to_string(path) {
-    //         Ok(json) => match serde_json::from_str(&json) {
-    //             Ok(grid) => grid,
-    //             Err(e) => {
-    //                 web_sys::console::error_1(&format!("Failed to parse grid.json: {}", e).into());
-    //                 // Return a default grid as fallback
-    //                 Valgrid {
-    //                     cells: vec![vec![0; 20]; 20],
-    //                     rows: 20,
-    //                     columns: 20
-    //                 }
-    //             }
-    //         },
-    //         Err(e) => {
-    //             web_sys::console::error_1(&format!("Failed to read grid.json: {}", e).into());
-    //             // Return a default grid as fallback
-    //             Valgrid {
-    //                 cells: vec![vec![0; 20]; 20],
-    //                 rows: 20,
-    //                 columns: 20
-    //             }
-    //         }
-    //     }
-    // };
 
     // initialize backend table here
 
@@ -484,6 +470,10 @@ pub fn app() -> Html {
     }
 }
 
+/// Initializes and starts the web application.
+///
+/// Creates a new Yew renderer for the App component and renders it
+/// to the DOM. This function is the entry point for the web interface.
 #[allow(dead_code)]
 pub fn start_web_app() {
     println!("Starting web PP----------------------------------------------");

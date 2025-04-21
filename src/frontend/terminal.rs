@@ -1,9 +1,9 @@
 #![allow(dead_code)]
+use crate::common::Value;
 use std::cmp;
 use std::io;
 use std::io::Write;
 use std::process::Command;
-use crate::common::Value;
 
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
@@ -12,6 +12,11 @@ use crate::common::Value;
 use crate::backend::backend::*;
 use std::time::{Duration, Instant};
 
+/// Terminal interface for the spreadsheet application.
+///
+/// This struct manages the user interface for the terminal version
+/// of the spreadsheet, handling display, user input, and interaction
+/// with the backend.
 pub struct Frontend {
     start: Value,
     dimension: Value,
@@ -19,6 +24,15 @@ pub struct Frontend {
     print_enabled: bool,
 }
 
+/// Converts a column number to an Excel-style column label.
+///
+/// # Arguments
+///
+/// * `j` - The column number (1-based index) to convert
+///
+/// # Returns
+///
+/// A String representation of the column (e.g., 1 -> "A", 27 -> "AA")
 pub fn column_decoder(mut j: usize) -> String {
     let mut cc = Vec::new();
     while j > 0 {
@@ -31,6 +45,10 @@ pub fn column_decoder(mut j: usize) -> String {
 }
 
 impl Frontend {
+    /// Displays the grid in a tabular format.
+    ///
+    /// Shows the current viewable area of the spreadsheet with row and column headers.
+    /// If print_enabled is set to false, this function returns without printing the grid.
     pub fn print_grid(&self) {
         if !self.print_enabled {
             return;
@@ -61,6 +79,17 @@ impl Frontend {
             eprintln!("Invalid location or dimension values provided.");
         }
     }
+
+    /// Creates a new Frontend instance with the specified dimensions.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Number of rows in the spreadsheet
+    /// * `columns` - Number of columns in the spreadsheet
+    ///
+    /// # Returns
+    ///
+    /// A new Frontend instance with initialized backend and default settings
     pub fn init_frontend(rows: usize, columns: usize) -> Self {
         let backend = Backend::init_backend(rows, columns);
         Frontend {
@@ -71,11 +100,22 @@ impl Frontend {
         }
     }
 
+    /// Starts the frontend interface.
+    ///
+    /// Initializes the display with a success status and starts the command input loop.
     pub fn run_frontend(&mut self) {
         self.display(Status::Success, Duration::from_secs(0).as_secs_f64());
         self.run_counter();
     }
 
+    /// Executes actions based on status returned from the backend.
+    ///
+    /// # Arguments
+    ///
+    /// * `status` - The status returned from processing a command
+    ///
+    /// Handles navigation commands (up, down, left, right), display settings,
+    /// and custom commands like ScrollTo and Web.
     fn execute_status(&mut self, status: &Status) {
         match status {
             Status::Left => {
@@ -129,6 +169,14 @@ impl Frontend {
         }
     }
 
+    /// Displays the grid and status message with execution time.
+    ///
+    /// # Arguments
+    ///
+    /// * `status` - The status to display
+    /// * `elapsed_time` - Time taken to execute the command in seconds
+    ///
+    /// Prints the grid (if enabled) followed by a status message and prompt.
     pub fn display(&self, status: Status, elapsed_time: f64) {
         self.print_grid();
         match status {
@@ -149,6 +197,11 @@ impl Frontend {
         io::stdout().flush().unwrap();
     }
 
+    /// Main input loop for the terminal interface.
+    ///
+    /// Continuously reads commands from stdin, processes them through the backend,
+    /// updates the display based on status, and measures execution time.
+    /// Loop exits when a Quit status is received.
     pub fn run_counter(&mut self) {
         let mut input = String::new();
         let stdin = std::io::stdin();
