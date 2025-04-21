@@ -9,7 +9,6 @@ use std::process::Command;
 //display_status
 use crate::backend::backend::*;
 use crate::common::Value;
-use crate::frontend::web::start_web_app;
 use std::time::{Duration, Instant};
 
 pub struct Frontend {
