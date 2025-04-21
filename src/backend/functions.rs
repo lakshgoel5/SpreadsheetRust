@@ -273,7 +273,7 @@ pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 
 pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
+    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = node.function.clone() {
         // check value1
         let val1 = match *box1 {
             Value::Cell(row, col) => {
@@ -299,7 +299,7 @@ pub fn cons(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     // let sleep_time = 0;
     // sleep_time
     let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
+    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = node.function.clone() {
         // check value1
         let val1 = match *box1 {
             Value::Cell(row, col) => {
