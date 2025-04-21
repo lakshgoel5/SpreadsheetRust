@@ -112,6 +112,12 @@ impl Grid {
     pub fn get_node_value(&self, row: usize, column: usize) -> Option<isize> {
         self.cells_vec[row][column].get_node_value()
     }
+    pub fn get_node_ref(&self, row: usize, col: usize) -> &Node {
+        &self.cells_vec[row][col]
+    }
+    // pub fn get_node_mut(&mut self, row: usize, column: usize) -> &mut Node {
+    //     &mut self.cells_vec[row][column]
+    // }
 }
 
 /// Representation of the grid's values for external use.
@@ -361,23 +367,23 @@ impl Backend {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
         if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = func.clone() {
             if let (Value::Const(_val1), Value::Const(_val2)) = (*box1, *box2) {
-                update_edges(&mut self.grid, cell.clone(), func.clone(), true); //debug check //add break edges
+                update_edges(&mut self.grid, &cell, &func, true); //debug check //add break edges
                 // change cell's parameters here
                 let node = self.grid.get_node(cell.row(), cell.col());
                 node.function = func.clone();
-                let sequence = get_sequence(&mut self.grid, cell.clone());
-                self.update_grid(sequence.clone());
+                let sequence = get_sequence(&mut self.grid, &cell);
+                self.update_grid(sequence);
             } else {
-                update_edges(&mut self.grid, cell.clone(), func.clone(), true);
-                if has_cycle(&mut self.grid, cell.clone()) {
-                    update_edges(&mut self.grid, cell.clone(), func.clone(), false);
+                update_edges(&mut self.grid, &cell, &func, true);
+                if has_cycle(&mut self.grid, &cell) {
+                    update_edges(&mut self.grid, &cell, &func, false);
                     return Status::CircularDependency;
                 }
                 // change cell's parameters here
                 let node = self.grid.get_node(cell.row(), cell.col());
                 node.function = func.clone();
-                let sequence = get_sequence(&mut self.grid, cell.clone());
-                self.update_grid(sequence.clone());
+                let sequence = get_sequence(&mut self.grid, &cell);
+                self.update_grid(sequence);
             }
         }
         Status::Success
