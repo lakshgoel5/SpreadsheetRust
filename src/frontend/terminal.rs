@@ -3,6 +3,7 @@ use std::cmp;
 use std::io;
 use std::io::Write;
 use std::process::Command;
+use crate::common::Value;
 
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
