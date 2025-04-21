@@ -2,3 +2,4 @@
 *.lock
 /doc
 .idea/
+safe.txt

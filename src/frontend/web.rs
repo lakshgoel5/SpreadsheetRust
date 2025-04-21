@@ -1,16 +1,19 @@
-use yew::prelude::*;
-use std::rc::Rc;
+use crate::backend::backend::Backend;
+#[allow(unused_imports)]
+use crate::backend::backend::Valgrid;
+#[allow(unused_imports)]
 use serde_json;
+#[allow(unused_imports)]
 use std::fs;
 use std::ops::Range;
-use crate::backend::backend::Valgrid;
-use crate::backend::backend::Backend;
+use std::rc::Rc;
+use web_sys::HtmlSelectElement;
+use yew::prelude::*;
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
-    series::{Series, Labeller, Type, BarType},
+    series::{BarType, Labeller, Series, Type},
 };
-use web_sys::HtmlSelectElement;
 
 fn number_to_column_label(num: usize) -> String {
     if num == 0 {
@@ -46,14 +49,13 @@ pub fn app() -> Html {
     //     let path = std::env::current_dir()
     //         .map(|p| p.join("grid.json"))
     //         .unwrap_or_else(|_| "grid.json".into());
-            
     //     match fs::read_to_string(path) {
     //         Ok(json) => match serde_json::from_str(&json) {
     //             Ok(grid) => grid,
     //             Err(e) => {
     //                 web_sys::console::error_1(&format!("Failed to parse grid.json: {}", e).into());
     //                 // Return a default grid as fallback
-    //                 Valgrid { 
+    //                 Valgrid {
     //                     cells: vec![vec![0; 20]; 20],
     //                     rows: 20,
     //                     columns: 20
@@ -63,7 +65,7 @@ pub fn app() -> Html {
     //         Err(e) => {
     //             web_sys::console::error_1(&format!("Failed to read grid.json: {}", e).into());
     //             // Return a default grid as fallback
-    //             Valgrid { 
+    //             Valgrid {
     //                 cells: vec![vec![0; 20]; 20],
     //                 rows: 20,
     //                 columns: 20
@@ -87,8 +89,8 @@ pub fn app() -> Html {
     //     })
     // };
 
-    let max_rows = table.rows;  // will change for checking bounds
-    let max_cols = table.columns;
+    let _max_rows = table.rows; // will change for checking bounds
+    let _max_cols = table.columns;
 
     let rows1 = use_state(|| 1usize);
     let rows2 = use_state(|| 20usize);
@@ -125,18 +127,20 @@ pub fn app() -> Html {
                 let target_cell = format!("{}{}", col_label, row_number);
                 let formula = (*formula_input).clone();
                 let command = format!("{}={}", target_cell, formula);
-    
+
                 let mut backend_ref = backend.borrow_mut();
                 //web_sys::console::log_1(&format!("Selected cell row={}, col={} => {}", cell.row, cell.col, target_cell).into());
                 // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
-                let status = backend_ref.process_command((100 as usize), (100 as usize), command.clone());
+                let status =
+                    backend_ref.process_command(100 as usize, 100 as usize, command.clone());
                 match status {
                     crate::backend::backend::Status::Success => {
                         status_message.set(format!("✅ {} updated successfully", target_cell));
                         table.set(backend_ref.get_valgrid());
                     }
                     crate::backend::backend::Status::CircularDependency => {
-                        status_message.set(format!("❌ Cycle detected in formula for {}", target_cell));
+                        status_message
+                            .set(format!("❌ Cycle detected in formula for {}", target_cell));
                     }
                     crate::backend::backend::Status::InvalidRange => {
                         status_message.set(format!("⚠️ Invalid range in formula '{}'", formula));
@@ -207,19 +211,25 @@ pub fn app() -> Html {
         let selected_cell = selected_cell.clone();
         let is_formula_building = is_formula_building.clone();
         let input_ref = formula_input_ref.clone();
-    
+
         Callback::from(move |cell: SelectedCell| {
             if *is_formula_building {
                 let label = format!("{}{}", number_to_column_label(cell.col), cell.row);
-    
+
                 if let Some(input) = input_ref.cast::<web_sys::HtmlInputElement>() {
                     let mut current = (*formula_input).clone();
-                    let start = input.selection_start().unwrap_or(None).unwrap_or(current.len() as u32) as usize;
-                    let end = input.selection_end().unwrap_or(None).unwrap_or(current.len() as u32) as usize;
-    
+                    let start = input
+                        .selection_start()
+                        .unwrap_or(None)
+                        .unwrap_or(current.len() as u32) as usize;
+                    let end = input
+                        .selection_end()
+                        .unwrap_or(None)
+                        .unwrap_or(current.len() as u32) as usize;
+
                     current.replace_range(start..end, &label);
                     formula_input.set(current);
-    
+
                     // move cursor after inserted text
                     let new_pos = (start + label.len()) as u32;
                     input.set_selection_start(Some(new_pos)).ok();
@@ -231,13 +241,13 @@ pub fn app() -> Html {
             }
         })
     };
-    
 
     let get_column_data = {
         let table = table.clone();
         move |col: usize| -> Vec<(f32, f32, Option<Rc<dyn Labeller>>)> {
             // Collect and normalize data
-            let mut values: Vec<(f32, f32, Option<Rc<dyn Labeller>>)> = table.cells
+            let mut values: Vec<(f32, f32, Option<Rc<dyn Labeller>>)> = table
+                .cells
                 .iter()
                 .enumerate()
                 .take(20)
@@ -283,7 +293,7 @@ pub fn app() -> Html {
                     font-weight: bold;
                     margin: 10px;
                     color: #333;
-                }            
+                }
             "}
             </style>
             <div class="formula-bar">
@@ -302,7 +312,6 @@ pub fn app() -> Html {
                             }
                         }
                     })}
-                    
                     // onblur={Callback::from({
                     //     let is_formula_building = is_formula_building.clone();
                     //     move |_| is_formula_building.set(false)
@@ -360,7 +369,7 @@ pub fn app() -> Html {
 
                 html! {
                     <div class="chart-container">
-                        <svg 
+                        <svg
                             width={width.to_string()}
                             height={height.to_string()}
                             style="background: white;"
@@ -457,7 +466,7 @@ pub fn app() -> Html {
                                             })
                                         };
                                         html! {
-                                            <td 
+                                            <td
                                                 onclick={onclick}
                                                 class={if is_selected { "selected" } else { "" }}
                                             >
@@ -475,6 +484,7 @@ pub fn app() -> Html {
     }
 }
 
+#[allow(dead_code)]
 pub fn start_web_app() {
     println!("Starting web PP----------------------------------------------");
     yew::Renderer::<App>::new().render();
