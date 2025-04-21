@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use std::fs;
+
 use crate::backend::functions::*;
 use crate::backend::graph::Node;
 use crate::backend::graph::get_sequence;
@@ -6,6 +8,7 @@ use crate::backend::graph::has_cycle;
 use crate::backend::graph::update_edges;
 use crate::common::{Operation, Value};
 use crate::parser::*;
+use serde::{Deserialize, Serialize};
 //init_backend(r,c) -> generate a grid of all nodes : returns void
 //execute(value::cell, value::oper) -> update_edges(Node, value::oper), hasCycle(Box<>, value::cell), get_sequence(Box<>, value::cell), update_grid(sequence) -> return status
 //update_grid(sequence) -> loop assign to Node = <functions>(Box<>, value::oper -> return bool
@@ -14,6 +17,7 @@ use crate::parser::*;
 /// Control Unit for data processing and updating values in Spreadsheeet.
 /// The `Grid` struct is designed to store and manage a grid of `Cell` objects.
 ///Data structure to represent sheet
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Grid {
     rows: usize,
     columns: usize,
@@ -64,6 +68,7 @@ impl Grid {
     // }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Valgrid {
     pub rows: usize,
     pub columns: usize,
@@ -71,6 +76,7 @@ pub struct Valgrid {
 }
 
 ///Struct that contains data structure as well as methods
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Backend {
     grid: Grid,
 }
@@ -248,6 +254,7 @@ impl Backend {
         }
     }
     ///Checks for cycles and accordingly updates dependencies
+    
     fn execute(&mut self, cell: Value, func: Option<Value>) -> Status {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
         if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = func.clone() {
@@ -285,6 +292,12 @@ impl Backend {
                 Operation::Down => Status::Down,
                 Operation::Quit => Status::Quit,
                 Operation::Web => Status::Web,
+                Operation::Save(path) => {
+                    if let Err(_) = self.serial(&path) {
+                        return Status::UnrecognizedCmd;
+                    }
+                    Status::Success
+                }
                 _ => Status::UnrecognizedCmd,
             },
             Some((
@@ -299,7 +312,18 @@ impl Backend {
             _ => Status::UnrecognizedCmd,
         }
     }
+
     pub fn get_grid(&self) -> &Grid {
         &self.grid
+    }
+
+    pub fn serial(&self, path: &str) -> Result<(), String> {
+        let json = serde_json::to_string_pretty(self).map_err(|e| format!("Serialization error: {}", e))?;
+        std::fs::write(path, json).map_err(|e| format!("File write error: {}", e))
+    }
+
+    pub fn deserial(path: &str) -> Result<Self, String> {
+        let json = fs::read_to_string(path).map_err(|e| format!("File read error: {}", e))?;
+        serde_json::from_str(&json).map_err(|e| format!("Deserialization error: {}", e))
     }
 }

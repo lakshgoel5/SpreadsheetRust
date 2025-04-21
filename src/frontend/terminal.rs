@@ -61,14 +61,35 @@ impl Frontend {
             eprintln!("Invalid location or dimension values provided.");
         }
     }
-    pub fn init_frontend(rows: usize, columns: usize) -> Self {
-        let backend = Backend::init_backend(rows, columns);
-        Frontend {
-            start: Value::Cell(1, 1),
-            dimension: Value::Cell(rows, columns),
-            backend,
-            print_enabled: true,
+    
+    pub fn init_frontend(rows: usize, columns: usize, path: &str) -> Self {
+        if path=="" {
+            let backend = Backend::init_backend(rows, columns);
+            Frontend {
+                start: Value::Cell(1, 1),
+                dimension: Value::Cell(rows, columns),
+                backend,
+                print_enabled: true,
+            }
+        } else {
+            let backend = match Backend::deserial(path) {
+                Ok(backend) => backend,
+                Err(e) => {
+                    eprintln!("Failed to deserialize backend: {}", e);
+                    Backend::init_backend(rows, columns)
+                }
+            };
+            let rows = backend.get_grid().get_row_size()-1;
+            let columns = backend.get_grid().get_column_size()-1;
+            println!("{}", columns);
+            Frontend {
+                start: Value::Cell(1, 1),
+                dimension: Value::Cell(rows, columns),
+                backend,
+                print_enabled: true,
+            }
         }
+        
     }
 
     pub fn run_frontend(&mut self) {
@@ -163,9 +184,15 @@ impl Frontend {
             }
             let start_time = Instant::now();
             let command = input.trim().to_string();
+            // let status = Status::Success;
+            // if command == ("save".to_string()) {
+            //     self.backend.serial("tester.json").expect("Failed to save file");
+
+            // } else {
             let status =
                 self.backend
                     .process_command(self.dimension.row(), self.dimension.col(), command);
+            // }
             if status == Status::Quit {
                 break;
             }

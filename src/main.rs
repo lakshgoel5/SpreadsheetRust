@@ -60,6 +60,13 @@ fn main() {
     } else {
         10
     };
+
+    let path = if args.len() > 3 {
+        args[3].clone()
+    } else {
+        String::new()
+    };
+
     #[cfg(not(target_arch = "wasm32"))]
     if !(1..=999).contains(&rows) {
         return;
@@ -69,7 +76,7 @@ fn main() {
         return;
     }
     #[cfg(not(target_arch = "wasm32"))]
-    let mut frontend = Frontend::init_frontend(rows, columns);
+    let mut frontend = Frontend::init_frontend(rows, columns, &path);
     #[cfg(not(target_arch = "wasm32"))]
     frontend.run_frontend();
 

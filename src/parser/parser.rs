@@ -114,6 +114,16 @@ pub fn validate(
         }
     }
 
+    if cmd.trim().starts_with("save ") {
+        let file_name = cmd.trim()["save ".len()..].trim().to_string();
+        return Some((
+            None,
+            Some(Value::Oper(
+                None, None, Operation::Save(file_name),
+            )),
+        ));
+    }
+
     let Some((cell, exp)) = cmd.split_once('=') else {
         // eprintln!("Could not find a valid exp being assigned to a valid cell");
         return None;
