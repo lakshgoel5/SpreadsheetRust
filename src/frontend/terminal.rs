@@ -2,6 +2,7 @@
 use std::cmp;
 use std::io;
 use std::io::Write;
+use std::process::Command;
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
 //run_counter -> while loop for argument, process_command(r,c, string), Print_grid() : return void
@@ -114,7 +115,11 @@ impl Frontend {
                 self.start.assign_col(*col);
             }
             Status::Web => {
-                start_web_app();
+                Command::new("trunk")
+                    .arg("serve")
+                    .arg("--open")
+                    .spawn()
+                    .expect("Failed to start trunk");
             }
             _ => (),
         }
