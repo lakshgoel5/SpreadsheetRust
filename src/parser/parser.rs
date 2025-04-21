@@ -9,6 +9,18 @@
 use crate::common::Operation;
 use crate::common::Value;
 
+/// Checks if a string represents a valid cell reference.
+///
+/// # Arguments
+///
+/// * `exp` - The string to check
+/// * `columns` - Maximum number of columns in the spreadsheet
+/// * `rows` - Maximum number of rows in the spreadsheet
+///
+/// # Returns
+///
+/// * `Some(Value::Cell(row, col))` if the string is a valid cell reference
+/// * `None` if the string is not a valid cell reference or is out of bounds
 fn is_cell(exp: &str, columns: &usize, rows: &usize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
@@ -40,22 +52,35 @@ fn is_cell(exp: &str, columns: &usize, rows: &usize) -> Option<Value> {
     Some(Value::Cell(row, col))
 }
 
+/// Checks if a string represents a numeric constant.
+///
+/// # Arguments
+///
+/// * `exp` - The string to check
+///
+/// # Returns
+///
+/// * `Some(Value::Const(value))` if the string is a valid integer
+/// * `None` if the string is not a valid integer
 fn is_const(exp: &str) -> Option<Value> {
-    // let mut ans = 0;
-    // for c in exp.chars() {
-    //     if c.is_numeric() {
-    //         ans = ans*10 + (c as u8 - '0' as u8) as usize;
-    //     } else {
-    //         return None;
-    //     }
-    // }
-    // return Some(Value::Const(ans));
     match exp.parse::<isize>() {
         Ok(ans) => Some(Value::Const(ans)),
         Err(_) => None,
     }
 }
 
+/// Checks if a string represents either a cell reference or a constant.
+///
+/// # Arguments
+///
+/// * `exp` - The string to check
+/// * `rows` - Maximum number of rows in the spreadsheet
+/// * `columns` - Maximum number of columns in the spreadsheet
+///
+/// # Returns
+///
+/// * `Some(Value)` with either Cell or Const variant
+/// * `None` if the string is neither a valid cell reference nor a constant
 fn is_cell_or_const(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     if let Some(constant) = is_const(exp) {
         Some(constant)
@@ -66,6 +91,28 @@ fn is_cell_or_const(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     }
 }
 
+/// Parses and validates a command string.
+///
+/// # Arguments
+///
+/// * `cmd` - The command string to parse
+/// * `rows` - Maximum number of rows in the spreadsheet
+/// * `columns` - Maximum number of columns in the spreadsheet
+///
+/// # Returns
+///
+/// * `Some((target_cell, operation))` where:
+///   - `target_cell` is the cell to which the operation applies (None for global commands)
+///   - `operation` is the operation to perform
+/// * `None` if the command is invalid
+///
+/// # Supported Commands
+///
+/// - Navigation: w (up), s (down), a (left), d (right), q (quit)
+/// - Display: enable_output, disable_output
+/// - Web interface: web
+/// - Cell operations: A1=B2, A1=5, A1=B2+C3, etc.
+/// - Range operations: A1=SUM(B1:B10), A1=AVG(C1:D5), etc.
 pub fn validate(
     cmd: &str,
     rows: &usize,

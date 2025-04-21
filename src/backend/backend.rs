@@ -11,35 +11,62 @@ use crate::parser::*;
 //update_grid(sequence) -> loop assign to Node = <functions>(Box<>, value::oper -> return bool
 //process_command(r,c, string, value::Cell) -> parser, execute(value::cell, value::oper): return status
 //get_value(value::cell): returns a cell_value
-/// Control Unit for data processing and updating values in Spreadsheeet.
-/// The `Grid` struct is designed to store and manage a grid of `Cell` objects.
-///Data structure to represent sheet
+/// Control Unit for data processing and updating values in Spreadsheet.
+/// The `Grid` struct is designed to store and manage a grid of `Node` objects.
 pub struct Grid {
     rows: usize,
     columns: usize,
     cells_vec: Vec<Vec<Node>>,
 }
-///Data structure to represent status of command
+
+/// Status codes returned by commands executed on the spreadsheet.
+///
+/// These status values provide feedback about the result of operations
+/// performed on the spreadsheet, including navigation, cell updates,
+/// and error conditions.
 #[derive(PartialEq)]
 pub enum Status {
+    /// Command executed successfully
     Success,
+    /// Invalid range specified in a formula or command
     InvalidRange,
+    /// Command not recognized by the parser
     UnrecognizedCmd,
+    /// Invalid row or column index provided
     InvalidRowColumn,
+    /// A circular dependency was detected in cell formulas
     CircularDependency,
+    /// Output printing has been enabled
     PrintEnabled,
+    /// Output printing has been disabled
     PrintDisabled,
+    /// Command to scroll to a specific cell position (row, column)
     ScrollTo(usize, usize),
+    /// Navigation command to move up
     Up,
+    /// Navigation command to move down
     Down,
+    /// Navigation command to move left
     Left,
+    /// Navigation command to move right
     Right,
+    /// Command to quit the application
     Quit,
+    /// Command to launch web interface
     Web,
 }
 
 impl Grid {
-    ///Function to initialize grid. Arguments are size of grid.
+    /// Creates a new grid with the specified dimensions.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Number of rows in the grid
+    /// * `columns` - Number of columns in the grid
+    ///
+    /// # Returns
+    ///
+    /// A new Grid instance with all cells initialized to zero
     pub fn new(rows: usize, columns: usize) -> Self {
         Grid {
             rows,
@@ -47,48 +74,112 @@ impl Grid {
             cells_vec: vec![vec![Node::new(0); columns]; rows],
         }
     }
+
+    /// Returns the number of rows in the grid.
     pub fn get_row_size(&self) -> usize {
         self.rows
     }
+
+    /// Returns the number of columns in the grid.
     pub fn get_column_size(&self) -> usize {
         self.columns
     }
+
+    /// Returns a mutable reference to the node at the specified position.
+    ///
+    /// # Arguments
+    ///
+    /// * `row` - The row index (0-based)
+    /// * `column` - The column index (0-based)
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to the Node at the specified position
     pub fn get_node(&mut self, row: usize, column: usize) -> &mut Node {
         &mut self.cells_vec[row][column]
     }
+
+    /// Returns the value of the node at the specified position.
+    ///
+    /// # Arguments
+    ///
+    /// * `row` - The row index (0-based)
+    /// * `column` - The column index (0-based)
+    ///
+    /// # Returns
+    ///
+    /// The value of the cell if valid, or None if the cell has an error
     pub fn get_node_value(&self, row: usize, column: usize) -> Option<isize> {
         self.cells_vec[row][column].get_node_value()
     }
-    // pub fn get_node_mut(&mut self, row: usize, column: usize) -> &mut Node {
-    //     &mut self.cells_vec[row][column]
-    // }
 }
 
+/// Representation of the grid's values for external use.
+///
+/// This struct provides a simplified view of the grid, containing just the
+/// numeric values of cells without the dependencies and formulas.
 pub struct Valgrid {
+    /// Number of rows in the value grid
     pub rows: usize,
+    /// Number of columns in the value grid
     pub columns: usize,
+    /// 2D vector containing cell values
     pub cells: Vec<Vec<isize>>,
 }
 
-///Struct that contains data structure as well as methods
+/// Backend controller for the spreadsheet application.
+///
+/// Manages the grid data structure and provides methods for processing commands,
+/// handling cell updates, and evaluating formulas while detecting circular dependencies.
 pub struct Backend {
     grid: Grid,
 }
 
 impl Backend {
-    ///Initializes Backend
+    /// Creates a new Backend instance with the specified dimensions.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Number of rows in the grid
+    /// * `columns` - Number of columns in the grid
+    ///
+    /// # Returns
+    ///
+    /// A new Backend instance with an initialized grid (adding 1 to dimensions for 1-based indexing)
     pub fn init_backend(rows: usize, columns: usize) -> Self {
         Backend {
             grid: Grid::new(rows + 1, columns + 1),
         }
     }
-    ///Returns the value of cell
+
+    /// Returns the value of a cell.
+    ///
+    /// # Arguments
+    ///
+    /// * `cell` - A Value::Cell containing row and column coordinates
+    ///
+    /// # Returns
+    ///
+    /// The value of the specified cell if valid, or None if the cell has an error
+    ///
+    /// # Panics
+    ///
+    /// Panics if the provided Value is not a Cell
     pub fn get_node_value(&self, cell: Value) -> Option<isize> {
         match cell {
             Value::Cell(row, col) => self.grid.get_node_value(row, col),
             _ => panic!("Expected a Cell value"),
         }
     }
+
+    /// Returns a representation of the grid with all current cell values.
+    ///
+    /// Creates a Valgrid structure that contains just the calculated values
+    /// of all cells, without formulas and dependencies.
+    ///
+    /// # Returns
+    ///
+    /// A Valgrid instance containing the current values of all cells
     pub fn get_valgrid(&self) -> Valgrid {
         Valgrid {
             rows: self.grid.get_row_size(),
@@ -101,7 +192,15 @@ impl Backend {
                 .collect(),
         }
     }
-    ///Iterates over the sequence of topological sort and updates values
+
+    /// Updates cell values based on a topological sort of dependencies.
+    ///
+    /// # Arguments
+    ///
+    /// * `sequence` - Vector of cells in topological order to be updated
+    ///
+    /// Evaluates each cell's formula in the sequence, updating values and
+    /// marking cells as valid or invalid based on the result.
     fn update_grid(&mut self, sequence: Vec<Value>) {
         for cell in sequence {
             if let Some(Value::Oper(_box1, _box2, oper)) =
@@ -247,7 +346,17 @@ impl Backend {
             }
         }
     }
-    ///Checks for cycles and accordingly updates dependencies
+
+    /// Processes cell updates while checking for circular dependencies.
+    ///
+    /// # Arguments
+    ///
+    /// * `cell` - The target cell to update
+    /// * `func` - The formula/operation to apply to the cell
+    ///
+    /// # Returns
+    ///
+    /// A Status indicating success or the type of error that occurred
     fn execute(&mut self, cell: Value, func: Option<Value>) -> Status {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
         if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = func.clone() {
@@ -273,7 +382,18 @@ impl Backend {
         }
         Status::Success
     }
-    ///Takes command from frontend, calls the Parser, and sends the decoded command to execute function
+
+    /// Processes a command string from the frontend.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Maximum number of rows in the spreadsheet
+    /// * `columns` - Maximum number of columns in the spreadsheet
+    /// * `cmd` - The command string to process
+    ///
+    /// # Returns
+    ///
+    /// A Status indicating the result of the command
     pub fn process_command(&mut self, rows: usize, columns: usize, cmd: String) -> Status {
         match parser::validate(&cmd, &columns, &rows) {
             Some((None, Some(Value::Oper(None, None, op)))) => match op {
@@ -299,6 +419,12 @@ impl Backend {
             _ => Status::UnrecognizedCmd,
         }
     }
+
+    /// Returns a reference to the underlying grid.
+    ///
+    /// # Returns
+    ///
+    /// An immutable reference to the Grid
     pub fn get_grid(&self) -> &Grid {
         &self.grid
     }

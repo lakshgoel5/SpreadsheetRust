@@ -11,11 +11,11 @@ use crate::common::Value;
 ///Data structure for strong data of each cell
 /// Contains Dependency list, value, function and a few booleans
 /// `Node` struct represents a cell in the spreadsheet with its dependencies
-/// 
+///
 /// Stores the cell's value, function, and dependency information
-/// 
+///
 /// # Fields
-/// 
+///
 /// * `dependents` - Vector of cells that depend on this cell
 /// * `node_value` - Current value of the cell
 /// * `function` - Function/operation assigned to this cell
@@ -33,7 +33,7 @@ pub struct Node {
 }
 
 impl Node {
-    ///Initialises a Node
+    ///Initialises a Node with a default value
     pub fn new(val: isize) -> Self {
         Node {
             dependents: Vec::new(),
@@ -43,6 +43,8 @@ impl Node {
             valid: true,
         }
     }
+
+    /// Returns the value of the node if it's valid, otherwise None
     pub fn get_node_value(&self) -> Option<isize> {
         if self.valid {
             Some(self.node_value)
@@ -50,14 +52,20 @@ impl Node {
             None
         }
     }
+
+    /// Removes a dependent cell from this node's dependencies
     pub fn remove_dep(&mut self, cell: Value) {
         self.dependents.retain(|x| x != &cell);
     }
+
+    /// Adds a dependent cell to this node's dependencies if not already present
     pub fn add_dep(&mut self, cell: Value) {
         if !self.dependents.contains(&cell) {
             self.dependents.push(cell);
         }
     }
+
+    /// Sets the entire dependents vector to a new list
     pub fn set_dependents(&mut self, dependents: Vec<Value>) {
         self.dependents = dependents;
     }
@@ -241,6 +249,14 @@ pub fn get_sequence(grid: &mut Grid, target: Value) -> Vec<Value> {
     stack
 }
 
+/// Performs a topological sort starting from the target cell
+/// This creates a dependency-ordered sequence of cells for updating
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `target` - Starting cell value for the sort
+/// * `stack` - Output vector to store the sorted sequence
 pub fn topological_sort(grid: &mut Grid, target: Value, stack: &mut Vec<Value>) {
     if let Value::Cell(row, col) = target {
         let node = grid.get_node(row, col);

@@ -1,9 +1,18 @@
 use crate::backend::backend::Grid;
 use crate::common::*;
 
-//would give you reference of grid reference and a node reference
-//write all functions given in common Operations
-// debug -> change this to Option for ERR cases
+/// Calculates the maximum value from a range of cells
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the MAX function
+/// * `col` - Column of the cell containing the MAX function
+///
+/// # Returns
+///
+/// * `Some(isize)` - The maximum value found in the range
+/// * `None` - If any cell in the range is invalid
 pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut max_val = isize::MIN;
     let node = grid.get_node(row, col);
@@ -24,6 +33,18 @@ pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     Some(max_val)
 }
 
+/// Calculates the minimum value from a range of cells
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the MIN function
+/// * `col` - Column of the cell containing the MIN function
+///
+/// # Returns
+///
+/// * `Some(isize)` - The minimum value found in the range
+/// * `None` - If any cell in the range is invalid
 pub fn min_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut min_val = isize::MAX;
     let node = grid.get_node(row, col);
@@ -44,6 +65,18 @@ pub fn min_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     Some(min_val)
 }
 
+/// Calculates the sum of values from a range of cells
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the SUM function
+/// * `col` - Column of the cell containing the SUM function
+///
+/// # Returns
+///
+/// * `Some(isize)` - The sum of values in the range
+/// * `None` - If any cell in the range is invalid
 pub fn sum_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
     let node = grid.get_node(row, col);
@@ -64,6 +97,18 @@ pub fn sum_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     Some(sum_val)
 }
 
+/// Calculates the average value from a range of cells
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the AVG function
+/// * `col` - Column of the cell containing the AVG function
+///
+/// # Returns
+///
+/// * `Some(isize)` - The average value of the range (rounded down)
+/// * `None` - If any cell in the range is invalid or if the range is empty
 pub fn avg_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
     let mut count = 0;
@@ -89,6 +134,18 @@ pub fn avg_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     }
 }
 
+/// Calculates the standard deviation of values from a range of cells
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the STDEV function
+/// * `col` - Column of the cell containing the STDEV function
+///
+/// # Returns
+///
+/// * `Some(isize)` - The standard deviation of values in the range (rounded to nearest integer)
+/// * `None` - If any cell in the range is invalid
 pub fn std_dev_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _)) = node.function.clone() {
@@ -135,6 +192,18 @@ pub fn std_dev_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize
     None
 }
 
+/// Adds two values which can be either constants or cell references
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the ADD operation
+/// * `col` - Column of the cell containing the ADD operation
+///
+/// # Returns
+///
+/// * `Some(isize)` - The sum of the two values
+/// * `None` - If any referenced cell is invalid
 pub fn add(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -168,6 +237,18 @@ pub fn add(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     }
 }
 
+/// Subtracts the second value from the first (both can be constants or cell references)
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the SUB operation
+/// * `col` - Column of the cell containing the SUB operation
+///
+/// # Returns
+///
+/// * `Some(isize)` - The result of the subtraction
+/// * `None` - If any referenced cell is invalid
 pub fn sub(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -201,6 +282,18 @@ pub fn sub(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     }
 }
 
+/// Multiplies two values which can be either constants or cell references
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the MUL operation
+/// * `col` - Column of the cell containing the MUL operation
+///
+/// # Returns
+///
+/// * `Some(isize)` - The product of the two values
+/// * `None` - If any referenced cell is invalid
 pub fn mul(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -234,6 +327,18 @@ pub fn mul(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     }
 }
 
+/// Divides the first value by the second (both can be constants or cell references)
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the DIV operation
+/// * `col` - Column of the cell containing the DIV operation
+///
+/// # Returns
+///
+/// * `Some(isize)` - The result of the division
+/// * `None` - If any referenced cell is invalid or if division by zero is attempted
 pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
@@ -271,6 +376,18 @@ pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     }
 }
 
+/// Sleep function that pauses execution for a specified number of seconds
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the SLP function
+/// * `col` - Column of the cell containing the SLP function
+///
+/// # Returns
+///
+/// * `Some(isize)` - The number of seconds slept
+/// * `None` - If the referenced cell is invalid
 pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let node = grid.get_node(row, col);
     if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = node.function.clone() {
@@ -295,6 +412,18 @@ pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     }
 }
 
+/// Returns a constant value from either a constant or a cell reference
+///
+/// # Arguments
+///
+/// * `grid` - Mutable reference to the grid
+/// * `row` - Row of the cell containing the CONS function
+/// * `col` - Column of the cell containing the CONS function
+///
+/// # Returns
+///
+/// * `Some(isize)` - The referenced value
+/// * `None` - If the referenced cell is invalid
 pub fn cons(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     // let sleep_time = 0;
     // sleep_time
