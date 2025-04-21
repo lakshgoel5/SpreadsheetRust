@@ -1,11 +1,16 @@
+#[allow(unused_imports)]
 use std::env;
 mod backend;
 mod common;
 mod frontend;
 mod parser;
+#[allow(unused_imports)]
 use crate::frontend::web::start_web_app;
+#[allow(unused_imports)]
 use spreadsheet_rust::frontend::terminal::Frontend;
+#[allow(unused_imports)]
 use std::process::{Command, Stdio};
+#[allow(unused_imports)]
 use std::thread;
 
 /// Entry point of the spreadsheet application.

@@ -1,8 +1,11 @@
 use yew::prelude::*;
 use std::rc::Rc;
+#[allow(unused_imports)]
 use serde_json;
+#[allow(unused_imports)]
 use std::fs;
 use std::ops::Range;
+#[allow(unused_imports)]
 use crate::backend::backend::Valgrid;
 use crate::backend::backend::Backend;
 use yew_chart::{
@@ -87,8 +90,8 @@ pub fn app() -> Html {
     //     })
     // };
 
-    let max_rows = table.rows;  // will change for checking bounds
-    let max_cols = table.columns;
+    let _max_rows = table.rows;  // will change for checking bounds
+    let _max_cols = table.columns;
 
     let rows1 = use_state(|| 1usize);
     let rows2 = use_state(|| 20usize);
@@ -129,7 +132,7 @@ pub fn app() -> Html {
                 let mut backend_ref = backend.borrow_mut();
                 //web_sys::console::log_1(&format!("Selected cell row={}, col={} => {}", cell.row, cell.col, target_cell).into());
                 // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
-                let status = backend_ref.process_command((100 as usize), (100 as usize), command.clone());
+                let status = backend_ref.process_command(100 as usize, 100 as usize, command.clone());
                 match status {
                     crate::backend::backend::Status::Success => {
                         status_message.set(format!("✅ {} updated successfully", target_cell));
@@ -475,6 +478,7 @@ pub fn app() -> Html {
     }
 }
 
+#[allow(dead_code)]
 pub fn start_web_app() {
     println!("Starting web PP----------------------------------------------");
     yew::Renderer::<App>::new().render();
