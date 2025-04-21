@@ -61,6 +61,7 @@ fn main() {
         10
     };
 
+    #[cfg(not(target_arch = "wasm32"))]
     let path = if args.len() > 3 {
         args[3].clone()
     } else {

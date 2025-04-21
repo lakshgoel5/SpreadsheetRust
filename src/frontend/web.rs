@@ -76,7 +76,10 @@ pub fn app() -> Html {
 
     // initialize backend table here
 
-    let backend = use_mut_ref(|| Backend::init_backend(100, 100)); // debug i dont know the desired dimensions
+    let max_rows: usize = option_env!("MY_ROWS").unwrap_or("100").parse().unwrap();
+    let max_cols: usize = option_env!("MY_COLS").unwrap_or("100").parse().unwrap();
+
+    let backend = use_mut_ref(|| Backend::init_backend(max_rows, max_cols)); // debug i dont know the desired dimensions
     // let table = backend.borrow().get_valgrid();
 
     let table = use_state(|| backend.borrow().get_valgrid());
@@ -88,9 +91,6 @@ pub fn app() -> Html {
     //         table.set(backend.borrow().get_valgrid());
     //     })
     // };
-
-    let _max_rows = table.rows; // will change for checking bounds
-    let _max_cols = table.columns;
 
     let rows1 = use_state(|| 1usize);
     let rows2 = use_state(|| 20usize);
