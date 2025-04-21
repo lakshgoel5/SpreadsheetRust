@@ -6,11 +6,12 @@ use crate::common::*;
 // debug -> change this to Option for ERR cases
 pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut max_val = isize::MIN;
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
-            for i in row1..=row2 {
-                for j in col1..=col2 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (box1.as_ref(), box2.as_ref()) {
+            for i in *row1..=*row2 {
+                for j in *col1..=*col2 {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
@@ -26,11 +27,12 @@ pub fn max_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 
 pub fn min_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut min_val = isize::MAX;
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
-            for i in row1..=row2 {
-                for j in col1..=col2 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (box1.as_ref(), box2.as_ref()) {
+            for i in *row1..=*row2 {
+                for j in *col1..=*col2 {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
@@ -46,11 +48,12 @@ pub fn min_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 
 pub fn sum_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
-            for i in row1..=row2 {
-                for j in col1..=col2 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (box1.as_ref(), box2.as_ref()) {
+            for i in *row1..=*row2 {
+                for j in *col1..=*col2 {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
@@ -67,11 +70,12 @@ pub fn sum_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 pub fn avg_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     let mut sum_val = 0;
     let mut count = 0;
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
-            for i in row1..=row2 {
-                for j in col1..=col2 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (box1.as_ref(), box2.as_ref()) {
+            for i in *row1..=*row2 {
+                for j in *col1..=*col2 {
                     let current_node = grid.get_node(i, j);
                     if !current_node.valid {
                         return None;
@@ -90,15 +94,16 @@ pub fn avg_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 }
 
 pub fn std_dev_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _)) = node.function.clone() {
-        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (*box1, *box2) {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _)) = &func {
+        if let (Value::Cell(row1, col1), Value::Cell(row2, col2)) = (box1.as_ref(), box2.as_ref()) {
             let mut sum = 0f64;
             let mut count = 0;
 
             // First pass: sum and count valid nodes
-            for i in row1..=row2 {
-                for j in col1..=col2 {
+            for i in *row1..=*row2 {
+                for j in *col1..=*col2 {
                     let node_ref = grid.get_node(i, j);
                     if node_ref.valid {
                         sum += node_ref.node_value as f64;
@@ -117,8 +122,8 @@ pub fn std_dev_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize
 
             // Second pass: compute variance
             let mut variance = 0f64;
-            for i in row1..=row2 {
-                for j in col1..=col2 {
+            for i in *row1..=*row2 {
+                for j in *col1..=*col2 {
                     let node_ref = grid.get_node(i, j);
                     if !node_ref.valid {
                         return None;
@@ -136,9 +141,10 @@ pub fn std_dev_function(grid: &mut Grid, row: usize, col: usize) -> Option<isize
 }
 
 pub fn add(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        let val1 = match *box1 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        let val1 = match **box1 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -150,7 +156,7 @@ pub fn add(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
             _ => return None,
         };
 
-        let val2 = match *box2 {
+        let val2 = match **box2 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -169,9 +175,10 @@ pub fn add(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 }
 
 pub fn sub(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        let val1 = match *box1 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        let val1 = match **box1 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -183,7 +190,7 @@ pub fn sub(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
             _ => return None,
         };
 
-        let val2 = match *box2 {
+        let val2 = match **box2 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -202,9 +209,10 @@ pub fn sub(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 }
 
 pub fn mul(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        let val1 = match *box1 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        let val1 = match **box1 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -216,7 +224,7 @@ pub fn mul(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
             _ => return None,
         };
 
-        let val2 = match *box2 {
+        let val2 = match **box2 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -235,9 +243,10 @@ pub fn mul(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 }
 
 pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = node.function.clone() {
-        let val1 = match *box1 {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = &func {
+        let val1 = match **box1 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -249,7 +258,7 @@ pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
             _ => return None,
         };
 
-        let val2 = match *box2 {
+        let val2 = match **box2 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -272,10 +281,11 @@ pub fn div(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 }
 
 pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = node.function.clone() {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = &func {
         // check value1
-        let val1 = match *box1 {
+        let val1 = match **box1 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
@@ -298,10 +308,11 @@ pub fn slp(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
 pub fn cons(grid: &mut Grid, row: usize, col: usize) -> Option<isize> {
     // let sleep_time = 0;
     // sleep_time
-    let node = grid.get_node(row, col);
-    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = node.function.clone() {
+    // let node = grid.get_node(row, col);
+    let func = grid.get_node(row, col).function.clone();
+    if let Some(Value::Oper(Some(box1), Some(_box2), _oper)) = &func {
         // check value1
-        let val1 = match *box1 {
+        let val1 = match **box1 {
             Value::Cell(row, col) => {
                 let node = grid.get_node(row, col);
                 if !node.valid {
