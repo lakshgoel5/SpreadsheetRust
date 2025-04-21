@@ -1,19 +1,19 @@
-use yew::prelude::*;
-use std::rc::Rc;
+use crate::backend::backend::Backend;
+#[allow(unused_imports)]
+use crate::backend::backend::Valgrid;
 #[allow(unused_imports)]
 use serde_json;
 #[allow(unused_imports)]
 use std::fs;
 use std::ops::Range;
-#[allow(unused_imports)]
-use crate::backend::backend::Valgrid;
-use crate::backend::backend::Backend;
+use std::rc::Rc;
+use web_sys::HtmlSelectElement;
+use yew::prelude::*;
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
-    series::{Series, Labeller, Type, BarType},
+    series::{BarType, Labeller, Series, Type},
 };
-use web_sys::HtmlSelectElement;
 
 fn number_to_column_label(num: usize) -> String {
     if num == 0 {
@@ -90,7 +90,7 @@ pub fn app() -> Html {
     //     })
     // };
 
-    let _max_rows = table.rows;  // will change for checking bounds
+    let _max_rows = table.rows; // will change for checking bounds
     let _max_cols = table.columns;
 
     let rows1 = use_state(|| 1usize);
@@ -132,14 +132,16 @@ pub fn app() -> Html {
                 let mut backend_ref = backend.borrow_mut();
                 //web_sys::console::log_1(&format!("Selected cell row={}, col={} => {}", cell.row, cell.col, target_cell).into());
                 // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
-                let status = backend_ref.process_command(100 as usize, 100 as usize, command.clone());
+                let status =
+                    backend_ref.process_command(100 as usize, 100 as usize, command.clone());
                 match status {
                     crate::backend::backend::Status::Success => {
                         status_message.set(format!("✅ {} updated successfully", target_cell));
                         table.set(backend_ref.get_valgrid());
                     }
                     crate::backend::backend::Status::CircularDependency => {
-                        status_message.set(format!("❌ Cycle detected in formula for {}", target_cell));
+                        status_message
+                            .set(format!("❌ Cycle detected in formula for {}", target_cell));
                     }
                     crate::backend::backend::Status::InvalidRange => {
                         status_message.set(format!("⚠️ Invalid range in formula '{}'", formula));
@@ -217,8 +219,14 @@ pub fn app() -> Html {
 
                 if let Some(input) = input_ref.cast::<web_sys::HtmlInputElement>() {
                     let mut current = (*formula_input).clone();
-                    let start = input.selection_start().unwrap_or(None).unwrap_or(current.len() as u32) as usize;
-                    let end = input.selection_end().unwrap_or(None).unwrap_or(current.len() as u32) as usize;
+                    let start = input
+                        .selection_start()
+                        .unwrap_or(None)
+                        .unwrap_or(current.len() as u32) as usize;
+                    let end = input
+                        .selection_end()
+                        .unwrap_or(None)
+                        .unwrap_or(current.len() as u32) as usize;
 
                     current.replace_range(start..end, &label);
                     formula_input.set(current);
@@ -235,12 +243,12 @@ pub fn app() -> Html {
         })
     };
 
-
     let get_column_data = {
         let table = table.clone();
         move |col: usize| -> Vec<(f32, f32, Option<Rc<dyn Labeller>>)> {
             // Collect and normalize data
-            let mut values: Vec<(f32, f32, Option<Rc<dyn Labeller>>)> = table.cells
+            let mut values: Vec<(f32, f32, Option<Rc<dyn Labeller>>)> = table
+                .cells
                 .iter()
                 .enumerate()
                 .take(20)

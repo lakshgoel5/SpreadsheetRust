@@ -73,7 +73,6 @@ fn main() {
     #[cfg(not(target_arch = "wasm32"))]
     frontend.run_frontend();
 
-
     #[cfg(target_arch = "wasm32")]
     start_web_app();
 }
