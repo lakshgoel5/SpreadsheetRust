@@ -10,6 +10,18 @@ use crate::common::Operation;
 use crate::common::Value;
 ///Data structure for strong data of each cell
 /// Contains Dependency list, value, function and a few booleans
+/// `Node` struct represents a cell in the spreadsheet with its dependencies
+/// 
+/// Stores the cell's value, function, and dependency information
+/// 
+/// # Fields
+/// 
+/// * `dependents` - Vector of cells that depend on this cell
+/// * `node_value` - Current value of the cell
+/// * `function` - Function/operation assigned to this cell
+/// * `visited` - Flag used during graph traversal algorithms
+/// * `valid` - Flag indicating whether the cell value is valid
+
 #[derive(Debug, Clone)]
 //clone trait used due to vec![vec![Cell::new(0); columns]; rows]
 pub struct Node {
@@ -154,6 +166,46 @@ pub fn add_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool
                 // V -> do nothing
             }
             _ => {}
+        }
+    }
+}
+
+/// Updates the edges of the graph based on target and function values.
+/// flag is true when previous dependencies are to be broken and new dependecies are to be added
+/// flag is false when only new dependencies are to be added and previous dependencies are to be broken (Circular dependency case)
+pub fn update_edges(grid: &mut Grid, target: Value, func: Option<Value>, flag: bool) {
+    // so here in update edges -> func will contain the 3 value tuple (new)
+    // target will always be a cell
+    if let Value::Cell(_, _) = target {
+        if let Some(Value::Oper(ref _box1, ref _box2, ref _oper)) = func {
+            // passing target row col to access the node in functions
+            break_edges(grid, target.clone(), func.clone(), flag);
+            add_edges(grid, target.clone(), func.clone(), flag);
+        }
+    }
+}
+
+/// Checks for circular dependency in graph using DFS
+pub fn has_cycle(grid: &mut Grid, target: Value) -> bool {
+    let mut stack = vec![target.clone()];
+    let node = grid.get_node(target.row(), target.col());
+    node.visited = true;
+    while let Some(Value::Cell(row, col)) = stack.pop() {
+        let dependents = grid.get_node(row, col).dependents.clone();
+        for dep in dependents {
+            if let Value::Cell(dep_r, dep_c) = dep {
+                let dep_node = grid.get_node(dep_r, dep_c);
+                if dep_node.visited {
+                    // cycle detected
+                    reset_visited(grid, target.clone());
+                    return true;
+                } else {
+                    dep_node.visited = true;
+                    stack.push(dep);
+                }
+            }
+        }
+    }
         }
     }
 }

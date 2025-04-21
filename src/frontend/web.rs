@@ -49,7 +49,6 @@ pub fn app() -> Html {
     //     let path = std::env::current_dir()
     //         .map(|p| p.join("grid.json"))
     //         .unwrap_or_else(|_| "grid.json".into());
-
     //     match fs::read_to_string(path) {
     //         Ok(json) => match serde_json::from_str(&json) {
     //             Ok(grid) => grid,
@@ -313,7 +312,6 @@ pub fn app() -> Html {
                             }
                         }
                     })}
-
                     // onblur={Callback::from({
                     //     let is_formula_building = is_formula_building.clone();
                     //     move |_| is_formula_building.set(false)
