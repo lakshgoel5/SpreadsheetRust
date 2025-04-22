@@ -327,4 +327,8 @@ impl Backend {
         let json = fs::read_to_string(path).map_err(|e| format!("File read error: {}", e))?;
         serde_json::from_str(&json).map_err(|e| format!("Deserialization error: {}", e))
     }
+
+    pub fn deserial_text(text: String) -> Result<Self, String> {
+        serde_json::from_str(&text).map_err(|e| format!("Deserialization error: {}", e))
+    }
 }

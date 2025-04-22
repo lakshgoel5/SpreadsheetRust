@@ -9,6 +9,8 @@ use std::ops::Range;
 use std::rc::Rc;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
+use gloo_net::http::Request;
+use wasm_bindgen_futures::spawn_local;
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
@@ -20,6 +22,7 @@ use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlCanvasElement;
+use web_sys::console::log_1;
 
 #[derive(Properties, PartialEq)]
 pub struct CanvasChartProps {
@@ -193,9 +196,41 @@ pub fn app() -> Html {
 
     let max_rows: usize = option_env!("MY_ROWS").unwrap_or("100").parse().unwrap();
     let max_cols: usize = option_env!("MY_COLS").unwrap_or("100").parse().unwrap();
-
+    
+    
+    
+    
+    
+    
+    
+    let load_from_json: bool = option_env!("LOAD").map(|v| v == "1" || v.eq_ignore_ascii_case("true")).unwrap_or(false);
     let backend = use_mut_ref(|| Backend::init_backend(max_rows, max_cols)); // debug i dont know the desired dimensions
     // let table = backend.borrow().get_valgrid();
+
+    if load_from_json{
+        const CONTEXT: &str = include_str!("../../bigger.json");
+        web_sys::console::log_1(&format!("Context: {}", CONTEXT).into());
+
+        if let Ok(deserialized) = Backend::deserial_text(CONTEXT.to_string()) {
+            let backend = backend.clone();
+            *backend.borrow_mut() = deserialized;
+        } else {
+            web_sys::console::error_1(&"Failed to deserialize backend from context".into());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     let table = use_state(|| backend.borrow().get_valgrid());
     let is_formula_building = use_state(|| false);
@@ -208,9 +243,9 @@ pub fn app() -> Html {
     // };
 
     let rows1 = use_state(|| 1usize);
-    let rows2 = use_state(|| 20usize);
+    let rows2 = use_state(|| 5usize);
     let cols1 = use_state(|| 1usize);
-    let cols2 = use_state(|| 20usize);
+    let cols2 = use_state(|| 5usize);
     let row_range = *rows1..=(*rows2).min(table.rows - 1);
     let col_range = *cols1..=(*cols2).min(table.columns - 1);
     let selected_cell = use_state(|| None::<SelectedCell>);
