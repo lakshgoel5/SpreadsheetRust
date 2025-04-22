@@ -226,6 +226,10 @@ pub fn app() -> Html {
     let selected_column_for_chart = use_state(|| None::<usize>);
     let chart_type = use_state(|| "line".to_string());
     let show_full_table = use_state(|| false);
+    let was_inside_table = use_mut_ref(|| false);
+
+    let was_inside_table_click = was_inside_table.clone(); // for on_cell_click
+    let was_inside_table_effect = was_inside_table.clone(); // for use_effect
 
     let selected_range_label = {
         if let Some(range) = &*selected_range {
@@ -244,6 +248,55 @@ pub fn app() -> Html {
         }
     };
 
+    // i am not calling backend here because it needs a target cell to function
+    let selected_range_stats = if let Some(range) = &*selected_range {
+        let (start_row, end_row) = if range.start.row <= range.end.row {
+            (range.start.row, range.end.row)
+        } else {
+            (range.end.row, range.start.row)
+        };
+        let (start_col, end_col) = if range.start.col <= range.end.col {
+            (range.start.col, range.end.col)
+        } else {
+            (range.end.col, range.start.col)
+        };
+    
+        let mut values = vec![];
+    
+        for r in start_row..=end_row {
+            for c in start_col..=end_col {
+                if let Some(val) = table.cells.get(r).and_then(|row| row.get(c)) {
+                    values.push(*val);
+                }
+            }
+        }
+    
+        if !values.is_empty() {
+            let sum: isize = values.iter().sum();
+            let min = *values.iter().min().unwrap_or(&0);
+            let max = *values.iter().max().unwrap_or(&0);
+            let avg = sum as f64 / values.len() as f64;
+            let stdev = {
+                let mean = avg;
+                let variance: f64 = values
+                    .iter()
+                    .map(|v| {
+                        let diff = *v as f64 - mean;
+                        diff * diff
+                    })
+                    .sum::<f64>()
+                    / values.len() as f64;
+                variance.sqrt()
+            };
+    
+            Some((sum, min, max, avg, stdev))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    
     let status_message = use_state(|| "".to_string());
     let formula_input = use_state(|| "".to_string());
     let on_formula_input = {
@@ -402,6 +455,7 @@ pub fn app() -> Html {
     };
 
     let on_cell_click = {
+        let was_inside_table = was_inside_table_click.clone(); // capture clone
         let formula_input = formula_input.clone();
         let selected_cell = selected_cell.clone();
         let selected_range = selected_range.clone();
@@ -435,11 +489,13 @@ pub fn app() -> Html {
             } else {
                 match click_anchor.as_ref() {
                     None => {
+                        was_inside_table.borrow_mut().clone_from(&true);
                         selected_cell.set(Some(cell.clone()));
                         selected_range.set(None);
                         click_anchor.set(Some(cell));
                     }
                     Some(anchor) => {
+                        was_inside_table.borrow_mut().clone_from(&true);
                         selected_cell.set(Some(cell.clone()));
                         selected_range.set(Some(CellRange {
                             start: anchor.clone(),
@@ -515,35 +571,44 @@ pub fn app() -> Html {
         let click_anchor = click_anchor.clone();
     
         use_effect(move || {
+            let was_inside_table = was_inside_table_effect.clone(); // use this clone
             let closure = Closure::<dyn FnMut(_)>::wrap(Box::new(move |event: web_sys::MouseEvent| {
                 if let Some(target) = event.target() {
                     let tag = target.dyn_ref::<web_sys::Element>().map(|e| e.tag_name());
-                    let is_table_cell = tag.as_deref() == Some("TD");
-                    let is_input = tag.as_deref() == Some("INPUT");
-    
-                    if !is_table_cell && !is_input {
+                    let tag_name = tag.as_deref().unwrap_or("");
+        
+                    let is_table_cell = tag_name == "TD";
+                    let is_input = tag_name == "INPUT";
+                    let is_button = tag_name == "BUTTON";
+        
+                    let clicked_inside = is_table_cell || is_input || is_button;
+        
+                    web_sys::console::log_1(&format!("tag = {}, clicked_inside = {}", tag_name, clicked_inside).into());
+        
+                    if !clicked_inside && !*was_inside_table.borrow() {
                         selected_cell.set(None);
                         selected_range.set(None);
                         click_anchor.set(None);
                     }
+        
+                    *was_inside_table.borrow_mut() = false;
                 }
             }) as Box<dyn FnMut(_)>);
-    
+        
             let window = web_sys::window().unwrap();
             window
                 .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
                 .unwrap();
-    
-            // Return cleanup closure that *actually removes* the listener
+        
             let closure_ref = closure.as_ref().clone();
             let boxed = Box::new(closure);
             move || {
                 window
                     .remove_event_listener_with_callback("mousedown", closure_ref.unchecked_ref())
                     .unwrap();
-                drop(boxed); // this ensures closure gets dropped
+                drop(boxed);
             }
-        });
+        });        
     }
     
     
@@ -691,6 +756,18 @@ pub fn app() -> Html {
                 html! {
                     <div style="margin: 8px 0; font-weight: bold;">
                         { format!("📌 Selected Range: {}", label) }
+                        <br/>
+                        {
+                            if let Some((sum, min, max, avg, stdev)) = &selected_range_stats {
+                                html! {
+                                    <div style="font-weight: normal; margin-top: 4px;">
+                                        { format!("➕ Sum = {sum}, 🟢 Min = {min}, 🔴 Max = {max}, 📊 Avg = {:.2}, 🧮 Stdev = {:.2}", avg, stdev) }
+                                    </div>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        }
                     </div>
                 }
             } else {
