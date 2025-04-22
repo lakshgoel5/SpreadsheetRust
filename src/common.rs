@@ -71,4 +71,6 @@ pub enum Operation {
     Quit,
     Web,
     Save(String),
+    Undo,
+    Redo,
 }

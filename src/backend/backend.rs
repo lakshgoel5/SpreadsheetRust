@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use std::fs;
-
+const UNDO_LIMIT: usize = 1000;
 use crate::backend::functions::*;
 use crate::backend::graph::Node;
 use crate::backend::graph::get_sequence;
@@ -79,6 +79,8 @@ pub struct Valgrid {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Backend {
     grid: Grid,
+    undo_stack: Vec<Grid>,
+    redo_stack: Vec<Grid>,
 }
 
 impl Backend {
@@ -86,6 +88,8 @@ impl Backend {
     pub fn init_backend(rows: usize, columns: usize) -> Self {
         Backend {
             grid: Grid::new(rows + 1, columns + 1),
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
         }
     }
     ///Returns the value of cell
@@ -298,6 +302,27 @@ impl Backend {
                     }
                     Status::Success
                 }
+                Operation::Undo => {
+                    if let Some(prev_grid) = self.undo_stack.pop() {
+                        self.redo_stack.push(self.grid.clone());
+                        self.grid = prev_grid;
+                        Status::Success
+                    } else {
+                        Status::UnrecognizedCmd
+                    }
+                },
+                Operation::Redo => {
+                    if let Some(next_grid) = self.redo_stack.pop() {
+                        self.undo_stack.push(self.grid.clone());
+                        if self.undo_stack.len() > UNDO_LIMIT {
+                            self.undo_stack.remove(0); // drop oldest
+                        }
+                        self.grid = next_grid;
+                        Status::Success
+                    } else {
+                        Status::UnrecognizedCmd
+                    }
+                },
                 _ => Status::UnrecognizedCmd,
             },
             Some((
@@ -307,6 +332,11 @@ impl Backend {
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
                 // change here
                 // either have to change parser or change the inside parts of box1 and box2
+                self.undo_stack.push(self.grid.clone());
+                if self.undo_stack.len() > UNDO_LIMIT {
+                    self.undo_stack.remove(0);
+                }
+                self.redo_stack.clear(); // clear redo stack on new action
                 self.execute(Value::Cell(col, row), Some(Value::Oper(box1, box2, op)))
             }
             _ => Status::UnrecognizedCmd,

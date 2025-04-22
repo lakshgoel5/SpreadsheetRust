@@ -9,6 +9,7 @@ use std::ops::Range;
 use std::rc::Rc;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
+use wasm_bindgen::closure::Closure;
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew_chart::{
@@ -157,6 +158,12 @@ struct SelectedCell {
     col: usize,
 }
 
+#[derive(Clone, PartialEq)]
+struct CellRange {
+    start: SelectedCell,
+    end: SelectedCell,
+}
+
 #[function_component(App)]
 pub fn app() -> Html {
     let formula_input_ref = use_node_ref();
@@ -249,10 +256,82 @@ pub fn app() -> Html {
     let row_range = *rows1..=(*rows2).min(table.rows - 1);
     let col_range = *cols1..=(*cols2).min(table.columns - 1);
     let selected_cell = use_state(|| None::<SelectedCell>);
+    let selected_range = use_state(|| None::<CellRange>);
+    let click_anchor = use_state(|| None::<SelectedCell>);
     let selected_column_for_chart = use_state(|| None::<usize>);
     let chart_type = use_state(|| "line".to_string());
     let show_full_table = use_state(|| false);
+    let was_inside_table = use_mut_ref(|| false);
 
+    let was_inside_table_click = was_inside_table.clone(); // for on_cell_click
+    let was_inside_table_effect = was_inside_table.clone(); // for use_effect
+
+    let selected_range_label = {
+        if let Some(range) = &*selected_range {
+            let start = &range.start;
+            let end = &range.end;
+            let label = format!(
+                "{}{}:{}{}",
+                number_to_column_label(start.col),
+                start.row,
+                number_to_column_label(end.col),
+                end.row
+            );
+            Some(label)
+        } else {
+            None
+        }
+    };
+
+    // i am not calling backend here because it needs a target cell to function
+    let selected_range_stats = if let Some(range) = &*selected_range {
+        let (start_row, end_row) = if range.start.row <= range.end.row {
+            (range.start.row, range.end.row)
+        } else {
+            (range.end.row, range.start.row)
+        };
+        let (start_col, end_col) = if range.start.col <= range.end.col {
+            (range.start.col, range.end.col)
+        } else {
+            (range.end.col, range.start.col)
+        };
+    
+        let mut values = vec![];
+    
+        for r in start_row..=end_row {
+            for c in start_col..=end_col {
+                if let Some(val) = table.cells.get(r).and_then(|row| row.get(c)) {
+                    values.push(*val);
+                }
+            }
+        }
+    
+        if !values.is_empty() {
+            let sum: isize = values.iter().sum();
+            let min = *values.iter().min().unwrap_or(&0);
+            let max = *values.iter().max().unwrap_or(&0);
+            let avg = sum as f64 / values.len() as f64;
+            let stdev = {
+                let mean = avg;
+                let variance: f64 = values
+                    .iter()
+                    .map(|v| {
+                        let diff = *v as f64 - mean;
+                        diff * diff
+                    })
+                    .sum::<f64>()
+                    / values.len() as f64;
+                variance.sqrt()
+            };
+    
+            Some((sum, min, max, avg, stdev))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    
     let status_message = use_state(|| "".to_string());
     let formula_input = use_state(|| "".to_string());
     let on_formula_input = {
@@ -335,6 +414,41 @@ pub fn app() -> Html {
         })
     };
 
+    let on_undo = {
+        let backend = backend.clone();
+        let table = table.clone();
+        let status_message = status_message.clone();
+    
+        Callback::from(move |_| {
+            let mut backend_ref = backend.borrow_mut();
+            let status = backend_ref.process_command(100, 100, "undo".to_string());
+            if let crate::backend::backend::Status::Success = status {
+                table.set(backend_ref.get_valgrid());
+                status_message.set("↩️ Undo successful".to_string());
+            } else {
+                status_message.set("⚠️ Nothing to undo".to_string());
+            }
+        })
+    };
+    
+    let on_redo = {
+        let backend = backend.clone();
+        let table = table.clone();
+        let status_message = status_message.clone();
+    
+        Callback::from(move |_| {
+            let mut backend_ref = backend.borrow_mut();
+            let status = backend_ref.process_command(100, 100, "redo".to_string());
+            if let crate::backend::backend::Status::Success = status {
+                table.set(backend_ref.get_valgrid());
+                status_message.set("↪️ Redo successful".to_string());
+            } else {
+                status_message.set("⚠️ Nothing to redo".to_string());
+            }
+        })
+    };
+    
+
     let on_rows1_change = {
         let rows1 = rows1.clone();
         Callback::from(move |e: InputEvent| {
@@ -376,15 +490,18 @@ pub fn app() -> Html {
     };
 
     let on_cell_click = {
+        let was_inside_table = was_inside_table_click.clone(); // capture clone
         let formula_input = formula_input.clone();
         let selected_cell = selected_cell.clone();
+        let selected_range = selected_range.clone();
+        let click_anchor = click_anchor.clone();
         let is_formula_building = is_formula_building.clone();
         let input_ref = formula_input_ref.clone();
-
+    
         Callback::from(move |cell: SelectedCell| {
             if *is_formula_building {
                 let label = format!("{}{}", number_to_column_label(cell.col), cell.row);
-
+    
                 if let Some(input) = input_ref.cast::<web_sys::HtmlInputElement>() {
                     let mut current = (*formula_input).clone();
                     let start = input
@@ -395,21 +512,37 @@ pub fn app() -> Html {
                         .selection_end()
                         .unwrap_or(None)
                         .unwrap_or(current.len() as u32) as usize;
-
+    
                     current.replace_range(start..end, &label);
                     formula_input.set(current);
-
-                    // move cursor after inserted text
+    
                     let new_pos = (start + label.len()) as u32;
                     input.set_selection_start(Some(new_pos)).ok();
                     input.set_selection_end(Some(new_pos)).ok();
                     input.focus().ok();
                 }
             } else {
-                selected_cell.set(Some(cell));
+                match click_anchor.as_ref() {
+                    None => {
+                        was_inside_table.borrow_mut().clone_from(&true);
+                        selected_cell.set(Some(cell.clone()));
+                        selected_range.set(None);
+                        click_anchor.set(Some(cell));
+                    }
+                    Some(anchor) => {
+                        was_inside_table.borrow_mut().clone_from(&true);
+                        selected_cell.set(Some(cell.clone()));
+                        selected_range.set(Some(CellRange {
+                            start: anchor.clone(),
+                            end: cell,
+                        }));
+                        click_anchor.set(None);
+                    }
+                }
             }
         })
     };
+    
 
     #[allow(clippy::type_complexity)]
     let get_column_data = {
@@ -453,6 +586,68 @@ pub fn app() -> Html {
         })
     };
 
+    fn is_cell_in_range(row: usize, col: usize, range: &CellRange) -> bool {
+        let (start_row, end_row) = if range.start.row <= range.end.row {
+            (range.start.row, range.end.row)
+        } else {
+            (range.end.row, range.start.row)
+        };
+        let (start_col, end_col) = if range.start.col <= range.end.col {
+            (range.start.col, range.end.col)
+        } else {
+            (range.end.col, range.start.col)
+        };
+        row >= start_row && row <= end_row && col >= start_col && col <= end_col
+    }
+
+    {
+        let selected_cell = selected_cell.clone();
+        let selected_range = selected_range.clone();
+        let click_anchor = click_anchor.clone();
+    
+        use_effect(move || {
+            let was_inside_table = was_inside_table_effect.clone(); // use this clone
+            let closure = Closure::<dyn FnMut(_)>::wrap(Box::new(move |event: web_sys::MouseEvent| {
+                if let Some(target) = event.target() {
+                    let tag = target.dyn_ref::<web_sys::Element>().map(|e| e.tag_name());
+                    let tag_name = tag.as_deref().unwrap_or("");
+        
+                    let is_table_cell = tag_name == "TD";
+                    let is_input = tag_name == "INPUT";
+                    let is_button = tag_name == "BUTTON";
+        
+                    let clicked_inside = is_table_cell || is_input || is_button;
+        
+                    web_sys::console::log_1(&format!("tag = {}, clicked_inside = {}", tag_name, clicked_inside).into());
+        
+                    if !clicked_inside && !*was_inside_table.borrow() {
+                        selected_cell.set(None);
+                        selected_range.set(None);
+                        click_anchor.set(None);
+                    }
+        
+                    *was_inside_table.borrow_mut() = false;
+                }
+            }) as Box<dyn FnMut(_)>);
+        
+            let window = web_sys::window().unwrap();
+            window
+                .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
+                .unwrap();
+        
+            let closure_ref = closure.as_ref().clone();
+            let boxed = Box::new(closure);
+            move || {
+                window
+                    .remove_event_listener_with_callback("mousedown", closure_ref.unchecked_ref())
+                    .unwrap();
+                drop(boxed);
+            }
+        });        
+    }
+    
+    
+    
     html! {
         <div>
             // <div>
@@ -464,6 +659,10 @@ pub fn app() -> Html {
                 .selected {
                     background-color: #ffeeba;
                     border: 2px solid #ff9900;
+                }
+                .range-selected {
+                    background-color: #d0f0fd;
+                    border: 1px solid #00aaff;
                 }
                 .highlight-column {
                     background-color: pink;
@@ -531,7 +730,10 @@ pub fn app() -> Html {
                     // })}
                     placeholder="Enter formula eg. SUM(B1:B10)"
                 />
-                <button onclick={on_submit_formula}>{"Apply"}</button>
+                <button style="margin-right: 10px;" onclick={on_submit_formula}>{"Apply"}</button>
+                <button style="margin-right: 10px;" onclick={on_undo}>{"Undo"}</button>
+                <button onclick={on_redo}>{"Redo"}</button>
+
             </div>
             <div class="status-bar">
                 <p>{ (*status_message).clone() }</p>
@@ -585,6 +787,27 @@ pub fn app() -> Html {
                 html! {}
             }}
 
+            { if let Some(label) = &selected_range_label {
+                html! {
+                    <div style="margin: 8px 0; font-weight: bold;">
+                        { format!("📌 Selected Range: {}", label) }
+                        <br/>
+                        {
+                            if let Some((sum, min, max, avg, stdev)) = &selected_range_stats {
+                                html! {
+                                    <div style="font-weight: normal; margin-top: 4px;">
+                                        { format!("➕ Sum = {sum}, 🟢 Min = {min}, 🔴 Max = {max}, 📊 Avg = {:.2}, 🧮 Stdev = {:.2}", avg, stdev) }
+                                    </div>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        }
+                    </div>
+                }
+            } else {
+                html! {}
+            } }
 
             <div class="table-container">
                 <table>
@@ -625,6 +848,10 @@ pub fn app() -> Html {
                                             .map(|sc| sc.row == row && sc.col == col)
                                             .unwrap_or(false);
 
+                                        let in_range = selected_range.as_ref()
+                                            .map(|range| is_cell_in_range(row, col, range))
+                                            .unwrap_or(false);
+
                                         let is_in_selected_col = Some(col) == *selected_column_for_chart;
 
                                         let onclick = {
@@ -641,6 +868,8 @@ pub fn app() -> Html {
                                                 class={
                                                     if is_selected {
                                                         "selected"
+                                                    } else if in_range {
+                                                        "range-selected"
                                                     } else if is_in_selected_col {
                                                         "highlight-column"
                                                     } else {
