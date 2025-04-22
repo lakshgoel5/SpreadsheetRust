@@ -69,7 +69,7 @@ pub enum Operation {
     Up,
     Down,
     Quit,
-    Web,
+    Web(String),
     Save(String),
     Undo,
     Redo,

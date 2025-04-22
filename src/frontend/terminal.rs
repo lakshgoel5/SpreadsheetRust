@@ -4,6 +4,7 @@ use std::cmp;
 use std::io;
 use std::io::Write;
 use std::process::Command;
+use std::fs;
 
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
@@ -81,7 +82,6 @@ impl Frontend {
             };
             let rows = backend.get_grid().get_row_size() - 1;
             let columns = backend.get_grid().get_column_size() - 1;
-            println!("{}", columns);
             Frontend {
                 start: Value::Cell(1, 1),
                 dimension: Value::Cell(rows, columns),
@@ -134,10 +134,15 @@ impl Frontend {
                 self.start.assign_row(*row);
                 self.start.assign_col(*col);
             }
-            Status::Web => {
+            Status::Web(path) => {
+                println!("Web path: {}", path);
+                let contents = fs::read_to_string(path).expect("Failed to read file");
+                fs::write("mysheet.json", contents)
+                    .expect("Failed to write to file");
                 Command::new("trunk")
                     .arg("serve")
                     .arg("--open")
+                    .env("LOAD", "1")
                     .spawn()
                     .expect("Failed to start trunk")
                     .wait()

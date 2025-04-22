@@ -74,7 +74,6 @@ pub fn validate(
     match cmd.trim() {
         "undo" => return Some((None, Some(Value::Oper(None, None, Operation::Undo)))),
         "redo" => return Some((None, Some(Value::Oper(None, None, Operation::Redo)))),
-        "web" => return Some((None, Some(Value::Oper(None, None, Operation::Web)))),
         "enable_output" => {
             return Some((None, Some(Value::Oper(None, None, Operation::EnableOutput))));
         }
@@ -121,6 +120,14 @@ pub fn validate(
         return Some((
             None,
             Some(Value::Oper(None, None, Operation::Save(file_name))),
+        ));
+    }
+
+    if cmd.trim().starts_with("web ") {
+        let file_name = cmd.trim()["web ".len()..].trim().to_string();
+        return Some((
+            None,
+            Some(Value::Oper(None, None, Operation::Web(file_name))),
         ));
     }
 

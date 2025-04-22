@@ -215,7 +215,7 @@ pub fn app() -> Html {
     // let table = backend.borrow().get_valgrid();
 
     if load_from_json{
-        const CONTEXT: &str = include_str!("../../bigger.json");
+        const CONTEXT: &str = include_str!("../../mysheet.json");
         web_sys::console::log_1(&format!("Context: {}", CONTEXT).into());
 
         if let Ok(deserialized) = Backend::deserial_text(CONTEXT.to_string()) {
