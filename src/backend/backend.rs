@@ -254,7 +254,7 @@ impl Backend {
         }
     }
     ///Checks for cycles and accordingly updates dependencies
-    
+
     fn execute(&mut self, cell: Value, func: Option<Value>) -> Status {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
         if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = func.clone() {
@@ -318,7 +318,8 @@ impl Backend {
     }
 
     pub fn serial(&self, path: &str) -> Result<(), String> {
-        let json = serde_json::to_string_pretty(self).map_err(|e| format!("Serialization error: {}", e))?;
+        let json = serde_json::to_string_pretty(self)
+            .map_err(|e| format!("Serialization error: {}", e))?;
         std::fs::write(path, json).map_err(|e| format!("File write error: {}", e))
     }
 

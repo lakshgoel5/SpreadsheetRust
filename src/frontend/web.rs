@@ -15,11 +15,11 @@ use yew_chart::{
     series::{BarType, Labeller, Series, Type},
 };
 // use yew::use_effect_with_deps;
-use web_sys::HtmlCanvasElement;
+use gloo::utils::document;
 use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
-use gloo::utils::document;
 use wasm_bindgen::JsCast;
+use web_sys::HtmlCanvasElement;
 
 #[derive(Properties, PartialEq)]
 pub struct CanvasChartProps {
@@ -38,11 +38,11 @@ pub fn canvas_chart(props: &CanvasChartProps) -> Html {
             .unwrap()
             .dyn_into::<HtmlCanvasElement>()
             .unwrap();
-    
+
         let backend = CanvasBackend::with_canvas_object(canvas).unwrap();
         let drawing_area = backend.into_drawing_area();
         drawing_area.fill(&WHITE).unwrap();
-    
+
         // let y_range = data.iter().map(|(_, y)| *y);
         // let y_min = y_range.clone().fold(f32::MAX, f32::min);
         // let y_max = y_range.clone().fold(f32::MIN, f32::max);
@@ -61,7 +61,6 @@ pub fn canvas_chart(props: &CanvasChartProps) -> Html {
             y_min -= 1.0;
         }
 
-    
         let mut chart = ChartBuilder::on(&drawing_area)
             .caption("Spreadsheet Chart", ("sans-serif", 30).into_font())
             .margin(20)
@@ -69,7 +68,6 @@ pub fn canvas_chart(props: &CanvasChartProps) -> Html {
             .set_label_area_size(LabelAreaPosition::Bottom, 40)
             .build_cartesian_2d(0f32..(data.len() as f32), y_min..y_max)
             .unwrap();
-
 
         // for zero reference lines
 
@@ -79,18 +77,22 @@ pub fn canvas_chart(props: &CanvasChartProps) -> Html {
         //         &BLACK,
         //     ))
         //     .unwrap();
-        
+
         chart
             .configure_mesh()
             .x_desc("Row Index")
             .y_desc("Value")
-            .y_labels(10)
-            .x_labels(10)
-            .set_all_tick_mark_size(4)
             .draw()
             .unwrap();
 
-            
+        // for drawing the line at bottom
+        chart
+            .draw_series(LineSeries::new(
+                vec![(0.0, 0.0), (data.len() as f32, 0.0)],
+                &BLACK,
+            ))
+            .unwrap();
+
         match chart_type.as_str() {
             "line" => {
                 chart
@@ -109,13 +111,12 @@ pub fn canvas_chart(props: &CanvasChartProps) -> Html {
                     }))
                     .unwrap();
             }
-            
+
             _ => {}
         }
-    
+
         || ()
     });
-    
 
     html! {
         <canvas id="plotters-canvas" width="800" height="500" style="border: 1px solid #ccc;" />
@@ -207,7 +208,7 @@ pub fn app() -> Html {
     let col_range = *cols1..=(*cols2).min(table.columns - 1);
     let selected_cell = use_state(|| None::<SelectedCell>);
     let selected_column_for_chart = use_state(|| None::<usize>);
-    let chart_type = use_state(|| "bar".to_string());
+    let chart_type = use_state(|| "line".to_string());
 
     let status_message = use_state(|| "".to_string());
     let formula_input = use_state(|| "".to_string());
@@ -238,8 +239,7 @@ pub fn app() -> Html {
                 let mut backend_ref = backend.borrow_mut();
                 //web_sys::console::log_1(&format!("Selected cell row={}, col={} => {}", cell.row, cell.col, target_cell).into());
                 // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
-                let status =
-                    backend_ref.process_command(100_usize, 100_usize, command.clone());
+                let status = backend_ref.process_command(100_usize, 100_usize, command.clone());
                 match status {
                     crate::backend::backend::Status::Success => {
                         status_message.set(format!("✅ {} updated successfully", target_cell));
@@ -267,15 +267,18 @@ pub fn app() -> Html {
                 // debug
                 // table.set(backend_ref.get_valgrid());
 
-
                 let updated_table = backend_ref.get_valgrid();
 
                 // TEMP DEBUG LOG
                 let row_idx = cell.row;
                 let col_idx = cell.col;
-                if row_idx < updated_table.cells.len() && col_idx < updated_table.cells[row_idx].len() {
+                if row_idx < updated_table.cells.len()
+                    && col_idx < updated_table.cells[row_idx].len()
+                {
                     let val = updated_table.cells[row_idx][col_idx];
-                    web_sys::console::log_1(&format!("DEBUG: cell[{}, {}] = {}", row_idx, col_idx, val).into());
+                    web_sys::console::log_1(
+                        &format!("DEBUG: cell[{}, {}] = {}", row_idx, col_idx, val).into(),
+                    );
                 } else {
                     web_sys::console::log_1(&"DEBUG: selected cell out of bounds".into());
                 }
@@ -480,7 +483,7 @@ pub fn app() -> Html {
 
             {if let Some(col) = *selected_column_for_chart {
                 let data = get_column_data(col);
-            
+
                 html! {
                     <div>
                         <h2>{ format!("Chart for Column {}", number_to_column_label(col)) }</h2>
@@ -494,7 +497,7 @@ pub fn app() -> Html {
             } else {
                 html! {}
             }}
-            
+
 
             <div class="table-container">
                 <table>

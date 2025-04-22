@@ -118,9 +118,7 @@ pub fn validate(
         let file_name = cmd.trim()["save ".len()..].trim().to_string();
         return Some((
             None,
-            Some(Value::Oper(
-                None, None, Operation::Save(file_name),
-            )),
+            Some(Value::Oper(None, None, Operation::Save(file_name))),
         ));
     }
 

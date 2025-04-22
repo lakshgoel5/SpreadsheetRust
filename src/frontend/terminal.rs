@@ -1,9 +1,9 @@
 #![allow(dead_code)]
+use crate::common::Value;
 use std::cmp;
 use std::io;
 use std::io::Write;
 use std::process::Command;
-use crate::common::Value;
 
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
@@ -61,9 +61,9 @@ impl Frontend {
             eprintln!("Invalid location or dimension values provided.");
         }
     }
-    
+
     pub fn init_frontend(rows: usize, columns: usize, path: &str) -> Self {
-        if path=="" {
+        if path == "" {
             let backend = Backend::init_backend(rows, columns);
             Frontend {
                 start: Value::Cell(1, 1),
@@ -79,8 +79,8 @@ impl Frontend {
                     Backend::init_backend(rows, columns)
                 }
             };
-            let rows = backend.get_grid().get_row_size()-1;
-            let columns = backend.get_grid().get_column_size()-1;
+            let rows = backend.get_grid().get_row_size() - 1;
+            let columns = backend.get_grid().get_column_size() - 1;
             println!("{}", columns);
             Frontend {
                 start: Value::Cell(1, 1),
@@ -89,7 +89,6 @@ impl Frontend {
                 print_enabled: true,
             }
         }
-        
     }
 
     pub fn run_frontend(&mut self) {

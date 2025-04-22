@@ -48,7 +48,6 @@ impl Value {
 //Needed as Value has implemented a clone
 //Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
 //   |                                  ^^^^^^^^^ the trait `Clone` is not implemented for `Operation`
-
 #[derive(Serialize, Deserialize)]
 pub enum Operation {
     Cons,
@@ -71,5 +70,5 @@ pub enum Operation {
     Down,
     Quit,
     Web,
-    Save(String)
+    Save(String),
 }

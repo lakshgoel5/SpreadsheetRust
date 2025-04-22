@@ -12,11 +12,11 @@ use serde::{Deserialize, Serialize};
 ///Data structure for strong data of each cell
 /// Contains Dependency list, value, function and a few booleans
 /// `Node` struct represents a cell in the spreadsheet with its dependencies
-/// 
+///
 /// Stores the cell's value, function, and dependency information
-/// 
+///
 /// # Fields
-/// 
+///
 /// * `dependents` - Vector of cells that depend on this cell
 /// * `node_value` - Current value of the cell
 /// * `function` - Function/operation assigned to this cell
