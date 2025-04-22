@@ -209,6 +209,7 @@ pub fn app() -> Html {
     let selected_cell = use_state(|| None::<SelectedCell>);
     let selected_column_for_chart = use_state(|| None::<usize>);
     let chart_type = use_state(|| "line".to_string());
+    let show_full_table = use_state(|| false);
 
     let status_message = use_state(|| "".to_string());
     let formula_input = use_state(|| "".to_string());
@@ -430,6 +431,29 @@ pub fn app() -> Html {
                     margin: 10px;
                     color: #333;
                 }
+                .table-container {
+                    margin: 20px 0;
+                    padding: 10px;
+                    border-radius: 4px;
+                    background: white;
+                }
+                .table-container h3 {
+                    color: #333;
+                    margin-bottom: 15px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: center;
+                }
+                th {
+                    background-color: #f5f5f5;
+                }
             "}
             </style>
             <div class="formula-bar">
@@ -478,6 +502,16 @@ pub fn app() -> Html {
                         <option value="bar">{"Bar"}</option>
                         <option value="line">{"Line"}</option>
                     </select>
+                </div>
+                <div>
+                    <button onclick={
+                        let show_full_table = show_full_table.clone();
+                        Callback::from(move |_| {
+                            show_full_table.set(!*show_full_table);
+                        })
+                    }>
+                        {if *show_full_table { "Hide Full Table" } else { "Show Full Table" }}
+                    </button>
                 </div>
             </div>
 
@@ -570,6 +604,47 @@ pub fn app() -> Html {
                     </tbody>
                 </table>
             </div>
+            
+            {if *show_full_table {
+                html! {
+                    <div class="table-container">
+                        <h3>{"Complete Table View"}</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    { for (1..=table.columns).map(|column| {
+                                        html! {
+                                            <th>{ number_to_column_label(column) }</th>
+                                        }
+                                    }) }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                { for (1..=table.rows).map(|row| {
+                                    html! {
+                                        <tr>
+                                            <th>{ row }</th>
+                                            { for (1..=table.columns).map(|col| {
+                                                let cell_value = table.cells
+                                                    .get(row)
+                                                    .and_then(|r| r.get(col))
+                                                    .map(|v| v.to_string())
+                                                    .unwrap_or_else(|| "".to_string());
+                                                html! {
+                                                    <td>{ cell_value }</td>
+                                                }
+                                            }) }
+                                        </tr>
+                                    }
+                                }) }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            } else {
+                html! {}
+            }}
         </div>
     }
 }
