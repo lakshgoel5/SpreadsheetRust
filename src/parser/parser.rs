@@ -72,6 +72,8 @@ pub fn validate(
     columns: &usize,
 ) -> Option<(Option<Value>, Option<Value>)> {
     match cmd.trim() {
+        "undo" => return Some((None, Some(Value::Oper(None, None, Operation::Undo)))),
+        "redo" => return Some((None, Some(Value::Oper(None, None, Operation::Redo)))),
         "web" => return Some((None, Some(Value::Oper(None, None, Operation::Web)))),
         "enable_output" => {
             return Some((None, Some(Value::Oper(None, None, Operation::EnableOutput))));
