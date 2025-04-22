@@ -800,7 +800,7 @@ pub fn app() -> Html {
                     <thead>
                         <tr>
                             <th></th>
-                            { for (*cols1..=*cols2).map(|column| {
+                            { for (*cols1..=(*cols2).min(table.columns - 1)).map(|column| {
                                 let onclick = {
                                     let on_chart_column_select = on_chart_column_select.clone();
                                     Callback::from(move |_| on_chart_column_select.emit(column))

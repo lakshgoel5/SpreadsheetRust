@@ -3,6 +3,10 @@ name = "spreadsheet_rust"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "spreadsheet"
+path = "src/main.rs"
+
 [dependencies]
 yew = { version = "0.21", features = ["csr"] }
 yew-chart = "0.6.0"

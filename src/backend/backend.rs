@@ -40,6 +40,7 @@ pub enum Status {
     Right,
     Quit,
     Web(String),
+    WebStart,
 }
 
 impl Grid {
@@ -296,6 +297,7 @@ impl Backend {
                 Operation::Down => Status::Down,
                 Operation::Quit => Status::Quit,
                 Operation::Web(path) => Status::Web(path),
+                Operation::WebStart => Status::WebStart,
                 Operation::Save(path) => {
                     if let Err(_) = self.serial(&path) {
                         return Status::UnrecognizedCmd;

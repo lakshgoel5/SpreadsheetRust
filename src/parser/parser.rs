@@ -74,6 +74,7 @@ pub fn validate(
     match cmd.trim() {
         "undo" => return Some((None, Some(Value::Oper(None, None, Operation::Undo)))),
         "redo" => return Some((None, Some(Value::Oper(None, None, Operation::Redo)))),
+        "web_start" => return Some((None, Some(Value::Oper(None, None, Operation::WebStart)))),
         "enable_output" => {
             return Some((None, Some(Value::Oper(None, None, Operation::EnableOutput))));
         }

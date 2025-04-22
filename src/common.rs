@@ -73,4 +73,5 @@ pub enum Operation {
     Save(String),
     Undo,
     Redo,
+    WebStart,
 }
