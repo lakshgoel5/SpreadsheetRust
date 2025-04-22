@@ -204,12 +204,6 @@ pub fn app() -> Html {
     let max_rows: usize = option_env!("MY_ROWS").unwrap_or("100").parse().unwrap();
     let max_cols: usize = option_env!("MY_COLS").unwrap_or("100").parse().unwrap();
     
-    
-    
-    
-    
-    
-    
     let load_from_json: bool = option_env!("LOAD").map(|v| v == "1" || v.eq_ignore_ascii_case("true")).unwrap_or(false);
     let backend = use_mut_ref(|| Backend::init_backend(max_rows, max_cols)); // debug i dont know the desired dimensions
     // let table = backend.borrow().get_valgrid();
@@ -225,19 +219,6 @@ pub fn app() -> Html {
             web_sys::console::error_1(&"Failed to deserialize backend from context".into());
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     let table = use_state(|| backend.borrow().get_valgrid());
     let is_formula_building = use_state(|| false);
@@ -698,10 +679,15 @@ pub fn app() -> Html {
                 /* Specific styles for the complete table */
                 .complete-table {
                     border: none;
+                    table-layout: fixed;
                 }
                 .complete-table td {
                     border: none;
-                    padding: 4px;
+                    padding: 0;
+                    width: 20px;
+                    height: 20px;
+                    min-width: 20px;
+                    min-height: 20px;
                 }
                 .complete-table tr:hover {
                     background: none;
@@ -765,7 +751,7 @@ pub fn app() -> Html {
                             show_full_table.set(!*show_full_table);
                         })
                     }>
-                        {if *show_full_table { "Hide Full Table" } else { "Show Full Table" }}
+                        {if *show_full_table { "Hide Image" } else { "Generate Image" }}
                     </button>
                 </div>
             </div>
@@ -891,7 +877,7 @@ pub fn app() -> Html {
             {if *show_full_table {
                 html! {
                     <div class="table-container">
-                        <h3>{"Complete Table View"}</h3>
+                        <h3>{"Image View"}</h3>
                         <table class="complete-table">
                             <tbody>
                                 { for (1..=table.rows).map(|row| {
