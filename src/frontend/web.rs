@@ -14,6 +14,113 @@ use yew_chart::{
     linear_axis_scale::LinearScale,
     series::{BarType, Labeller, Series, Type},
 };
+// use yew::use_effect_with_deps;
+use web_sys::HtmlCanvasElement;
+use plotters::prelude::*;
+use plotters_canvas::CanvasBackend;
+use gloo::utils::document;
+use wasm_bindgen::JsCast;
+
+#[derive(Properties, PartialEq)]
+pub struct CanvasChartProps {
+    pub data: Vec<(f32, f32)>,
+    pub chart_type: String,
+}
+
+#[function_component(CanvasChart)]
+pub fn canvas_chart(props: &CanvasChartProps) -> Html {
+    let data = props.data.clone();
+    let chart_type = props.chart_type.clone();
+
+    use_effect(move || {
+        let canvas = document()
+            .get_element_by_id("plotters-canvas")
+            .unwrap()
+            .dyn_into::<HtmlCanvasElement>()
+            .unwrap();
+    
+        let backend = CanvasBackend::with_canvas_object(canvas).unwrap();
+        let drawing_area = backend.into_drawing_area();
+        drawing_area.fill(&WHITE).unwrap();
+    
+        // let y_range = data.iter().map(|(_, y)| *y);
+        // let y_min = y_range.clone().fold(f32::MAX, f32::min);
+        // let y_max = y_range.clone().fold(f32::MIN, f32::max);
+        // let y_max = if (y_max - y_min).abs() < f32::EPSILON { y_max + 1.0 } else { y_max };
+
+        let mut y_min = 0.0;
+        let actual_min = data.iter().map(|(_, y)| *y).fold(f32::MAX, f32::min);
+        if actual_min < 0.0 {
+            y_min = actual_min;
+        }
+
+        let mut y_max = data.iter().map(|(_, y)| *y).fold(f32::MIN, f32::max);
+
+        if (y_max - y_min).abs() < f32::EPSILON {
+            y_max += 1.0;
+            y_min -= 1.0;
+        }
+
+    
+        let mut chart = ChartBuilder::on(&drawing_area)
+            .caption("Spreadsheet Chart", ("sans-serif", 30).into_font())
+            .margin(20)
+            .set_label_area_size(LabelAreaPosition::Left, 40)
+            .set_label_area_size(LabelAreaPosition::Bottom, 40)
+            .build_cartesian_2d(0f32..(data.len() as f32), y_min..y_max)
+            .unwrap();
+
+
+        // for zero reference lines
+
+        // chart
+        //     .draw_series(LineSeries::new(
+        //         vec![(0.0, 0.0), (data.len() as f32, 0.0)],
+        //         &BLACK,
+        //     ))
+        //     .unwrap();
+        
+        chart
+            .configure_mesh()
+            .x_desc("Row Index")
+            .y_desc("Value")
+            .y_labels(10)
+            .x_labels(10)
+            .set_all_tick_mark_size(4)
+            .draw()
+            .unwrap();
+
+            
+        match chart_type.as_str() {
+            "line" => {
+                chart
+                    .draw_series(LineSeries::new(data.clone(), &RED))
+                    .unwrap();
+            }
+            "bar" => {
+                chart
+                    .draw_series(data.iter().map(|(x, y)| {
+                        let (start, end) = if *y >= 0.0 {
+                            ((*x, 0.0), (*x + 0.8, *y))
+                        } else {
+                            ((*x, *y), (*x + 0.8, 0.0))
+                        };
+                        Rectangle::new([start, end], RED.filled())
+                    }))
+                    .unwrap();
+            }
+            
+            _ => {}
+        }
+    
+        || ()
+    });
+    
+
+    html! {
+        <canvas id="plotters-canvas" width="800" height="500" style="border: 1px solid #ccc;" />
+    }
+}
 
 fn number_to_column_label(num: usize) -> String {
     if num == 0 {
@@ -157,7 +264,23 @@ pub fn app() -> Html {
                     }
                 }
                 // 🟢 now update the table right here:
-                table.set(backend_ref.get_valgrid());
+                // debug
+                // table.set(backend_ref.get_valgrid());
+
+
+                let updated_table = backend_ref.get_valgrid();
+
+                // TEMP DEBUG LOG
+                let row_idx = cell.row;
+                let col_idx = cell.col;
+                if row_idx < updated_table.cells.len() && col_idx < updated_table.cells[row_idx].len() {
+                    let val = updated_table.cells[row_idx][col_idx];
+                    web_sys::console::log_1(&format!("DEBUG: cell[{}, {}] = {}", row_idx, col_idx, val).into());
+                } else {
+                    web_sys::console::log_1(&"DEBUG: selected cell out of bounds".into());
+                }
+
+                table.set(updated_table);
 
                 // ✅ reset formula input and mode
                 formula_input.set("".to_string());
@@ -253,8 +376,8 @@ pub fn app() -> Html {
                 .enumerate()
                 .take(20)
                 .map(|(i, row)| {
-                    let val = row[col - 1] as f32;
-                    (i as f32, val.max(0.1), None) // Ensure positive values
+                    let val = row.get(col).copied().unwrap_or(0) as f32;
+                    (i as f32, val, None) // Ensure positive values
                 })
                 .collect();
 
@@ -262,6 +385,8 @@ pub fn app() -> Html {
             if values.is_empty() {
                 values = vec![(0.0, 1.0, None)];
             }
+            let debug_values: Vec<(f32, f32)> = values.iter().map(|(x, y, _)| (*x, *y)).collect();
+            web_sys::console::log_1(&format!("chart data = {:?}", debug_values).into());
 
             values
         }
@@ -284,11 +409,18 @@ pub fn app() -> Html {
 
     html! {
         <div>
+            // <div>
+            //     <h2>{"Chart Section (using plotters)"}</h2>
+            //     <CanvasChart data={data.iter().map(|(x, y, _)| (*x, *y)).collect()} chart_type={(*chart_type).clone()} />
+            // </div>
             <style>
             {"
                 .selected {
                     background-color: #ffeeba;
                     border: 2px solid #ff9900;
+                }
+                .highlight-column {
+                    background-color: pink;
                 }
                 .status-bar p {
                     font-weight: bold;
@@ -348,83 +480,21 @@ pub fn app() -> Html {
 
             {if let Some(col) = *selected_column_for_chart {
                 let data = get_column_data(col);
-                let y_max = data.iter().map(|(_, y, _)| *y).fold(0.0f32, |a, b| a.max(b));
-                let x_max = data.len() as f32;
-
-                // SVG dimensions
-                let width = 800.0;
-                let height = 500.0;
-                let margin = 60.0;
-                let chart_width = width - 2.0 * margin;
-                let chart_height = height - 2.0 * margin;
-
-                let x_scale = Rc::new(LinearScale::new(
-                    Range { start: 0.0, end: x_max },
-                    1.0
-                )) as Rc<dyn Scale<Scalar = f32>>;
-
-                let y_scale = Rc::new(LinearScale::new(
-                    Range { start: 0.0, end: y_max * 1.1 },
-                    (y_max / 5.0).max(1.0)
-                )) as Rc<dyn Scale<Scalar = f32>>;
-
+            
                 html! {
-                    <div class="chart-container">
-                        <svg
-                            width={width.to_string()}
-                            height={height.to_string()}
-                            style="background: white;"
-                        >
-                            // Y-axis (left side)
-                            <g transform={format!("translate({},{})", margin, margin)}>
-                                <Axis<f32>
-                                    name="y-axis"
-                                    orientation={Orientation::Left}
-                                    scale={y_scale.clone()}
-                                    tick_len={5.0}
-                                    x1={0.0}
-                                    y1={0.0}
-                                    xy2={chart_height}
-                                    title="Value"
-                                />
-                            </g>
+                    <div>
+                        <h2>{ format!("Chart for Column {}", number_to_column_label(col)) }</h2>
+                        <CanvasChart
+                            data={data.iter().map(|(x, y, _)| (*x, *y)).collect::<Vec<(f32, f32)>>()}
+                            chart_type={(*chart_type).clone()}
+                        />
 
-                            // X-axis (bottom)
-                            <g transform={format!("translate({},{})", margin, height - margin)}>
-                                <Axis<f32>
-                                    name="x-axis"
-                                    orientation={Orientation::Bottom}
-                                    scale={x_scale.clone()}
-                                    tick_len={5.0}
-                                    x1={0.0}
-                                    y1={0.0}
-                                    xy2={chart_width}
-                                    title="Row"
-                                />
-                            </g>
-
-                            // Chart series
-                            <g transform={format!("translate({},{})", margin, height - margin)}>
-                                <g transform="scale(1,-1)">
-                                    <Series<f32, f32>
-                                        data={Rc::new(data)}
-                                        height={chart_height}
-                                        width={chart_width}
-                                        x={0.0}
-                                        y={0.0}
-                                        horizontal_scale={x_scale}
-                                        vertical_scale={y_scale}
-                                        name={format!("Column {}", number_to_column_label(col))}
-                                        series_type={if (*chart_type).as_str() == "bar" { Type::Bar(BarType::Rise) } else { Type::Line }}
-                                    />
-                                </g>
-                            </g>
-                        </svg>
                     </div>
                 }
             } else {
                 html! {}
             }}
+            
 
             <div class="table-container">
                 <table>
@@ -436,8 +506,14 @@ pub fn app() -> Html {
                                     let on_chart_column_select = on_chart_column_select.clone();
                                     Callback::from(move |_| on_chart_column_select.emit(column))
                                 };
+                                let is_col_selected = Some(column) == *selected_column_for_chart;
                                 html! {
-                                    <th onclick={onclick}>{ number_to_column_label(column) }</th>
+                                    <th
+                                        onclick={onclick}
+                                        class={if is_col_selected { "highlight-column" } else { "" }}
+                                    >
+                                        { number_to_column_label(column) }
+                                    </th>
                                 }
                             }) }
                         </tr>
@@ -457,8 +533,13 @@ pub fn app() -> Html {
                                         let is_selected = selected_cell.as_ref()
                                             .map(|sc| sc.row == row && sc.col == col)
                                             .unwrap_or(false);
+
+                                        let is_in_selected_col = Some(col) == *selected_column_for_chart;
+
                                         let onclick = {
                                             let on_cell_click = on_cell_click.clone();
+                                            let row = row;
+                                            let col = col;
                                             Callback::from(move |_| {
                                                 on_cell_click.emit(SelectedCell { row, col });
                                             })
@@ -466,7 +547,15 @@ pub fn app() -> Html {
                                         html! {
                                             <td
                                                 onclick={onclick}
-                                                class={if is_selected { "selected" } else { "" }}
+                                                class={
+                                                    if is_selected {
+                                                        "selected"
+                                                    } else if is_in_selected_col {
+                                                        "highlight-column"
+                                                    } else {
+                                                        ""
+                                                    }
+                                                }
                                             >
                                                 { cell_value }
                                             </td>

@@ -3,3 +3,5 @@
 /doc
 .idea/
 safe.txt
+/dist
+**/.DS_Store
