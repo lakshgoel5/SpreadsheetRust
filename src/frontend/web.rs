@@ -141,6 +141,13 @@ fn number_to_column_label(num: usize) -> String {
     result
 }
 
+fn number_to_rgb(n: u32) -> (u8, u8, u8) {
+    let r = (n >> 16) & 0xFF; 
+    let g = (n >> 8) & 0xFF;  
+    let b = n & 0xFF;         
+    (r as u8, g as u8, b as u8)
+}
+
 #[derive(Clone, PartialEq)]
 struct SelectedCell {
     row: usize,
@@ -454,6 +461,17 @@ pub fn app() -> Html {
                 th {
                     background-color: #f5f5f5;
                 }
+                /* Specific styles for the complete table */
+                .complete-table {
+                    border: none;
+                }
+                .complete-table td {
+                    border: none;
+                    padding: 4px;
+                }
+                .complete-table tr:hover {
+                    background: none;
+                }
             "}
             </style>
             <div class="formula-bar">
@@ -567,6 +585,7 @@ pub fn app() -> Html {
                                             .and_then(|r| r.get(col))
                                             .map(|v| v.to_string())
                                             .unwrap_or_else(|| "ERR".to_string());
+
                                         let is_selected = selected_cell.as_ref()
                                             .map(|sc| sc.row == row && sc.col == col)
                                             .unwrap_or(false);
@@ -609,30 +628,29 @@ pub fn app() -> Html {
                 html! {
                     <div class="table-container">
                         <h3>{"Complete Table View"}</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    { for (1..=table.columns).map(|column| {
-                                        html! {
-                                            <th>{ number_to_column_label(column) }</th>
-                                        }
-                                    }) }
-                                </tr>
-                            </thead>
+                        <table class="complete-table">
                             <tbody>
                                 { for (1..=table.rows).map(|row| {
                                     html! {
                                         <tr>
-                                            <th>{ row }</th>
                                             { for (1..=table.columns).map(|col| {
                                                 let cell_value = table.cells
                                                     .get(row)
                                                     .and_then(|r| r.get(col))
                                                     .map(|v| v.to_string())
                                                     .unwrap_or_else(|| "".to_string());
+
+                                                let bg_color = if let Ok(num) = cell_value.parse::<u32>() {
+                                                    let (r, g, b) = number_to_rgb(num);
+                                                    format!("rgb({}, {}, {})", r, g, b)
+                                                } else {
+                                                    "white".to_string()
+                                                };
+
                                                 html! {
-                                                    <td>{ cell_value }</td>
+                                                    <td style={format!("background-color: {}", bg_color)}>
+                                                        { " " }
+                                                    </td>
                                                 }
                                             }) }
                                         </tr>
