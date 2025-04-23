@@ -91,19 +91,12 @@
           "valid": true
         },
         {
-          "dependents": [
-            {
-              "Cell": [
-                1,
-                2
-              ]
-            }
-          ],
-          "node_value": 34,
+          "dependents": [],
+          "node_value": 23,
           "function": {
             "Oper": [
               {
-                "Const": 34
+                "Const": 23
               },
               {
                 "Const": 0
@@ -116,19 +109,16 @@
         },
         {
           "dependents": [],
-          "node_value": 68,
+          "node_value": 46,
           "function": {
             "Oper": [
               {
-                "Const": 2
+                "Const": 46
               },
               {
-                "Cell": [
-                  1,
-                  1
-                ]
+                "Const": 0
               },
-              "Mul"
+              "Cons"
             ]
           },
           "visited": false,
@@ -1873,11 +1863,11 @@
           },
           {
             "dependents": [],
-            "node_value": 34,
+            "node_value": 23,
             "function": {
               "Oper": [
                 {
-                  "Const": 34
+                  "Const": 23
                 },
                 {
                   "Const": 0
