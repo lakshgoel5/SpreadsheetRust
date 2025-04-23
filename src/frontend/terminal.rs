@@ -92,7 +92,7 @@ impl Frontend {
     }
 
     pub fn run_frontend(&mut self) {
-        self.display(Status::Success, Duration::from_secs(0).as_secs_f64());
+        // self.display(Status::Success, Duration::from_secs(0).as_secs_f64());
         self.run_counter();
     }
 

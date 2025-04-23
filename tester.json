@@ -1,7 +1,7 @@
 {
   "grid": {
     "rows": 4,
-    "columns": 5,
+    "columns": 7,
     "cells_vec": [
       [
         {
@@ -38,46 +38,6 @@
           "function": null,
           "visited": false,
           "valid": true
-        }
-      ],
-      [
-        {
-          "dependents": [],
-          "node_value": 0,
-          "function": null,
-          "visited": false,
-          "valid": true
-        },
-        {
-          "dependents": [
-            {
-              "Cell": [
-                2,
-                2
-              ]
-            }
-          ],
-          "node_value": 2,
-          "function": {
-            "Oper": [
-              {
-                "Const": 2
-              },
-              {
-                "Const": 0
-              },
-              "Cons"
-            ]
-          },
-          "visited": false,
-          "valid": true
-        },
-        {
-          "dependents": [],
-          "node_value": 0,
-          "function": null,
-          "visited": false,
-          "valid": true
         },
         {
           "dependents": [],
@@ -103,14 +63,7 @@
           "valid": true
         },
         {
-          "dependents": [
-            {
-              "Cell": [
-                2,
-                2
-              ]
-            }
-          ],
+          "dependents": [],
           "node_value": 0,
           "function": null,
           "visited": false,
@@ -118,24 +71,22 @@
         },
         {
           "dependents": [],
-          "node_value": 2,
-          "function": {
-            "Oper": [
-              {
-                "Cell": [
-                  1,
-                  1
-                ]
-              },
-              {
-                "Cell": [
-                  3,
-                  1
-                ]
-              },
-              "Max"
-            ]
-          },
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
           "visited": false,
           "valid": true
         },
@@ -163,14 +114,72 @@
           "valid": true
         },
         {
-          "dependents": [
-            {
-              "Cell": [
-                2,
-                2
-              ]
-            }
-          ],
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
           "node_value": 0,
           "function": null,
           "visited": false,
@@ -199,5 +208,7 @@
         }
       ]
     ]
-  }
+  },
+  "undo_stack": [],
+  "redo_stack": []
 }

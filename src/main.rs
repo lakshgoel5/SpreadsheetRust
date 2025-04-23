@@ -4,6 +4,7 @@ mod backend;
 mod common;
 mod frontend;
 mod parser;
+use crate::backend::backend::*;
 #[allow(unused_imports)]
 use crate::frontend::web::start_web_app;
 #[allow(unused_imports)]
@@ -77,7 +78,13 @@ fn main() {
         return;
     }
     #[cfg(not(target_arch = "wasm32"))]
+    let start_time = std::time::Instant::now();
+    #[cfg(not(target_arch = "wasm32"))]
     let mut frontend = Frontend::init_frontend(rows, columns, &path);
+    #[cfg(not(target_arch = "wasm32"))]
+    let elapsed_time = start_time.elapsed();
+    #[cfg(not(target_arch = "wasm32"))]
+    frontend.display(spreadsheet_rust::backend::backend::Status::Success, elapsed_time.as_secs_f64());
     #[cfg(not(target_arch = "wasm32"))]
     frontend.run_frontend();
 
