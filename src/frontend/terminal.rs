@@ -184,9 +184,9 @@ impl Frontend {
             Status::WebStart => {
                 let path = "mysheet.json";
                 if let Err(e) = self.backend.serial(path) {
-                    eprintln!("❌ Failed to save backend: {}", e);
+                    eprintln!("Failed to save backend: {}", e);
                 } else {
-                    println!("✅ Backend state saved to '{}'", path);
+                    println!("Backend state saved to '{}'", path);
                 }
 
                 // Now launch the web app

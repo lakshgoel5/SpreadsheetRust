@@ -5,13 +5,17 @@ use crate::backend::backend::Valgrid;
 use serde_json;
 #[allow(unused_imports)]
 use std::fs;
+#[allow(unused_imports)]
 use std::ops::Range;
 use std::rc::Rc;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 use wasm_bindgen::closure::Closure;
+#[allow(unused_imports)]
 use gloo_net::http::Request;
+#[allow(unused_imports)]
 use wasm_bindgen_futures::spawn_local;
+#[allow(unused_imports)]
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
@@ -23,6 +27,7 @@ use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlCanvasElement;
+#[allow(unused_imports)]
 use web_sys::console::log_1;
 
 #[derive(Properties, PartialEq)]
@@ -328,7 +333,7 @@ pub fn app() -> Html {
         let formula_input = formula_input.clone();
         let backend = backend.clone();
         let table = table.clone(); // 🟢 <- add this
-        let status_message = status_message.clone(); // 👈 new
+        let status_message = status_message.clone();
 
         let is_formula_building = is_formula_building.clone();
         Callback::from(move |_| {
@@ -345,28 +350,27 @@ pub fn app() -> Html {
                 let status = backend_ref.process_command(100_usize, 100_usize, command.clone());
                 match status {
                     crate::backend::backend::Status::Success => {
-                        status_message.set(format!("✅ {} updated successfully", target_cell));
+                        status_message.set(format!("{} updated successfully", target_cell));
                         table.set(backend_ref.get_valgrid());
                     }
                     crate::backend::backend::Status::CircularDependency => {
                         status_message
-                            .set(format!("❌ Cycle detected in formula for {}", target_cell));
+                            .set(format!("Cycle detected in formula for {}", target_cell));
                     }
                     crate::backend::backend::Status::InvalidRange => {
-                        status_message.set(format!("⚠️ Invalid range in formula '{}'", formula));
+                        status_message.set(format!("Invalid range in formula '{}'", formula));
                     }
                     crate::backend::backend::Status::InvalidRowColumn => {
-                        status_message.set(format!("⚠️ Invalid cell reference in '{}'", formula));
+                        status_message.set(format!("Invalid cell reference in '{}'", formula));
                     }
                     crate::backend::backend::Status::UnrecognizedCmd => {
-                        status_message.set(("⚠️ Unrecognized command").to_string());
+                        status_message.set(("Unrecognized command").to_string());
                     }
                     _ => {
                         // Optional: silently ignore other statuses
-                        status_message.set("ℹ️ No update performed.".to_string());
+                        status_message.set("No update performed.".to_string());
                     }
                 }
-                // 🟢 now update the table right here:
                 // debug
                 // table.set(backend_ref.get_valgrid());
 
@@ -388,7 +392,6 @@ pub fn app() -> Html {
 
                 table.set(updated_table);
 
-                // ✅ reset formula input and mode
                 formula_input.set("".to_string());
                 is_formula_building.set(false);
             }
@@ -405,9 +408,9 @@ pub fn app() -> Html {
             let status = backend_ref.process_command(100, 100, "undo".to_string());
             if let crate::backend::backend::Status::Success = status {
                 table.set(backend_ref.get_valgrid());
-                status_message.set("↩️ Undo successful".to_string());
+                status_message.set("Undo successful".to_string());
             } else {
-                status_message.set("⚠️ Nothing to undo".to_string());
+                status_message.set("Nothing to undo".to_string());
             }
         })
     };
@@ -422,9 +425,9 @@ pub fn app() -> Html {
             let status = backend_ref.process_command(100, 100, "redo".to_string());
             if let crate::backend::backend::Status::Success = status {
                 table.set(backend_ref.get_valgrid());
-                status_message.set("↪️ Redo successful".to_string());
+                status_message.set("Redo successful".to_string());
             } else {
-                status_message.set("⚠️ Nothing to redo".to_string());
+                status_message.set("Nothing to redo".to_string());
             }
         })
     };
@@ -874,13 +877,13 @@ pub fn app() -> Html {
             { if let Some(label) = &selected_range_label {
                 html! {
                     <div style="margin: 8px 0; font-weight: bold;">
-                        { format!("📌 Selected Range: {}", label) }
+                        { format!("Selected Range: {}", label) }
                         <br/>
                         {
                             if let Some((sum, min, max, avg, stdev)) = &selected_range_stats {
                                 html! {
                                     <div style="font-weight: normal; margin-top: 4px;">
-                                        { format!("➕ Sum = {sum}, 🟢 Min = {min}, 🔴 Max = {max}, 📊 Avg = {:.2}, 🧮 Stdev = {:.2}", avg, stdev) }
+                                        { format!("Sum = {sum}, Min = {min}, Max = {max}, Avg = {:.2}, Stdev = {:.2}", avg, stdev) }
                                     </div>
                                 }
                             } else {
