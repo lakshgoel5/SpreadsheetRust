@@ -2,14 +2,28 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>Yew App</title>
+        <title>Spreadsheet App</title>
         <style>
             :root {
-                --primary-color: #4a90e2;
-                --background-color: #f5f5f5;
-                --text-color: #333;
-                --border-color: #e0e0e0;
-                --header-bg: #f8f9fa;
+                --primary-color: #1d4ed8;
+                --primary-hover: #1e40af;
+                --background-color: #1e293b;
+                --text-color: #e2e8f0;
+                --border-color: #334155;
+                --header-bg: #0f172a;
+                --selected-cell: #854d0e;
+                --selected-border: #d97706;
+                --range-selected: #0c4a6e;
+                --range-border: #0284c7;
+                --formula-bar-bg: #1e293b;
+                --error-color: #dc2626;
+                --success-color: #16a34a;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
             }
 
             body {
@@ -19,6 +33,7 @@
                 background-color: var(--background-color);
                 color: var(--text-color);
                 line-height: 1.6;
+                min-height: 100vh;
             }
 
             button {
@@ -26,26 +41,43 @@
                 color: white;
                 border: none;
                 padding: 8px 16px;
-                border-radius: 4px;
+                border-radius: 6px;
                 cursor: pointer;
-                transition: background-color 0.2s;
+                font-weight: 500;
+                font-size: 14px;
+                transition: all 0.2s ease;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             }
 
             button:hover {
-                background-color: #357abd;
+                background-color: var(--primary-hover);
+                transform: translateY(-1px);
+            }
+
+            button:active {
+                transform: translateY(0);
             }
 
             input, select {
-                padding: 8px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
+                padding: 8px 12px;
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
                 margin: 4px 0;
-                font-size: 16px;
+                font-size: 14px;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                background-color: white;
+            }
+
+            input:focus, select:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
             }
 
             h1, h2, h3 {
                 color: var(--text-color);
                 margin-bottom: 16px;
+                font-weight: 600;
             }
 
             .container {
@@ -54,52 +86,159 @@
                 padding: 20px;
             }
 
+            /* Formula Bar */
+            .formula-bar {
+                background: var(--formula-bar-bg);
+                padding: 12px;
+                border-radius: 8px;
+                margin-bottom: 16px;
+                border: 1px solid var(--border-color);
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+
+            .formula-bar input {
+                flex: 1;
+                min-width: 200px;
+                font-family: 'Monaco', 'Consolas', monospace;
+            }
+
+            /* Status Bar */
+            .status-bar {
+                background: var(--formula-bar-bg);
+                padding: 8px 16px;
+                border-radius: 6px;
+                margin: 16px 0;
+                border: 1px solid var(--border-color);
+            }
+
+            .status-bar p {
+                margin: 0;
+                font-size: 14px;
+            }
+
             /* Table Styles */
+            .table-container {
+                background: var(--background-color);
+                padding: 16px;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                margin: 16px 0;
+                overflow-x: auto;
+            }
+
             table {
                 border-collapse: collapse;
                 width: 100%;
-                background: white;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                border-radius: 4px;
-                overflow: hidden;
-                margin: 16px 0;
+                font-size: 14px;
+                color: var(--text-color);
+            }
+
+            th, td {
+                padding: 12px;
+                border: 1px solid var(--border-color);
+                text-align: center;
+                transition: all 0.2s ease;
+                background-color: var(--background-color);
+            }
+
+            th {
+                background-color: var(--header-bg);
+                color: #080a0c; /* Darker text color for headers */
+                font-weight: 600;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                border: 1px solid var(--border-color);
+                text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle text shadow for better readability */
             }
 
             td {
-                padding: 12px;
-                border: 1px solid var(--border-color);
-                text-align: right;
-                font-size: 14px;
-                transition: background-color 0.2s;
+                position: relative;
             }
 
+            td:hover::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255,255,255,0.05);
+                pointer-events: none;
+            }
+
+            /* Remove banded rows */
             tr:nth-child(even) {
-                background-color: #fafafa;
+                background-color: var(--background-color);
             }
 
-            tr:hover {
-                background-color: #f5f5f5;
-            }
-
-            /* Input controls styling */
-            label {
-                display: inline-block;
-                margin-right: 16px;
-                font-weight: 500;
-            }
-
-            input[type="number"] {
-                width: 80px;
-                text-align: center;
-            }
-
-            /* Container for input controls */
+            /* Controls Section */
             .controls {
                 background: var(--header-bg);
                 padding: 16px;
-                border-radius: 4px;
+                border-radius: 8px;
                 margin-bottom: 16px;
                 border: 1px solid var(--border-color);
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+            }
+
+            .controls > div {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            /* Chart Section */
+            canvas {
+                max-width: 100%;
+                height: auto;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+
+            /* Selected States */
+            .selected {
+                background-color: var(--selected-cell) !important;
+                border: 2px solid var(--selected-border);
+            }
+
+            .range-selected {
+                background-color: var(--range-selected);
+                border: 1px solid var(--range-border);
+            }
+
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                body {
+                    padding: 10px;
+                }
+
+                .controls {
+                    grid-template-columns: 1fr;
+                }
+
+                td, th {
+                    padding: 8px;
+                    font-size: 13px;
+                }
+            }
+
+            /* Additional Utility Classes */
+            .text-error {
+                color: var(--error-color);
+            }
+
+            .text-success {
+                color: var(--success-color);
+            }
+
+            .font-mono {
+                font-family: 'Monaco', 'Consolas', monospace;
             }
         </style>
     </head>

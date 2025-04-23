@@ -685,15 +685,17 @@ pub fn app() -> Html {
                 /* Specific styles for the complete table */
                 .complete-table {
                     border: none;
-                    table-layout: fixed;
+                    max-width: 100%;
+                    overflow-x: auto;
+                    display: block;
                 }
                 .complete-table td {
                     border: none;
                     padding: 0;
-                    width: 20px;
-                    height: 20px;
-                    min-width: 20px;
-                    min-height: 20px;
+                    width: 5px;
+                    height: 5px;
+                    min-width: 5px;
+                    min-height: 5px;
                 }
                 .complete-table tr:hover {
                     background: none;
