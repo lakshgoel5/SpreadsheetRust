@@ -610,7 +610,7 @@ pub fn app() -> Html {
         
                     web_sys::console::log_1(&format!("tag = {}, clicked_inside = {}", tag_name, clicked_inside).into());
         
-                    if (!clicked_inside && !*was_inside_table.borrow()) {
+                    if !clicked_inside && !*was_inside_table.borrow() {
                         selected_cell.set(None);
                         selected_range.set(None);
                         click_anchor.set(None);
@@ -765,10 +765,10 @@ pub fn app() -> Html {
                 .complete-table td {
                     border: none;
                     padding: 0;
-                    width: 5px;
-                    height: 5px;
-                    min-width: 5px;
-                    min-height: 5px;
+                    width: 10px;
+                    height: 10px;
+                    min-width: 10px;
+                    min-height: 10px;
                 }
                 .complete-table tr:hover {
                     background: none;
