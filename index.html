@@ -146,13 +146,12 @@
 
             th {
                 background-color: var(--header-bg);
-                color: #080a0c; /* Darker text color for headers */
+                color: var(--text-color);
                 font-weight: 600;
                 position: sticky;
                 top: 0;
                 z-index: 10;
                 border: 1px solid var(--border-color);
-                text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle text shadow for better readability */
             }
 
             td {
@@ -242,5 +241,29 @@
             }
         </style>
     </head>
-    <body></body>
+    <body>
+        <div class="controls">
+            <div>
+                <button id="theme-toggle" onclick="toggleTheme()">
+                    Toggle Theme
+                </button>
+            </div>
+        </div>
+
+        <script>
+            function toggleTheme() {
+                const body = document.body;
+                if (body.classList.contains('theme-light')) {
+                    body.classList.remove('theme-light');
+                    body.classList.add('theme-dark');
+                } else {
+                    body.classList.remove('theme-dark');
+                    body.classList.add('theme-light');
+                }
+            }
+
+            // Set initial theme
+            document.body.classList.add('theme-light');
+        </script>
+    </body>
 </html>

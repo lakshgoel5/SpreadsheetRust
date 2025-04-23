@@ -634,7 +634,20 @@ pub fn app() -> Html {
     }
     
     
-    
+    use_effect(move || {
+        if let Some(window) = web_sys::window() {
+            if let Some(document) = window.document() {
+                if let Some(body) = document.body() {
+                    let element: &web_sys::Element = body.dyn_ref().unwrap();
+                    if !element.class_name().contains("theme-") {
+                        element.set_class_name("theme-dark");
+                    }
+                }
+            }
+        }
+        || ()
+    });
+
     html! {
         <div>
             // <div>
@@ -643,6 +656,63 @@ pub fn app() -> Html {
             // </div>
             <style>
             {"
+                :root {
+                /* Light theme variables */
+                --primary-color-light: #1d4ed8;
+                --primary-hover-light: #1e40af;
+                --background-color-light: #ffffff;
+                --text-color-light: #333333;
+                --border-color-light: #dddddd;
+                --header-bg-light: #f5f5f5;
+                --selected-cell-light: #ffeeba;
+                --selected-border-light: #ff9900;
+                --range-selected-light: #d0f0fd;
+                --range-border-light: #00aaff;
+                --formula-bar-bg-light: #ffffff;
+
+                /* Dark theme variables */
+                --primary-color-dark: #1d4ed8;
+                --primary-hover-dark: #1e40af;
+                --background-color-dark: #1e293b;
+                --text-color-dark: #e2e8f0;
+                --border-color-dark: #334155;
+                --header-bg-dark: #0f172a;
+                --selected-cell-dark: #854d0e;
+                --selected-border-dark: #d97706;
+                --range-selected-dark: #0c4a6e;
+                --range-border-dark: #0284c7;
+                --formula-bar-bg-dark: #1e293b;
+            }
+
+            .theme-light {
+                --primary-color: var(--primary-color-light);
+                --primary-hover: var(--primary-hover-light);
+                --background-color: var(--background-color-light);
+                --text-color: var(--text-color-light);
+                --border-color: var(--border-color-light);
+                --header-bg: var(--header-bg-light);
+                --selected-cell: var(--selected-cell-light);
+                --selected-border: var(--selected-border-light);
+                --range-selected: var(--range-selected-light);
+                --range-border: var(--range-border-light);
+                --formula-bar-bg: var(--formula-bar-bg-light);
+            }
+
+            .theme-dark {
+                --primary-color: var(--primary-color-dark);
+                --primary-hover: var(--primary-hover-dark);
+                --background-color: var(--background-color-dark);
+                --text-color: var(--text-color-dark);
+                --border-color: var(--border-color-dark);
+                --header-bg: var(--header-bg-dark);
+                --selected-cell: var(--selected-cell-dark);
+                --selected-border: var(--selected-border-dark);
+                --range-selected: var(--range-selected-dark);
+                --range-border: var(--range-border-dark);
+                --formula-bar-bg: var(--formula-bar-bg-dark);
+            }
+
+            /* ...existing code... */
                 .selected {
                     background-color: #ffeeba;
                     border: 2px solid #ff9900;
@@ -751,6 +821,26 @@ pub fn app() -> Html {
                         <option value="bar">{"Bar"}</option>
                         <option value="line">{"Line"}</option>
                     </select>
+                </div>
+                <div>
+                    <button onclick={
+                        Callback::from(move |_| {
+                            if let Some(window) = web_sys::window() {
+                                if let Some(document) = window.document() {
+                                    if let Some(body) = document.body() {
+                                        let element: &web_sys::Element = body.dyn_ref().unwrap();
+                                        if element.class_name().contains("theme-light") {
+                                            element.set_class_name("theme-dark");
+                                        } else {
+                                            element.set_class_name("theme-light");
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    }>
+                        {"Toggle Theme"}
+                    </button>
                 </div>
                 <div>
                     <button onclick={
