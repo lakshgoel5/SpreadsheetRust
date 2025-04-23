@@ -5,13 +5,17 @@ use crate::backend::backend::Valgrid;
 use serde_json;
 #[allow(unused_imports)]
 use std::fs;
+#[allow(unused_imports)]
 use std::ops::Range;
 use std::rc::Rc;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 use wasm_bindgen::closure::Closure;
+#[allow(unused_imports)]
 use gloo_net::http::Request;
+#[allow(unused_imports)]
 use wasm_bindgen_futures::spawn_local;
+#[allow(unused_imports)]
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
@@ -23,6 +27,7 @@ use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlCanvasElement;
+#[allow(unused_imports)]
 use web_sys::console::log_1;
 
 #[derive(Properties, PartialEq)]
