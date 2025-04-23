@@ -73,7 +73,7 @@ impl Grid {
 pub struct Valgrid {
     pub rows: usize,
     pub columns: usize,
-    pub cells: Vec<Vec<isize>>,
+    pub cells: Vec<Vec<Option<isize>>>,
 }
 
 ///Struct that contains data structure as well as methods
@@ -108,7 +108,11 @@ impl Backend {
                 .grid
                 .cells_vec
                 .iter()
-                .map(|row| row.iter().map(|cell| cell.node_value).collect())
+                .map(|row| {
+                    row.iter()
+                        .map(|cell| if cell.valid { Some(cell.node_value) } else { None })
+                        .collect()
+                })
                 .collect(),
         }
     }

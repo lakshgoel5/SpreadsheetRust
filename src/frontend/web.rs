@@ -281,7 +281,7 @@ pub fn app() -> Html {
     
         for r in start_row..=end_row {
             for c in start_col..=end_col {
-                if let Some(val) = table.cells.get(r).and_then(|row| row.get(c)) {
+                if let Some(Some(val)) = table.cells.get(r).and_then(|row| row.get(c)) {
                     values.push(*val);
                 }
             }
@@ -289,8 +289,8 @@ pub fn app() -> Html {
     
         if !values.is_empty() {
             let sum: isize = values.iter().sum();
-            let min = *values.iter().min().unwrap_or(&0);
-            let max = *values.iter().max().unwrap_or(&0);
+            let min = *values.iter().min().unwrap();
+            let max = *values.iter().max().unwrap();
             let avg = sum as f64 / values.len() as f64;
             let stdev = {
                 let mean = avg;
@@ -380,7 +380,7 @@ pub fn app() -> Html {
                 {
                     let val = updated_table.cells[row_idx][col_idx];
                     web_sys::console::log_1(
-                        &format!("DEBUG: cell[{}, {}] = {}", row_idx, col_idx, val).into(),
+                        &format!("DEBUG: cell[{}, {}] = {:?}", row_idx, col_idx, val).into(),
                     );
                 } else {
                     web_sys::console::log_1(&"DEBUG: selected cell out of bounds".into());
@@ -536,7 +536,7 @@ pub fn app() -> Html {
                 .enumerate()
                 .take(20)
                 .map(|(i, row)| {
-                    let val = row.get(col).copied().unwrap_or(0) as f32;
+                    let val = row.get(col).and_then(|v| *v).unwrap_or(0) as f32;
                     (i as f32, val, None) // Ensure positive values
                 })
                 .collect();
@@ -555,7 +555,13 @@ pub fn app() -> Html {
     let on_chart_column_select = {
         let selected_column_for_chart = selected_column_for_chart.clone();
         Callback::from(move |col: usize| {
-            selected_column_for_chart.set(Some(col));
+            selected_column_for_chart.set(
+                if Some(col) == *selected_column_for_chart {
+                    None // Deselect if same column is clicked
+                } else {
+                    Some(col) // Select if new column is clicked
+                }
+            );
         })
     };
 
@@ -827,7 +833,7 @@ pub fn app() -> Html {
                                         let cell_value = table.cells
                                             .get(row)
                                             .and_then(|r| r.get(col))
-                                            .map(|v| v.to_string())
+                                            .map(|v| v.map_or("ERR".to_string(), |n| n.to_string()))
                                             .unwrap_or_else(|| "ERR".to_string());
 
                                         let is_selected = selected_cell.as_ref()
@@ -887,7 +893,7 @@ pub fn app() -> Html {
                                                 let cell_value = table.cells
                                                     .get(row)
                                                     .and_then(|r| r.get(col))
-                                                    .map(|v| v.to_string())
+                                                    .map(|v| v.map_or("ERR".to_string(), |n| n.to_string()))
                                                     .unwrap_or_else(|| "".to_string());
 
                                                 let bg_color = if let Ok(num) = cell_value.parse::<u32>() {
