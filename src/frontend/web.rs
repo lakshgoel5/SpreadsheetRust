@@ -610,7 +610,7 @@ pub fn app() -> Html {
         
                     web_sys::console::log_1(&format!("tag = {}, clicked_inside = {}", tag_name, clicked_inside).into());
         
-                    if !clicked_inside && !*was_inside_table.borrow() {
+                    if (!clicked_inside && !*was_inside_table.borrow()) {
                         selected_cell.set(None);
                         selected_range.set(None);
                         click_anchor.set(None);
@@ -818,8 +818,8 @@ pub fn app() -> Html {
                     {" to "}
                     <input type="number" value={(*cols2).to_string()} oninput={on_cols2_change} min="1" max="100"/>
                 </div>
-                <div>
-                    <label>{"Chart Type: "}</label>
+                <div style="margin-left: 20px;">
+                    <label>{"Chart: "}</label>
                     <select value={(*chart_type).clone()} onchange={on_chart_type_change}>
                         <option value="bar">{"Bar"}</option>
                         <option value="line">{"Line"}</option>
