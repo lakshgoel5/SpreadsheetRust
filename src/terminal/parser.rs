@@ -47,7 +47,6 @@ pub fn validate(
     }
 
     let Some((cell, exp)) = cmd.split_once('=') else {
-        eprintln!("Could not find a valid exp being assigned to a valid cell");
         return None;
     };
 
@@ -93,7 +92,6 @@ pub fn validate(
                         ));
                     }
                     _ => {
-                        eprintln!("Invalid operation");
                         return None;
                     } //This case is not possible, just for compilation
                 }
@@ -101,7 +99,6 @@ pub fn validate(
         }
 
         let val = is_cell_or_const(&val, rows, columns)?; //for the moment, assuming the RHS to be a constant or cell
-        // println!("{} {}", cmd, cmd); //---------------debugger
         return Some((
             cell,
             Some(Value::Oper(
@@ -135,7 +132,6 @@ pub fn validate(
     let end = is_cell(&end, rows, columns)?;
     if let (Value::Cell(r, c), Value::Cell(r2, c2)) = (&start, &end) {
         if r > r2 || c > c2 {
-            eprintln!("Invalid range, start is greater than end");
             return None;
         }
     } else {
@@ -163,7 +159,6 @@ pub fn validate(
             Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
         )),
         _ => {
-            eprintln!("Invalid operation");
             Some((cell, None))
         }
     }

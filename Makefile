@@ -2,6 +2,7 @@
 
 # Name of the binary (defined in Cargo.toml)
 BIN_NAME=spreadsheet
+EXT1=extension
 
 # Target path for the release binary
 TARGET_PATH=target/release/$(BIN_NAME)
