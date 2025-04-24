@@ -35,7 +35,7 @@ pub struct Range {
 // }
 
 // parser
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Operation {
     Cons,
     Add,

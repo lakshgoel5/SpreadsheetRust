@@ -82,7 +82,7 @@ impl Frontend {
     }
 
     pub fn init_frontend(rows: usize, columns: usize, path: &str) -> Self {
-        if path == "" {
+        if path.is_empty() {
             let backend = Backend::init_backend(rows, columns);
             Frontend {
                 start: Value::Cell(1, 1),

@@ -131,8 +131,8 @@ pub fn process_command(
     match parser::validate(command, &r, &c) {
         Some((Some(Value::Cell(col, row)), Some(Value::Oper(v1, v2, op)))) => {
             // Handle special operations
-            match op {
-                Operation::Scrollto => {
+            if (op == Operation::Scrollto) {
+                {
                     *start_x = row as usize;
                     *start_y = col as usize;
                     if !(*is_disabled) {
@@ -140,7 +140,7 @@ pub fn process_command(
                     }
                     return 1;
                 }
-                _ => {}
+                
             }
 
             let target_cell = Coordinates { row, col };
@@ -231,7 +231,7 @@ pub fn process_first(x: usize, command: &[String], _is_disabled: &mut bool) -> b
     let r = command[1].parse::<usize>().unwrap();
     let c = command[2].parse::<usize>().unwrap();
 
-    if r < 1 || r > MAX_ROW || c < 1 || c > MAX_COLUMN {
+    if !(1..=MAX_ROW).contains(&r) || !(1..=MAX_COLUMN).contains(&c) {
         return false;
     }
     true

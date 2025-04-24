@@ -268,8 +268,8 @@ impl Backend {
             }
         }
     }
-    ///Checks for cycles and accordingly updates dependencies
 
+    ///Checks for cycles and accordingly updates dependencies
     fn execute(&mut self, cell: Value, func: Option<Value>) -> Status {
         //I want that if func has first and second box as value::const type, then just update graph and evaluate expression by sending Operation as well
         if let Some(Value::Oper(Some(box1), Some(box2), _oper)) = func.clone() {
@@ -309,7 +309,7 @@ impl Backend {
                 Operation::Web(path) => Status::Web(path),
                 Operation::WebStart => Status::WebStart,
                 Operation::Save(path) => {
-                    if let Err(_) = self.serial(&path) {
+                    if self.serial(&path).is_err() {
                         return Status::UnrecognizedCmd;
                     }
                     Status::Success
