@@ -1,4 +1,4 @@
-use spreadsheet_rust::backend::graph::Node;
+use project::extension::backend::graph::Node;
 
 #[test]
 fn test_cell_creation() {

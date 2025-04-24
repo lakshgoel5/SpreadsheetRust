@@ -24,7 +24,7 @@ pub struct Grid {
     cells_vec: Vec<Vec<Node>>,
 }
 ///Data structure to represent status of command
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Status {
     Success,
     InvalidRange,

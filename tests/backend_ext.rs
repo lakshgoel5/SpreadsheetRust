@@ -1,6 +1,5 @@
-use spreadsheet_rust::extension::backend::backend;
-use spreadsheet_rust::extension::backend::backend::*;
-use spreadsheet_rust::extension::common::{Operation, Value};
+use project::extension::backend::backend::*;
+use project::extension::common::{Operation, Value};
 use std::fs;
 
 #[test]
@@ -14,7 +13,7 @@ fn test_init_backend() {
 
 #[test]
 fn test_grid_new() {
-    let grid = backend::Grid::new(10, 15);
+    let grid = Grid::new(10, 15);
     assert_eq!(grid.get_row_size(), 10);
     assert_eq!(grid.get_column_size(), 15);
 }

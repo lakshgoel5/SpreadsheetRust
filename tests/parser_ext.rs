@@ -1,5 +1,5 @@
-use spreadsheet_rust::extension::common::{Operation, Value};
-use spreadsheet_rust::extension::parser::parser;
+use project::extension::common::{Operation, Value};
+use project::extension::parser::parser;
 
 #[test]
 fn test_validate_cell_assignment() {
