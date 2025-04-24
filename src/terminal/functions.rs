@@ -1,78 +1,112 @@
-// will compute all range based functions - utility for getting_things_updated
-// basic structure - will
+/// Module for spreadsheet functions implementation.
+///
+/// Provides implementations of various cell operations including:
+/// - Range-based operations (SUM, MIN, MAX, AVG, STDEV)
+/// - Arithmetic operations (Add, Sub, Mul, Div)
+/// - Special operations like Sleep and Constant assignment
+/// 
+/// These functions are the core computational elements of the spreadsheet.
 use crate::terminal::graph::Node;
 use crate::terminal::types::Coordinates;
 use std::cmp::{max, min};
-// Range based : MAX MIN AVG SUM
+
+/// Represents a range of cells in the spreadsheet.
+///
+/// Used for range-based functions like SUM, MIN, MAX, AVG, and STDEV
+/// to specify the corners of a rectangular selection of cells.
 pub struct Range {
+    /// The starting cell (top-left corner) of the range
     pub start: Coordinates,
+    
+    /// The ending cell (bottom-right corner) of the range
     pub end: Coordinates,
 }
 
-// check ERR flag
-
-// operand : operand type  --> use pattern matching here
-// pub enum Operand {
-//     Cell(Coordinates),
-//     Const(i32),
-// }
-
-// // Arithmetic operations : ADD SUB MUL DIV (b/w two operands - cell/value)
-// pub struct ArithmeticOp {
-//     pub val1: Operand,
-//     pub val2: Operand,
-// }
-
-// pub enum FunctionType {
-//     Range(Range),  // range based functions
-//     Arithmetic(ArithmeticOp), // b/w two cells/ints int/cell
-//     ConstantAssignment(Operand), // cell/value
-//     Sleep(Operand), // sleep : cell/value
-// }
-// pub struct Function {
-//     pub function: Operation,
-//     pub function_type: FunctionType,
-// }
-
-// parser
+/// Supported operations in the spreadsheet.
+///
+/// This enum defines all possible operations that can be performed
+/// on cells in the spreadsheet, including both arithmetic operations
+/// and range-based functions.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Operation {
+    /// Assign a constant value to a cell
     Cons,
+    
+    /// Add two values
     Add,
+    
+    /// Subtract one value from another
     Sub,
+    
+    /// Multiply two values
     Mul,
+    
+    /// Divide one value by another
     Div,
+    
+    /// Find the minimum value in a range
     Min,
+    
+    /// Find the maximum value in a range
     Max,
+    
+    /// Calculate the average of values in a range
     Avg,
+    
+    /// Calculate the sum of values in a range
     Sum,
+    
+    /// Calculate the standard deviation of values in a range
     Std,
+    
+    /// Sleep operation (pause execution)
     Slp,
+    
+    /// Enable output to the terminal
     EnableOutput,
+    
+    /// Disable output to the terminal
     DisableOutput,
+    
+    /// Scroll to a specific cell
     Scrollto,
 }
+
+/// Represents a value in the spreadsheet expression system.
+///
+/// Values can be cell references, constants, or operations involving
+/// other values.
 #[derive(Debug)]
 pub enum Value {
+    /// A cell reference with row and column indices
     Cell(i32, i32),
+    
+    /// A constant integer value
     Const(isize),
-    Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
+    
+    /// An operation involving two values and an operator
+    Oper(Box<Value>, Box<Value>, Operation),
 }
-// parser ends
-// handle sleep individually
 
-// range based functions
+/// Computes the maximum value in a specified range of cells.
+///
+/// # Arguments
+///
+/// * `value1` - The starting cell (top-left corner) of the range.
+/// * `value2` - The ending cell (bottom-right corner) of the range.
+/// * `grid` - The 2D array representing the spreadsheet.
+///
+/// # Returns
+///
+/// * `Some(i32)` - The maximum value in the range if all cells are valid.
+/// * `None` - If any cell in the range is invalid.
 pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]) -> Option<i32> {
-    // Both are cell references
     let mut max_val = i32::MIN;
-    // bool flag = false;
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
             if grid[i as usize][j as usize].valid {
                 max_val = max(max_val, grid[i as usize][j as usize].node_value);
             } else {
-                // debug // handle ERR cases after some more clarity
-                // flag = true;
                 return None;
             }
         }
@@ -80,21 +114,29 @@ pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]
     Some(max_val)
 }
 
+/// Computes the minimum value in a specified range of cells.
+///
+/// # Arguments
+///
+/// * `value1` - The starting cell (top-left corner) of the range.
+/// * `value2` - The ending cell (bottom-right corner) of the range.
+/// * `grid` - The 2D array representing the spreadsheet.
+///
+/// # Returns
+///
+/// * `Some(i32)` - The minimum value in the range if all cells are valid.
+/// * `None` - If any cell in the range is invalid.
 pub fn min_function(
     value1: Coordinates,
     value2: Coordinates,
     grid: &[Vec<Node>],
 ) -> Option<i32> {
-    // Both are cell references
     let mut min_val = i32::MAX;
-    // bool flag = false;
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
             if grid[i as usize][j as usize].valid {
                 min_val = min(min_val, grid[i as usize][j as usize].node_value);
             } else {
-                // debug // handle ERR cases after some more clarity
-                // flag = true;
                 return None;
             }
         }
@@ -102,6 +144,18 @@ pub fn min_function(
     Some(min_val)
 }
 
+/// Computes the average value in a specified range of cells.
+///
+/// # Arguments
+///
+/// * `value1` - The starting cell (top-left corner) of the range.
+/// * `value2` - The ending cell (bottom-right corner) of the range.
+/// * `grid` - The 2D array representing the spreadsheet.
+///
+/// # Returns
+///
+/// * `Some(i32)` - The average value in the range if all cells are valid.
+/// * `None` - If any cell in the range is invalid.
 pub fn avg_function(
     value1: Coordinates,
     value2: Coordinates,
@@ -122,6 +176,18 @@ pub fn avg_function(
     if count == 0 { None } else { Some(sum / count) }
 }
 
+/// Computes the sum of values in a specified range of cells.
+///
+/// # Arguments
+///
+/// * `value1` - The starting cell (top-left corner) of the range.
+/// * `value2` - The ending cell (bottom-right corner) of the range.
+/// * `grid` - The 2D array representing the spreadsheet.
+///
+/// # Returns
+///
+/// * `Some(i32)` - The sum of values in the range if all cells are valid.
+/// * `None` - If any cell in the range is invalid.
 pub fn sum_function(
     value1: Coordinates,
     value2: Coordinates,
@@ -140,6 +206,18 @@ pub fn sum_function(
     Some(sum)
 }
 
+/// Computes the standard deviation of values in a specified range of cells.
+///
+/// # Arguments
+///
+/// * `value1` - The starting cell (top-left corner) of the range.
+/// * `value2` - The ending cell (bottom-right corner) of the range.
+/// * `grid` - The 2D array representing the spreadsheet.
+///
+/// # Returns
+///
+/// * `Some(i32)` - The standard deviation of values in the range if all cells are valid.
+/// * `None` - If any cell in the range is invalid.
 pub fn stdev_function(
     value1: Coordinates,
     value2: Coordinates,
@@ -172,7 +250,6 @@ pub fn stdev_function(
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
             let node = &grid[i as usize][j as usize];
-            //
             if !node.valid {
                 return None; // In C, this sets the target to invalid
             }
@@ -185,11 +262,16 @@ pub fn stdev_function(
     Some(result)
 }
 
-// pub fn sleep_function(op1: Operand, op2: Operand, grid: &mut Vec<Vec<Node>>) -> Option<i32> {
-
-// }
-
-// arith operations - tbd
+/// Checks if the given operation is an arithmetic operation.
+///
+/// # Arguments
+///
+/// * `op` - The operation to check.
+///
+/// # Returns
+///
+/// * `true` - If the operation is Add, Sub, Mul, or Div.
+/// * `false` - Otherwise.
 pub fn is_arithmetic(op: Operation) -> bool {
     matches!(op, Operation::Add | Operation::Sub | Operation::Mul | Operation::Div)
 }

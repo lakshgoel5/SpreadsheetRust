@@ -1,5 +1,9 @@
-// getting_things_updated function here
-// all operations to be done here
+/// Terminal backend module for the spreadsheet application.
+///
+/// This module provides core functionality for managing the spreadsheet grid,
+/// handling dependencies between cells, and evaluating cell expressions.
+/// It includes functions for updating cell values, checking for cycles,
+/// and performing topological sorts on the dependency graph.
 use crate::terminal::functions::Operation;
 use crate::terminal::functions::avg_function;
 use crate::terminal::functions::max_function;
@@ -11,6 +15,16 @@ use crate::terminal::types::Coordinates;
 
 ///// debug -> in add_and _break check which ops you are taking  ---> done
 
+/// Creates a new grid with the specified number of rows and columns.
+///
+/// # Arguments
+///
+/// * `r` - The number of rows in the grid
+/// * `c` - The number of columns in the grid
+///
+/// # Returns
+///
+/// A 2D vector of `Node`s, initialized with default values
 pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
     (0..r + 1)
         .map(|i| {
@@ -37,6 +51,17 @@ pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
 // flags : for these two functions
 // true: when working with new dependencies : value1 and value2
 // false: when working with old dependencies : old_value1 and old_value2
+
+/// Adds edges to the dependency graph based on the specified operation.
+///
+/// # Arguments
+///
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+/// * `value1` - The first value involved in the operation
+/// * `value2` - The second value involved in the operation
+/// * `target` - The target cell where the operation result will be stored
+/// * `op` - The operation to be performed
+/// * `flag` - A flag indicating whether to work with new dependencies (true) or old dependencies (false)
 pub fn add_edges(
     graph: &mut [Vec<Node>],
     value1: Coordinates,
@@ -124,6 +149,16 @@ pub fn add_edges(
 // debug -- see the old dependecies where they are stored in the graph when fully made
 // wrt new node -- inward
 
+/// Breaks edges in the dependency graph based on the specified operation.
+///
+/// # Arguments
+///
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+/// * `value1` - The first value involved in the operation
+/// * `value2` - The second value involved in the operation
+/// * `target` - The target cell where the operation result will be stored
+/// * `op` - The operation to be performed
+/// * `flag` - A flag indicating whether to work with new dependencies (true) or old dependencies (false)
 pub fn break_edges(
     graph: &mut [Vec<Node>],
     value1: Coordinates,
@@ -211,7 +246,19 @@ pub fn break_edges(
     }
 }
 
-// returns status to process_command
+/// Updates the target cell and its dependencies in the graph.
+///
+/// # Arguments
+///
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+/// * `target` - The target cell to be updated
+/// * `value1` - The first value involved in the operation
+/// * `value2` - The second value involved in the operation
+/// * `op` - The operation to be performed
+///
+/// # Returns
+///
+/// An integer status code indicating success (1) or failure (5)
 pub fn getting_things_updated(
     graph: &mut Vec<Vec<Node>>,
     target: Coordinates,
@@ -250,6 +297,12 @@ pub fn getting_things_updated(
     1 // success
 }
 
+/// Updates the topological order of the graph starting from the specified cell.
+///
+/// # Arguments
+///
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+/// * `start` - The starting cell for the topological sort
 pub fn update_topo(graph: &mut Vec<Vec<Node>>, start: Coordinates) {
     let mut stack = Vec::new();
 
@@ -263,6 +316,13 @@ pub fn update_topo(graph: &mut Vec<Vec<Node>>, start: Coordinates) {
     reset_visited(graph, start);
 }
 
+/// Performs a topological sort on the graph starting from the specified cell.
+///
+/// # Arguments
+///
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+/// * `node` - The starting cell for the topological sort
+/// * `stack` - A stack to store the sorted cells
 pub fn topological_sort(
     graph: &mut Vec<Vec<Node>>,
     node: Coordinates,
@@ -286,7 +346,12 @@ pub fn topological_sort(
     stack.push(node);
 }
 
-// function that sets node value according to its operation
+/// Evaluates the value of a node based on its operation and dependencies.
+///
+/// # Arguments
+///
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+/// * `coord` - The coordinates of the node to be evaluated
 pub fn evaluate_node(graph: &mut [Vec<Node>], coord: Coordinates) {
     let row = coord.row as usize;
     let col = coord.col as usize;
@@ -538,6 +603,16 @@ pub fn evaluate_node(graph: &mut [Vec<Node>], coord: Coordinates) {
     }
 }
 
+/// Checks for cycles in the dependency graph starting from the target cell.
+///
+/// # Arguments
+///
+/// * `target` - The target cell to check for cycles
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+///
+/// # Returns
+///
+/// A boolean indicating whether a cycle was detected (true) or not (false)
 pub fn has_cycle(target: Coordinates, graph: &mut [Vec<Node>]) -> bool {
     // check for cycle using iterative DFS
     // use stack
@@ -570,6 +645,13 @@ pub fn has_cycle(target: Coordinates, graph: &mut [Vec<Node>]) -> bool {
 }
 
 // redo dfs to reset flags
+
+/// Resets the visited flags in the graph starting from the specified cell.
+///
+/// # Arguments
+///
+/// * `graph` - The dependency graph represented as a 2D vector of `Node`s
+/// * `start` - The starting cell for resetting visited flags
 fn reset_visited(graph: &mut [Vec<Node>], start: Coordinates) {
     let mut stack = vec![start];
     graph[start.row as usize][start.col as usize].visited = false;

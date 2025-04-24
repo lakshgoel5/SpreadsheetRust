@@ -1,27 +1,32 @@
-// use crate::backend::generate_grid;
+/// Spreadsheet module for the terminal-based interface.
+///
+/// This module provides functionality for rendering the spreadsheet grid in 
+/// the terminal, handling user commands, and displaying the current state of 
+/// cells to the user. It acts as the frontend for the terminal-based version 
+/// of the spreadsheet application.
 use crate::terminal::backend::getting_things_updated;
 use crate::terminal::functions::Value;
 use crate::terminal::graph::Node;
 use crate::terminal::parser;
-// use crate::terminal::graph;
 use crate::terminal::functions::Operation;
 use crate::terminal::types::Coordinates;
 use std::cmp;
 use std::io;
 use std::io::Write;
+
+/// Constants defining the maximum dimensions of the spreadsheet
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
 
-// static mut IS_DISABLED: bool = false;
-// debug // change this
-// static mut GRID: Option<Vec<Vec<i32>>> = None;
-//
-// fn generate_grid(r: usize, c: usize) {
-//     unsafe {
-//         GRID = Some(vec![vec![0; c + 1]; r + 1]);
-//     }
-// }
-
+/// Translates a column number to its Excel-style letter representation (A, B, C, ..., AA, AB, etc.).
+///
+/// # Arguments
+///
+/// * `y` - The 1-based column index to convert
+///
+/// # Returns
+///
+/// A string containing the column letter(s)
 fn column_decoder(mut j: usize) -> String {
     let mut cc = Vec::new();
     while j > 0 {
@@ -33,7 +38,15 @@ fn column_decoder(mut j: usize) -> String {
     cc.into_iter().collect()
 }
 
-// , graph: &Graph
+/// Prints the current state of the spreadsheet grid to the terminal.
+///
+/// # Arguments
+///
+/// * `start_x` - The starting row index for display
+/// * `start_y` - The starting column index for display 
+/// * `r` - The number of rows in the grid
+/// * `c` - The number of columns in the grid
+/// * `grid` - The spreadsheet grid containing the cells
 pub fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid: &mut [Vec<Node>]) {
     let max_x = cmp::min(9 + start_x, r);
     let max_y = cmp::min(9 + start_y, c);
@@ -56,6 +69,12 @@ pub fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid: &mut
     }
 }
 
+/// Displays a status message with execution time.
+///
+/// # Arguments
+///
+/// * `status` - The status code of the previous operation
+/// * `time` - The execution time of the operation in seconds
 pub fn display_status(x: i32, time_taken: f64) {
     print!("[{:.2}] ", time_taken);
     match x {
@@ -73,8 +92,21 @@ fn is_number(str: &str) -> bool {
     !str.is_empty() && str.chars().all(|c| c.is_ascii_digit())
 }
 
-// , graph: &Graph // debug
-// this processes commands and prints the grid
+/// Processes a single command and updates the spreadsheet state accordingly.
+///
+/// # Arguments
+///
+/// * `cmd` - The command string to process
+/// * `start_x` - The current row index for display (may be updated)
+/// * `start_y` - The current column index for display (may be updated)
+/// * `r` - The number of rows in the grid
+/// * `c` - The number of columns in the grid
+/// * `is_disabled` - Whether output is disabled
+/// * `grid` - The spreadsheet grid to update
+///
+/// # Returns
+///
+/// An integer status code indicating success or specific failure modes
 #[allow(unreachable_code)]
 pub fn process_command(
     command: &str,
@@ -220,6 +252,17 @@ pub fn process_command(
     1
 }
 
+/// Processes the command line arguments provided to the application.
+///
+/// # Arguments
+///
+/// * `argc` - The number of arguments
+/// * `args` - The vector of argument strings
+/// * `is_disabled` - Whether the output should be disabled
+///
+/// # Returns
+///
+/// `true` if arguments are valid and processing should continue, `false` otherwise
 pub fn process_first(x: usize, command: &[String], _is_disabled: &mut bool) -> bool {
     if x != 3 {
         return false;

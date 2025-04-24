@@ -1,5 +1,30 @@
-use crate::terminal::functions::Operation;
-use crate::terminal::functions::Value;
+/// Parser module for the terminal spreadsheet application.
+///
+/// Provides functionality to parse and validate user input commands,
+/// converting them into operations that can be executed by the spreadsheet.
+/// Supports parsing of cell references, ranges, constants, and various operations.
+use crate::terminal::functions::{Operation, Value};
+
+/// Validates and parses a command string into spreadsheet operations.
+///
+/// # Arguments
+///
+/// * `cmd` - The command string to parse
+/// * `rows` - The maximum row index (for validation)
+/// * `columns` - The maximum column index (for validation)
+///
+/// # Returns
+///
+/// * `Some((cell, operation))` - If the command is valid, returns the target cell and operation
+/// * `None` - If the command is invalid or unrecognized
+///
+/// # Examples
+///
+/// Commands can be:
+/// - Cell assignments: "A1=5"
+/// - Operations: "B2=A1+10"
+/// - Range functions: "C3=SUM(A1:B5)"
+/// - Special commands: "enable_output", "scroll_to B5", etc.
 pub fn validate(
     cmd: &str,
     rows: &usize,
@@ -162,6 +187,18 @@ pub fn validate(
     }
 }
 
+/// Parses a cell reference in the format "A1", "B2", etc.
+///
+/// # Arguments
+///
+/// * `exp` - The string containing the cell reference
+/// * `rows` - The maximum row index (for validation)
+/// * `columns` - The maximum column index (for validation)
+///
+/// # Returns
+///
+/// * `Some(Value::Cell(row, col))` - If the expression is a valid cell reference
+/// * `None` - If the expression is not a valid cell reference
 pub fn is_cell(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     let mut col = 0;
     let mut row = 0;
@@ -193,6 +230,16 @@ pub fn is_cell(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     Some(Value::Cell(col as i32, row as i32))
 }
 
+/// Parses a constant integer value.
+///
+/// # Arguments
+///
+/// * `exp` - The string containing the integer constant
+///
+/// # Returns
+///
+/// * `Some(Value::Const(value))` - If the expression is a valid integer
+/// * `None` - If the expression is not a valid integer
 pub fn is_const(exp: &str) -> Option<Value> {
     // let mut ans = 0;
     // for c in exp.chars() {
@@ -209,6 +256,18 @@ pub fn is_const(exp: &str) -> Option<Value> {
     }
 }
 
+/// Parses an expression that could be either a cell reference or a constant.
+///
+/// # Arguments
+///
+/// * `exp` - The string to parse
+/// * `rows` - The maximum row index (for cell validation)
+/// * `columns` - The maximum column index (for cell validation)
+///
+/// # Returns
+///
+/// * `Some(Value)` - If the expression is either a valid cell or constant
+/// * `None` - If the expression is neither a valid cell nor constant
 pub fn is_cell_or_const(exp: &str, rows: &usize, columns: &usize) -> Option<Value> {
     if let Some(constant) = is_const(exp) {
         Some(constant)
