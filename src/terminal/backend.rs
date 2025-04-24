@@ -38,7 +38,7 @@ pub fn generate_grid(r: usize, c: usize) -> Vec<Vec<Node>> {
 // true: when working with new dependencies : value1 and value2
 // false: when working with old dependencies : old_value1 and old_value2
 pub fn add_edges(
-    graph: &mut Vec<Vec<Node>>,
+    graph: &mut [Vec<Node>],
     value1: Coordinates,
     value2: Coordinates,
     target: Coordinates,
@@ -125,7 +125,7 @@ pub fn add_edges(
 // wrt new node -- inward
 
 pub fn break_edges(
-    graph: &mut Vec<Vec<Node>>,
+    graph: &mut [Vec<Node>],
     value1: Coordinates,
     value2: Coordinates,
     target: Coordinates,
@@ -507,18 +507,13 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
         Operation::Slp => {
             // Handle sleep operation
             // std::thread::sleep(std::time::Duration::from_secs(1));
-            // V
-            if node.value1.col == -1 && node.value2.col == -1 {
+            // V or C
+            if (node.value1.col == -1 && node.value2.col == -1) || value1_valid {
                 node.valid = true;
                 node.node_value = value1_node_value;
                 std::thread::sleep(std::time::Duration::from_secs(value1_node_value as u64));
             }
-            // C
-            else if value1_valid {
-                node.valid = true;
-                node.node_value = value1_node_value;
-                std::thread::sleep(std::time::Duration::from_secs(value1_node_value as u64));
-            } else {
+             else {
                 node.valid = false;
             }
         }
@@ -532,14 +527,12 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
                 node.node_value = value1_node_value;
             }
             // C
-            else {
-                if value1_valid {
+            else if value1_valid {
                     node.valid = true;
                     node.node_value = value1_node_value;
                 } else {
                     node.valid = false;
                 }
-            }
         }
         _ => {}
     }
@@ -577,7 +570,7 @@ pub fn has_cycle(target: Coordinates, graph: &mut Vec<Vec<Node>>) -> bool {
 }
 
 // redo dfs to reset flags
-fn reset_visited(graph: &mut Vec<Vec<Node>>, start: Coordinates) {
+fn reset_visited(graph: &mut [Vec<Node>], start: Coordinates) {
     let mut stack = vec![start];
     graph[start.row as usize][start.col as usize].visited = false;
 
