@@ -1,6 +1,8 @@
-use crate::backend::backend::Backend;
+use crate::extension::backend::backend::Backend;
 #[allow(unused_imports)]
-use crate::backend::backend::Valgrid;
+use crate::extension::backend::backend::Valgrid;
+#[allow(unused_imports)]
+use gloo_net::http::Request;
 #[allow(unused_imports)]
 use serde_json;
 #[allow(unused_imports)]
@@ -8,13 +10,11 @@ use std::fs;
 #[allow(unused_imports)]
 use std::ops::Range;
 use std::rc::Rc;
-use web_sys::HtmlSelectElement;
-use yew::prelude::*;
 use wasm_bindgen::closure::Closure;
 #[allow(unused_imports)]
-use gloo_net::http::Request;
-#[allow(unused_imports)]
 use wasm_bindgen_futures::spawn_local;
+use web_sys::HtmlSelectElement;
+use yew::prelude::*;
 #[allow(unused_imports)]
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
@@ -151,9 +151,9 @@ fn number_to_column_label(num: usize) -> String {
 }
 
 fn number_to_rgb(n: u32) -> (u8, u8, u8) {
-    let r = (n >> 16) & 0xFF; 
-    let g = (n >> 8) & 0xFF;  
-    let b = n & 0xFF;         
+    let r = (n >> 16) & 0xFF;
+    let g = (n >> 8) & 0xFF;
+    let b = n & 0xFF;
     (r as u8, g as u8, b as u8)
 }
 
@@ -208,13 +208,15 @@ pub fn app() -> Html {
 
     let max_rows: usize = option_env!("MY_ROWS").unwrap_or("20").parse().unwrap();
     let max_cols: usize = option_env!("MY_COLS").unwrap_or("20").parse().unwrap();
-    
-    let load_from_json: bool = option_env!("LOAD").map(|v| v == "1" || v.eq_ignore_ascii_case("true")).unwrap_or(false);
+
+    let load_from_json: bool = option_env!("LOAD")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
     let backend = use_mut_ref(|| Backend::init_backend(max_rows, max_cols)); // debug i dont know the desired dimensions
     // let table = backend.borrow().get_valgrid();
 
-    if load_from_json{
-        const CONTEXT: &str = include_str!("../../mysheet.json");
+    if load_from_json {
+        const CONTEXT: &str = include_str!("../../../mysheet.json");
         web_sys::console::log_1(&format!("Context: {}", CONTEXT).into());
 
         if let Ok(deserialized) = Backend::deserial_text(CONTEXT.to_string()) {
@@ -281,9 +283,9 @@ pub fn app() -> Html {
         } else {
             (range.end.col, range.start.col)
         };
-    
+
         let mut values = vec![];
-    
+
         for r in start_row..=end_row {
             for c in start_col..=end_col {
                 if let Some(Some(val)) = table.cells.get(r).and_then(|row| row.get(c)) {
@@ -291,7 +293,7 @@ pub fn app() -> Html {
                 }
             }
         }
-    
+
         if !values.is_empty() {
             let sum: isize = values.iter().sum();
             let min = *values.iter().min().unwrap();
@@ -309,7 +311,7 @@ pub fn app() -> Html {
                     / values.len() as f64;
                 variance.sqrt()
             };
-    
+
             Some((sum, min, max, avg, stdev))
         } else {
             None
@@ -317,7 +319,7 @@ pub fn app() -> Html {
     } else {
         None
     };
-    
+
     let status_message = use_state(|| "".to_string());
     let formula_input = use_state(|| "".to_string());
     let on_formula_input = {
@@ -349,21 +351,21 @@ pub fn app() -> Html {
                 // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
                 let status = backend_ref.process_command(100_usize, 100_usize, command.clone());
                 match status {
-                    crate::backend::backend::Status::Success => {
+                    crate::extension::backend::backend::Status::Success => {
                         status_message.set(format!("{} updated successfully", target_cell));
                         table.set(backend_ref.get_valgrid());
                     }
-                    crate::backend::backend::Status::CircularDependency => {
+                    crate::extension::backend::backend::Status::CircularDependency => {
                         status_message
                             .set(format!("Cycle detected in formula for {}", target_cell));
                     }
-                    crate::backend::backend::Status::InvalidRange => {
+                    crate::extension::backend::backend::Status::InvalidRange => {
                         status_message.set(format!("Invalid range in formula '{}'", formula));
                     }
-                    crate::backend::backend::Status::InvalidRowColumn => {
+                    crate::extension::backend::backend::Status::InvalidRowColumn => {
                         status_message.set(format!("Invalid cell reference in '{}'", formula));
                     }
-                    crate::backend::backend::Status::UnrecognizedCmd => {
+                    crate::extension::backend::backend::Status::UnrecognizedCmd => {
                         status_message.set(("Unrecognized command").to_string());
                     }
                     _ => {
@@ -402,11 +404,11 @@ pub fn app() -> Html {
         let backend = backend.clone();
         let table = table.clone();
         let status_message = status_message.clone();
-    
+
         Callback::from(move |_| {
             let mut backend_ref = backend.borrow_mut();
             let status = backend_ref.process_command(100, 100, "undo".to_string());
-            if let crate::backend::backend::Status::Success = status {
+            if let crate::extension::backend::backend::Status::Success = status {
                 table.set(backend_ref.get_valgrid());
                 status_message.set("Undo successful".to_string());
             } else {
@@ -414,16 +416,16 @@ pub fn app() -> Html {
             }
         })
     };
-    
+
     let on_redo = {
         let backend = backend.clone();
         let table = table.clone();
         let status_message = status_message.clone();
-    
+
         Callback::from(move |_| {
             let mut backend_ref = backend.borrow_mut();
             let status = backend_ref.process_command(100, 100, "redo".to_string());
-            if let crate::backend::backend::Status::Success = status {
+            if let crate::extension::backend::backend::Status::Success = status {
                 table.set(backend_ref.get_valgrid());
                 status_message.set("Redo successful".to_string());
             } else {
@@ -431,7 +433,6 @@ pub fn app() -> Html {
             }
         })
     };
-    
 
     let on_rows1_change = {
         let rows1 = rows1.clone();
@@ -481,11 +482,11 @@ pub fn app() -> Html {
         let click_anchor = click_anchor.clone();
         let is_formula_building = is_formula_building.clone();
         let input_ref = formula_input_ref.clone();
-    
+
         Callback::from(move |cell: SelectedCell| {
             if *is_formula_building {
                 let label = format!("{}{}", number_to_column_label(cell.col), cell.row);
-    
+
                 if let Some(input) = input_ref.cast::<web_sys::HtmlInputElement>() {
                     let mut current = (*formula_input).clone();
                     let start = input
@@ -496,10 +497,10 @@ pub fn app() -> Html {
                         .selection_end()
                         .unwrap_or(None)
                         .unwrap_or(current.len() as u32) as usize;
-    
+
                     current.replace_range(start..end, &label);
                     formula_input.set(current);
-    
+
                     let new_pos = (start + label.len()) as u32;
                     input.set_selection_start(Some(new_pos)).ok();
                     input.set_selection_end(Some(new_pos)).ok();
@@ -526,7 +527,6 @@ pub fn app() -> Html {
             }
         })
     };
-    
 
     #[allow(clippy::type_complexity)]
     let get_column_data = {
@@ -558,13 +558,11 @@ pub fn app() -> Html {
     let on_chart_column_select = {
         let selected_column_for_chart = selected_column_for_chart.clone();
         Callback::from(move |col: usize| {
-            selected_column_for_chart.set(
-                if Some(col) == *selected_column_for_chart {
-                    None // Deselect if same column is clicked
-                } else {
-                    Some(col) // Select if new column is clicked
-                }
-            );
+            selected_column_for_chart.set(if Some(col) == *selected_column_for_chart {
+                None // Deselect if same column is clicked
+            } else {
+                Some(col) // Select if new column is clicked
+            });
         })
     };
 
@@ -594,37 +592,41 @@ pub fn app() -> Html {
         let selected_cell = selected_cell.clone();
         let selected_range = selected_range.clone();
         let click_anchor = click_anchor.clone();
-    
+
         use_effect(move || {
             let was_inside_table = was_inside_table_effect.clone(); // use this clone
-            let closure = Closure::<dyn FnMut(_)>::wrap(Box::new(move |event: web_sys::MouseEvent| {
-                if let Some(target) = event.target() {
-                    let tag = target.dyn_ref::<web_sys::Element>().map(|e| e.tag_name());
-                    let tag_name = tag.as_deref().unwrap_or("");
-        
-                    let is_table_cell = tag_name == "TD";
-                    let is_input = tag_name == "INPUT";
-                    let is_button = tag_name == "BUTTON";
-        
-                    let clicked_inside = is_table_cell || is_input || is_button;
-        
-                    web_sys::console::log_1(&format!("tag = {}, clicked_inside = {}", tag_name, clicked_inside).into());
-        
-                    if !clicked_inside && !*was_inside_table.borrow() {
-                        selected_cell.set(None);
-                        selected_range.set(None);
-                        click_anchor.set(None);
+            let closure =
+                Closure::<dyn FnMut(_)>::wrap(Box::new(move |event: web_sys::MouseEvent| {
+                    if let Some(target) = event.target() {
+                        let tag = target.dyn_ref::<web_sys::Element>().map(|e| e.tag_name());
+                        let tag_name = tag.as_deref().unwrap_or("");
+
+                        let is_table_cell = tag_name == "TD";
+                        let is_input = tag_name == "INPUT";
+                        let is_button = tag_name == "BUTTON";
+
+                        let clicked_inside = is_table_cell || is_input || is_button;
+
+                        web_sys::console::log_1(
+                            &format!("tag = {}, clicked_inside = {}", tag_name, clicked_inside)
+                                .into(),
+                        );
+
+                        if !clicked_inside && !*was_inside_table.borrow() {
+                            selected_cell.set(None);
+                            selected_range.set(None);
+                            click_anchor.set(None);
+                        }
+
+                        *was_inside_table.borrow_mut() = false;
                     }
-        
-                    *was_inside_table.borrow_mut() = false;
-                }
-            }) as Box<dyn FnMut(_)>);
-        
+                }) as Box<dyn FnMut(_)>);
+
             let window = web_sys::window().unwrap();
             window
                 .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
                 .unwrap();
-        
+
             let closure_ref = closure.as_ref().clone();
             let boxed = Box::new(closure);
             move || {
@@ -633,10 +635,9 @@ pub fn app() -> Html {
                     .unwrap();
                 drop(boxed);
             }
-        });        
+        });
     }
-    
-    
+
     use_effect(move || {
         if let Some(window) = web_sys::window() {
             if let Some(document) = window.document() {
@@ -974,7 +975,7 @@ pub fn app() -> Html {
                     </tbody>
                 </table>
             </div>
-            
+
             {if *show_full_table {
                 html! {
                     <div class="table-container">

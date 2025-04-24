@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 use std::fs;
 const UNDO_LIMIT: usize = 1000;
-use crate::backend::functions::*;
-use crate::backend::graph::Node;
-use crate::backend::graph::get_sequence;
-use crate::backend::graph::has_cycle;
-use crate::backend::graph::update_edges;
-use crate::common::{Operation, Value};
-use crate::parser::*;
+use crate::extension::backend::functions::*;
+use crate::extension::backend::graph::Node;
+use crate::extension::backend::graph::get_sequence;
+use crate::extension::backend::graph::has_cycle;
+use crate::extension::backend::graph::update_edges;
+use crate::extension::common::{Operation, Value};
+use crate::extension::parser::*;
 use serde::{Deserialize, Serialize};
 //init_backend(r,c) -> generate a grid of all nodes : returns void
 //execute(value::cell, value::oper) -> update_edges(Node, value::oper), hasCycle(Box<>, value::cell), get_sequence(Box<>, value::cell), update_grid(sequence) -> return status
@@ -110,7 +110,13 @@ impl Backend {
                 .iter()
                 .map(|row| {
                     row.iter()
-                        .map(|cell| if cell.valid { Some(cell.node_value) } else { None })
+                        .map(|cell| {
+                            if cell.valid {
+                                Some(cell.node_value)
+                            } else {
+                                None
+                            }
+                        })
                         .collect()
                 })
                 .collect(),
@@ -316,7 +322,7 @@ impl Backend {
                     } else {
                         Status::UnrecognizedCmd
                     }
-                },
+                }
                 Operation::Redo => {
                     if let Some(next_grid) = self.redo_stack.pop() {
                         self.undo_stack.push(self.grid.clone());
@@ -328,7 +334,7 @@ impl Backend {
                     } else {
                         Status::UnrecognizedCmd
                     }
-                },
+                }
                 _ => Status::UnrecognizedCmd,
             },
             Some((

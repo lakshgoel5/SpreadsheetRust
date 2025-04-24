@@ -1,9 +1,10 @@
+pub mod extension;
 #[allow(unused_imports)]
-use crate::backend::backend::*;
+use crate::extension::backend::backend::*;
 #[allow(unused_imports)]
-use crate::frontend::web::start_web_app;
+use crate::extension::frontend::terminal::Frontend;
 #[allow(unused_imports)]
-use spreadsheet_rust::frontend::terminal::Frontend;
+use crate::extension::frontend::web::start_web_app;
 #[allow(unused_imports)]
 use std::env;
 #[allow(unused_imports)]
@@ -57,10 +58,7 @@ fn main() {
     #[cfg(not(target_arch = "wasm32"))]
     let elapsed_time = start_time.elapsed();
     #[cfg(not(target_arch = "wasm32"))]
-    frontend.display(
-        spreadsheet_rust::backend::backend::Status::Success,
-        elapsed_time.as_secs_f64(),
-    );
+    frontend.display(Status::Success, elapsed_time.as_secs_f64());
     #[cfg(not(target_arch = "wasm32"))]
     frontend.run_frontend();
 

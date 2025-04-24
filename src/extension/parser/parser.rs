@@ -6,8 +6,8 @@
 /// - Parsing constants and expressions
 /// - Constructing a `Value` AST representing operations or values
 /// - Supporting arithmetic, sleep, and range-based operations like SUM, AVG, etc.
-use crate::common::Operation;
-use crate::common::Value;
+use crate::extension::common::Operation;
+use crate::extension::common::Value;
 
 fn is_cell(exp: &str, columns: &usize, rows: &usize) -> Option<Value> {
     let mut col = 0;

@@ -5,9 +5,9 @@
 //breaking
 //cycle
 //reset
-use crate::backend::backend::Grid;
-use crate::common::Operation;
-use crate::common::Value;
+use crate::extension::backend::backend::Grid;
+use crate::extension::common::Operation;
+use crate::extension::common::Value;
 use serde::{Deserialize, Serialize};
 ///Data structure for strong data of each cell
 /// Contains Dependency list, value, function and a few booleans

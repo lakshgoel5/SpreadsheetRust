@@ -1,16 +1,16 @@
 #![allow(dead_code)]
-use crate::common::Value;
+use crate::extension::common::Value;
 use std::cmp;
+use std::fs;
 use std::io;
 use std::io::Write;
 use std::process::Command;
-use std::fs;
 
 //init_frontend(r, c) -> init_backend(r, c), Print_grid(), run_counter(): returns void
 //print grid() -> get_value(value::cell) : returns void
 //run_counter -> while loop for argument, process_command(r,c, string), Print_grid() : return void
 //display_status
-use crate::backend::backend::*;
+use crate::extension::backend::backend::*;
 use std::time::{Duration, Instant};
 
 /// Terminal interface for the spreadsheet application.
@@ -136,8 +136,7 @@ impl Frontend {
             }
             Status::Right => {
                 if (self.start.col() as isize) < (self.dimension.col() as isize) - 10 {
-                    self.start
-                        .assign_col(self.start.col() + 10);
+                    self.start.assign_col(self.start.col() + 10);
                 } else {
                     self.start.assign_col(self.dimension.col() - 9); //debug
                 }
@@ -151,8 +150,7 @@ impl Frontend {
             }
             Status::Down => {
                 if (self.start.row() as isize) < (self.dimension.row() as isize) - 10 {
-                    self.start
-                        .assign_row(self.start.row() + 10);
+                    self.start.assign_row(self.start.row() + 10);
                 } else {
                     self.start.assign_row(self.dimension.row() - 9);
                 }
@@ -170,8 +168,7 @@ impl Frontend {
             Status::Web(path) => {
                 println!("Web path: {}", path);
                 let contents = fs::read_to_string(path).expect("Failed to read file");
-                fs::write("mysheet.json", contents)
-                    .expect("Failed to write to file");
+                fs::write("mysheet.json", contents).expect("Failed to write to file");
                 Command::new("trunk")
                     .arg("serve")
                     .arg("--open")
