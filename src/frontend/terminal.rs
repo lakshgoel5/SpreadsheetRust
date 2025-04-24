@@ -81,6 +81,16 @@ impl Frontend {
         }
     }
 
+  /// Creates a new Frontend instance with the specified dimensions.
+    ///
+    /// # Arguments
+    ///
+    /// * `rows` - Number of rows in the spreadsheet
+    /// * `columns` - Number of columns in the spreadsheet
+    ///
+    /// # Returns
+    ///
+    /// A new Frontend instance with initialized backend and default settings
     pub fn init_frontend(rows: usize, columns: usize, path: &str) -> Self {
         if path == "" {
             let backend = Backend::init_backend(rows, columns);
