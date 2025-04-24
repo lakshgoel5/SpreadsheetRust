@@ -65,10 +65,10 @@ pub enum Value {
 pub fn max_function(
     value1: Coordinates,
     value2: Coordinates,
-    grid: &Vec<Vec<Node>>,
+    grid: &[Vec<Node>],
 ) -> Option<i32> {
     // Both are cell references
-    let mut max_val = std::i32::MIN;
+    let mut max_val = i32::MIN;
     // bool flag = false;
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
@@ -90,7 +90,7 @@ pub fn min_function(
     grid: &Vec<Vec<Node>>,
 ) -> Option<i32> {
     // Both are cell references
-    let mut min_val = std::i32::MAX;
+    let mut min_val = i32::MAX;
     // bool flag = false;
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {

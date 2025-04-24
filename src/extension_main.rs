@@ -3,7 +3,6 @@ use crate::backend::backend::*;
 #[allow(unused_imports)]
 use crate::frontend::web::start_web_app;
 #[allow(unused_imports)]
-use spreadsheet_rust::frontend::terminal::Frontend;
 #[allow(unused_imports)]
 use std::env;
 #[allow(unused_imports)]
