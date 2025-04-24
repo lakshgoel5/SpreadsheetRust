@@ -7,15 +7,41 @@ EXT1=extension
 # Target path for the release binary
 TARGET_PATH=target/release/$(BIN_NAME)
 
+# List of environment variables to unset
+UNSET_ENV=\
+	unset RUST_FONTCONFIG_DLOPEN; \
+	unset FONTCONFIG_NO_PKG_CONFIG; \
+	unset PKG_CONFIG; \
+	unset FONTCONFIG_STATIC; \
+	unset FONTCONFIG_DYNAMIC; \
+	unset PKG_CONFIG_ALL_STATIC; \
+	unset PKG_CONFIG_ALL_DYNAMIC; \
+	unset PKG_CONFIG_PATH; \
+	unset PKG_CONFIG_LIBDIR; \
+	unset PKG_CONFIG_SYSROOT_DIR; \
+	unset HOST_PKG_CONFIG; \
+	unset HOST_PKG_CONFIG_PATH; \
+	unset HOST_PKG_CONFIG_LIBDIR; \
+	unset HOST_PKG_CONFIG_SYSROOT_DIR; \
+	unset PKG_CONFIG_PATH_x86_64_unknown_linux_gnu; \
+	unset PKG_CONFIG_LIBDIR_x86_64_unknown_linux_gnu; \
+	unset PKG_CONFIG_SYSROOT_DIR_x86_64_unknown_linux_gnu;
+
 # Default target: build the release binary
-all: $(TARGET_PATH)
+all: prebuild $(TARGET_PATH)
 
-# How to build the binary
+prebuild:
+	sudo apt update
+	sudo apt install -y libfontconfig1-dev pkg-config
+	
+# How to build the binary with env vars unset
 $(TARGET_PATH):
-	cargo build --release
+	@$(UNSET_ENV) cargo build --release --bin $(BIN_NAME)
 
+# Run the binary with env vars unset
 run: $(TARGET_PATH)
-	$(TARGET_PATH) $(ARGS)
-# Optional clean target
+	@$(UNSET_ENV) $(TARGET_PATH) $(ARGS)
+
+# Clean target
 clean:
 	cargo clean
