@@ -1,15 +1,11 @@
 #[allow(unused_imports)]
-use std::env;
-mod backend;
-mod common;
-mod frontend;
-mod parser;
-#[allow(unused_imports)]
 use crate::backend::backend::*;
 #[allow(unused_imports)]
 use crate::frontend::web::start_web_app;
 #[allow(unused_imports)]
 use spreadsheet_rust::frontend::terminal::Frontend;
+#[allow(unused_imports)]
+use std::env;
 #[allow(unused_imports)]
 use std::process::{Command, Stdio};
 #[allow(unused_imports)]
@@ -61,7 +57,10 @@ fn main() {
     #[cfg(not(target_arch = "wasm32"))]
     let elapsed_time = start_time.elapsed();
     #[cfg(not(target_arch = "wasm32"))]
-    frontend.display(spreadsheet_rust::backend::backend::Status::Success, elapsed_time.as_secs_f64());
+    frontend.display(
+        spreadsheet_rust::backend::backend::Status::Success,
+        elapsed_time.as_secs_f64(),
+    );
     #[cfg(not(target_arch = "wasm32"))]
     frontend.run_frontend();
 

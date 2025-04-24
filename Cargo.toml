@@ -1,11 +1,15 @@
 [package]
-name = "spreadsheet_rust"
+name = "project"
 version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "spreadsheet"
+name = "extension"
 path = "src/extension_main.rs"
+
+[[bin]]
+name = "spreadsheet"
+path = "src/main.rs"
 
 [dependencies]
 yew = { version = "0.21", features = ["csr"] }
