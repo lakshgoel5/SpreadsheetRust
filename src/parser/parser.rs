@@ -119,7 +119,9 @@ pub fn validate(
     columns: &usize,
 ) -> Option<(Option<Value>, Option<Value>)> {
     match cmd.trim() {
-        "web" => return Some((None, Some(Value::Oper(None, None, Operation::Web)))),
+        "undo" => return Some((None, Some(Value::Oper(None, None, Operation::Undo)))),
+        "redo" => return Some((None, Some(Value::Oper(None, None, Operation::Redo)))),
+        "web_start" => return Some((None, Some(Value::Oper(None, None, Operation::WebStart)))),
         "enable_output" => {
             return Some((None, Some(Value::Oper(None, None, Operation::EnableOutput))));
         }
@@ -159,6 +161,22 @@ pub fn validate(
             // println!("Invalid cell name");
             return None;
         }
+    }
+
+    if cmd.trim().starts_with("save ") {
+        let file_name = cmd.trim()["save ".len()..].trim().to_string();
+        return Some((
+            None,
+            Some(Value::Oper(None, None, Operation::Save(file_name))),
+        ));
+    }
+
+    if cmd.trim().starts_with("web ") {
+        let file_name = cmd.trim()["web ".len()..].trim().to_string();
+        return Some((
+            None,
+            Some(Value::Oper(None, None, Operation::Web(file_name))),
+        ));
     }
 
     let Some((cell, exp)) = cmd.split_once('=') else {

@@ -1,0 +1,855 @@
+{
+  "grid": {
+    "rows": 6,
+    "columns": 6,
+    "cells_vec": [
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 36,
+          "function": {
+            "Oper": [
+              {
+                "Cell": [
+                  2,
+                  1
+                ]
+              },
+              {
+                "Const": 3
+              },
+              "Add"
+            ]
+          },
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [
+            {
+              "Cell": [
+                1,
+                1
+              ]
+            }
+          ],
+          "node_value": 33,
+          "function": {
+            "Oper": [
+              {
+                "Const": 33
+              },
+              {
+                "Const": 0
+              },
+              "Cons"
+            ]
+          },
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ]
+    ]
+  },
+  "undo_stack": [
+    {
+      "rows": 6,
+      "columns": 6,
+      "cells_vec": [
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ]
+      ]
+    },
+    {
+      "rows": 6,
+      "columns": 6,
+      "cells_vec": [
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 33,
+            "function": {
+              "Oper": [
+                {
+                  "Const": 33
+                },
+                {
+                  "Const": 0
+                },
+                "Cons"
+              ]
+            },
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ],
+        [
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          },
+          {
+            "dependents": [],
+            "node_value": 0,
+            "function": null,
+            "visited": false,
+            "valid": true
+          }
+        ]
+      ]
+    }
+  ],
+  "redo_stack": []
+}

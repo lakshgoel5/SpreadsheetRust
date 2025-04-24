@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use std::fs;
+const UNDO_LIMIT: usize = 1000;
 use crate::backend::functions::*;
 use crate::backend::graph::Node;
 use crate::backend::graph::get_sequence;
@@ -6,13 +8,16 @@ use crate::backend::graph::has_cycle;
 use crate::backend::graph::update_edges;
 use crate::common::{Operation, Value};
 use crate::parser::*;
+use serde::{Deserialize, Serialize};
 //init_backend(r,c) -> generate a grid of all nodes : returns void
 //execute(value::cell, value::oper) -> update_edges(Node, value::oper), hasCycle(Box<>, value::cell), get_sequence(Box<>, value::cell), update_grid(sequence) -> return status
 //update_grid(sequence) -> loop assign to Node = <functions>(Box<>, value::oper -> return bool
 //process_command(r,c, string, value::Cell) -> parser, execute(value::cell, value::oper): return status
 //get_value(value::cell): returns a cell_value
-/// Control Unit for data processing and updating values in Spreadsheet.
-/// The `Grid` struct is designed to store and manage a grid of `Node` objects.
+/// Control Unit for data processing and updating values in Spreadsheeet.
+/// The `Grid` struct is designed to store and manage a grid of `Cell` objects.
+///Data structure to represent sheet
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Grid {
     rows: usize,
     columns: usize,
@@ -52,8 +57,8 @@ pub enum Status {
     Right,
     /// Command to quit the application
     Quit,
-    /// Command to launch web interface
-    Web,
+    Web(String),
+    WebStart,
 }
 
 impl Grid {
@@ -123,22 +128,25 @@ impl Grid {
 /// Representation of the grid's values for external use.
 ///
 /// This struct provides a simplified view of the grid, containing just the
-/// numeric values of cells without the dependencies and formulas.
+/// numeric values of cells without the dependencies and formulas
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Valgrid {
     /// Number of rows in the value grid
     pub rows: usize,
     /// Number of columns in the value grid
     pub columns: usize,
-    /// 2D vector containing cell values
-    pub cells: Vec<Vec<isize>>,
+    pub cells: Vec<Vec<Option<isize>>>,
 }
 
 /// Backend controller for the spreadsheet application.
 ///
 /// Manages the grid data structure and provides methods for processing commands,
 /// handling cell updates, and evaluating formulas while detecting circular dependencies.
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Backend {
     grid: Grid,
+    undo_stack: Vec<Grid>,
+    redo_stack: Vec<Grid>,
 }
 
 impl Backend {
@@ -155,6 +163,8 @@ impl Backend {
     pub fn init_backend(rows: usize, columns: usize) -> Self {
         Backend {
             grid: Grid::new(rows + 1, columns + 1),
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
         }
     }
 
@@ -194,7 +204,11 @@ impl Backend {
                 .grid
                 .cells_vec
                 .iter()
-                .map(|row| row.iter().map(|cell| cell.node_value).collect())
+                .map(|row| {
+                    row.iter()
+                        .map(|cell| if cell.valid { Some(cell.node_value) } else { None })
+                        .collect()
+                })
                 .collect(),
         }
     }
@@ -410,7 +424,35 @@ impl Backend {
                 Operation::Up => Status::Up,
                 Operation::Down => Status::Down,
                 Operation::Quit => Status::Quit,
-                Operation::Web => Status::Web,
+                Operation::Web(path) => Status::Web(path),
+                Operation::WebStart => Status::WebStart,
+                Operation::Save(path) => {
+                    if let Err(_) = self.serial(&path) {
+                        return Status::UnrecognizedCmd;
+                    }
+                    Status::Success
+                }
+                Operation::Undo => {
+                    if let Some(prev_grid) = self.undo_stack.pop() {
+                        self.redo_stack.push(self.grid.clone());
+                        self.grid = prev_grid;
+                        Status::Success
+                    } else {
+                        Status::UnrecognizedCmd
+                    }
+                },
+                Operation::Redo => {
+                    if let Some(next_grid) = self.redo_stack.pop() {
+                        self.undo_stack.push(self.grid.clone());
+                        if self.undo_stack.len() > UNDO_LIMIT {
+                            self.undo_stack.remove(0); // drop oldest
+                        }
+                        self.grid = next_grid;
+                        Status::Success
+                    } else {
+                        Status::UnrecognizedCmd
+                    }
+                },
                 _ => Status::UnrecognizedCmd,
             },
             Some((
@@ -420,6 +462,11 @@ impl Backend {
             Some((Some(Value::Cell(col, row)), Some(Value::Oper(box1, box2, op)))) => {
                 // change here
                 // either have to change parser or change the inside parts of box1 and box2
+                self.undo_stack.push(self.grid.clone());
+                if self.undo_stack.len() > UNDO_LIMIT {
+                    self.undo_stack.remove(0);
+                }
+                self.redo_stack.clear(); // clear redo stack on new action
                 self.execute(Value::Cell(col, row), Some(Value::Oper(box1, box2, op)))
             }
             _ => Status::UnrecognizedCmd,
@@ -433,5 +480,20 @@ impl Backend {
     /// An immutable reference to the Grid
     pub fn get_grid(&self) -> &Grid {
         &self.grid
+    }
+
+    pub fn serial(&self, path: &str) -> Result<(), String> {
+        let json = serde_json::to_string_pretty(self)
+            .map_err(|e| format!("Serialization error: {}", e))?;
+        std::fs::write(path, json).map_err(|e| format!("File write error: {}", e))
+    }
+
+    pub fn deserial(path: &str) -> Result<Self, String> {
+        let json = fs::read_to_string(path).map_err(|e| format!("File read error: {}", e))?;
+        serde_json::from_str(&json).map_err(|e| format!("Deserialization error: {}", e))
+    }
+
+    pub fn deserial_text(text: String) -> Result<Self, String> {
+        serde_json::from_str(&text).map_err(|e| format!("Deserialization error: {}", e))
     }
 }

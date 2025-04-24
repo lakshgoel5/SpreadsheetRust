@@ -1,0 +1,214 @@
+{
+  "grid": {
+    "rows": 4,
+    "columns": 7,
+    "cells_vec": [
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ],
+      [
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        },
+        {
+          "dependents": [],
+          "node_value": 0,
+          "function": null,
+          "visited": false,
+          "valid": true
+        }
+      ]
+    ]
+  },
+  "undo_stack": [],
+  "redo_stack": []
+}

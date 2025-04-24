@@ -9,6 +9,7 @@
 use crate::backend::backend::Grid;
 use crate::common::Operation;
 use crate::common::Value;
+use serde::{Deserialize, Serialize};
 ///Data structure for strong data of each cell
 /// Contains Dependency list, value, function and a few booleans
 /// `Node` struct represents a cell in the spreadsheet with its dependencies
@@ -23,7 +24,7 @@ use crate::common::Value;
 /// * `visited` - Flag used during graph traversal algorithms
 /// * `valid` - Flag indicating whether the cell value is valid
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 //clone trait used due to vec![vec![Cell::new(0); columns]; rows]
 pub struct Node {
     pub dependents: Vec<Value>,

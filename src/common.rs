@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 /// Represents a value that can appear in a spreadsheet.
-#[derive(Debug, Clone, PartialEq)]
 //Clone required for `Vec<Value>`(in graph.rs) to implement `Clone`
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Value {
     Cell(usize, usize),
     Const(isize),
@@ -46,6 +48,7 @@ impl Value {
 //Needed as Value has implemented a clone
 //Oper(Box<Value>, Box<Value>, Operation), //value1 and value2, and the operation or command, respectively
 //   |                                  ^^^^^^^^^ the trait `Clone` is not implemented for `Operation`
+#[derive(Serialize, Deserialize)]
 pub enum Operation {
     Cons,
     Add,
@@ -66,5 +69,9 @@ pub enum Operation {
     Up,
     Down,
     Quit,
-    Web,
+    Web(String),
+    Save(String),
+    Undo,
+    Redo,
+    WebStart,
 }

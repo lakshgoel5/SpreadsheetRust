@@ -5,15 +5,132 @@ use crate::backend::backend::Valgrid;
 use serde_json;
 #[allow(unused_imports)]
 use std::fs;
+#[allow(unused_imports)]
 use std::ops::Range;
 use std::rc::Rc;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
+use wasm_bindgen::closure::Closure;
+#[allow(unused_imports)]
+use gloo_net::http::Request;
+#[allow(unused_imports)]
+use wasm_bindgen_futures::spawn_local;
+#[allow(unused_imports)]
 use yew_chart::{
     axis::{Axis, Orientation, Scale},
     linear_axis_scale::LinearScale,
     series::{BarType, Labeller, Series, Type},
 };
+// use yew::use_effect_with_deps;
+use gloo::utils::document;
+use plotters::prelude::*;
+use plotters_canvas::CanvasBackend;
+use wasm_bindgen::JsCast;
+use web_sys::HtmlCanvasElement;
+#[allow(unused_imports)]
+use web_sys::console::log_1;
+
+#[derive(Properties, PartialEq)]
+pub struct CanvasChartProps {
+    pub data: Vec<(f32, f32)>,
+    pub chart_type: String,
+}
+
+#[function_component(CanvasChart)]
+pub fn canvas_chart(props: &CanvasChartProps) -> Html {
+    let data = props.data.clone();
+    let chart_type = props.chart_type.clone();
+
+    use_effect(move || {
+        let canvas = document()
+            .get_element_by_id("plotters-canvas")
+            .unwrap()
+            .dyn_into::<HtmlCanvasElement>()
+            .unwrap();
+
+        let backend = CanvasBackend::with_canvas_object(canvas).unwrap();
+        let drawing_area = backend.into_drawing_area();
+        drawing_area.fill(&WHITE).unwrap();
+
+        // let y_range = data.iter().map(|(_, y)| *y);
+        // let y_min = y_range.clone().fold(f32::MAX, f32::min);
+        // let y_max = y_range.clone().fold(f32::MIN, f32::max);
+        // let y_max = if (y_max - y_min).abs() < f32::EPSILON { y_max + 1.0 } else { y_max };
+
+        let mut y_min = 0.0;
+        let actual_min = data.iter().map(|(_, y)| *y).fold(f32::MAX, f32::min);
+        if actual_min < 0.0 {
+            y_min = actual_min;
+        }
+
+        let mut y_max = data.iter().map(|(_, y)| *y).fold(f32::MIN, f32::max);
+
+        if (y_max - y_min).abs() < f32::EPSILON {
+            y_max += 1.0;
+            y_min -= 1.0;
+        }
+
+        let mut chart = ChartBuilder::on(&drawing_area)
+            .caption("Spreadsheet Chart", ("sans-serif", 30).into_font())
+            .margin(20)
+            .set_label_area_size(LabelAreaPosition::Left, 40)
+            .set_label_area_size(LabelAreaPosition::Bottom, 40)
+            .build_cartesian_2d(0f32..(data.len() as f32), y_min..y_max)
+            .unwrap();
+
+        // for zero reference lines
+
+        // chart
+        //     .draw_series(LineSeries::new(
+        //         vec![(0.0, 0.0), (data.len() as f32, 0.0)],
+        //         &BLACK,
+        //     ))
+        //     .unwrap();
+
+        chart
+            .configure_mesh()
+            .x_desc("Row Index")
+            .y_desc("Value")
+            .draw()
+            .unwrap();
+
+        // for drawing the line at bottom
+        chart
+            .draw_series(LineSeries::new(
+                vec![(0.0, 0.0), (data.len() as f32, 0.0)],
+                &BLACK,
+            ))
+            .unwrap();
+
+        match chart_type.as_str() {
+            "line" => {
+                chart
+                    .draw_series(LineSeries::new(data.clone(), &RED))
+                    .unwrap();
+            }
+            "bar" => {
+                chart
+                    .draw_series(data.iter().map(|(x, y)| {
+                        let (start, end) = if *y >= 0.0 {
+                            ((*x, 0.0), (*x + 0.8, *y))
+                        } else {
+                            ((*x, *y), (*x + 0.8, 0.0))
+                        };
+                        Rectangle::new([start, end], RED.filled())
+                    }))
+                    .unwrap();
+            }
+
+            _ => {}
+        }
+
+        || ()
+    });
+
+    html! {
+        <canvas id="plotters-canvas" width="800" height="500" style="border: 1px solid #ccc;" />
+    }
+}
 
 /// Converts a numeric column index to an Excel-style column label.
 ///
@@ -43,6 +160,13 @@ fn number_to_column_label(num: usize) -> String {
     result
 }
 
+fn number_to_rgb(n: u32) -> (u8, u8, u8) {
+    let r = (n >> 16) & 0xFF; 
+    let g = (n >> 8) & 0xFF;  
+    let b = n & 0xFF;         
+    (r as u8, g as u8, b as u8)
+}
+
 /// Represents a selected cell in the spreadsheet grid.
 ///
 /// Contains the row and column indices of the currently selected cell.
@@ -50,6 +174,12 @@ fn number_to_column_label(num: usize) -> String {
 struct SelectedCell {
     row: usize,
     col: usize,
+}
+
+#[derive(Clone, PartialEq)]
+struct CellRange {
+    start: SelectedCell,
+    end: SelectedCell,
 }
 
 /// Main component for the web-based spreadsheet application.
@@ -62,8 +192,24 @@ pub fn app() -> Html {
 
     // initialize backend table here
 
-    let backend = use_mut_ref(|| Backend::init_backend(100, 100)); // debug i dont know the desired dimensions
+    let max_rows: usize = option_env!("MY_ROWS").unwrap_or("20").parse().unwrap();
+    let max_cols: usize = option_env!("MY_COLS").unwrap_or("20").parse().unwrap();
+    
+    let load_from_json: bool = option_env!("LOAD").map(|v| v == "1" || v.eq_ignore_ascii_case("true")).unwrap_or(false);
+    let backend = use_mut_ref(|| Backend::init_backend(max_rows, max_cols)); // debug i dont know the desired dimensions
     // let table = backend.borrow().get_valgrid();
+
+    if load_from_json{
+        const CONTEXT: &str = include_str!("../../mysheet.json");
+        web_sys::console::log_1(&format!("Context: {}", CONTEXT).into());
+
+        if let Ok(deserialized) = Backend::deserial_text(CONTEXT.to_string()) {
+            let backend = backend.clone();
+            *backend.borrow_mut() = deserialized;
+        } else {
+            web_sys::console::error_1(&"Failed to deserialize backend from context".into());
+        }
+    }
 
     let table = use_state(|| backend.borrow().get_valgrid());
     let is_formula_building = use_state(|| false);
@@ -75,19 +221,89 @@ pub fn app() -> Html {
     //     })
     // };
 
-    let _max_rows = table.rows; // will change for checking bounds
-    let _max_cols = table.columns;
-
     let rows1 = use_state(|| 1usize);
-    let rows2 = use_state(|| 20usize);
+    let rows2 = use_state(|| 10usize);
     let cols1 = use_state(|| 1usize);
-    let cols2 = use_state(|| 20usize);
+    let cols2 = use_state(|| 10usize);
     let row_range = *rows1..=(*rows2).min(table.rows - 1);
     let col_range = *cols1..=(*cols2).min(table.columns - 1);
     let selected_cell = use_state(|| None::<SelectedCell>);
+    let selected_range = use_state(|| None::<CellRange>);
+    let click_anchor = use_state(|| None::<SelectedCell>);
     let selected_column_for_chart = use_state(|| None::<usize>);
-    let chart_type = use_state(|| "bar".to_string());
+    let chart_type = use_state(|| "line".to_string());
+    let show_full_table = use_state(|| false);
+    let was_inside_table = use_mut_ref(|| false);
 
+    let was_inside_table_click = was_inside_table.clone(); // for on_cell_click
+    let was_inside_table_effect = was_inside_table.clone(); // for use_effect
+
+    let selected_range_label = {
+        if let Some(range) = &*selected_range {
+            let start = &range.start;
+            let end = &range.end;
+            let label = format!(
+                "{}{}:{}{}",
+                number_to_column_label(start.col),
+                start.row,
+                number_to_column_label(end.col),
+                end.row
+            );
+            Some(label)
+        } else {
+            None
+        }
+    };
+
+    // i am not calling backend here because it needs a target cell to function
+    let selected_range_stats = if let Some(range) = &*selected_range {
+        let (start_row, end_row) = if range.start.row <= range.end.row {
+            (range.start.row, range.end.row)
+        } else {
+            (range.end.row, range.start.row)
+        };
+        let (start_col, end_col) = if range.start.col <= range.end.col {
+            (range.start.col, range.end.col)
+        } else {
+            (range.end.col, range.start.col)
+        };
+    
+        let mut values = vec![];
+    
+        for r in start_row..=end_row {
+            for c in start_col..=end_col {
+                if let Some(Some(val)) = table.cells.get(r).and_then(|row| row.get(c)) {
+                    values.push(*val);
+                }
+            }
+        }
+    
+        if !values.is_empty() {
+            let sum: isize = values.iter().sum();
+            let min = *values.iter().min().unwrap();
+            let max = *values.iter().max().unwrap();
+            let avg = sum as f64 / values.len() as f64;
+            let stdev = {
+                let mean = avg;
+                let variance: f64 = values
+                    .iter()
+                    .map(|v| {
+                        let diff = *v as f64 - mean;
+                        diff * diff
+                    })
+                    .sum::<f64>()
+                    / values.len() as f64;
+                variance.sqrt()
+            };
+    
+            Some((sum, min, max, avg, stdev))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    
     let status_message = use_state(|| "".to_string());
     let formula_input = use_state(|| "".to_string());
     let on_formula_input = {
@@ -103,7 +319,7 @@ pub fn app() -> Html {
         let formula_input = formula_input.clone();
         let backend = backend.clone();
         let table = table.clone(); // 🟢 <- add this
-        let status_message = status_message.clone(); // 👈 new
+        let status_message = status_message.clone();
 
         let is_formula_building = is_formula_building.clone();
         Callback::from(move |_| {
@@ -117,40 +333,91 @@ pub fn app() -> Html {
                 let mut backend_ref = backend.borrow_mut();
                 //web_sys::console::log_1(&format!("Selected cell row={}, col={} => {}", cell.row, cell.col, target_cell).into());
                 // web_sys::console::log_1(&format!("Command sent to process_command: {}", command).into());
-                let status =
-                    backend_ref.process_command(100 as usize, 100 as usize, command.clone());
+                let status = backend_ref.process_command(100_usize, 100_usize, command.clone());
                 match status {
                     crate::backend::backend::Status::Success => {
-                        status_message.set(format!("✅ {} updated successfully", target_cell));
+                        status_message.set(format!("{} updated successfully", target_cell));
                         table.set(backend_ref.get_valgrid());
                     }
                     crate::backend::backend::Status::CircularDependency => {
                         status_message
-                            .set(format!("❌ Cycle detected in formula for {}", target_cell));
+                            .set(format!("Cycle detected in formula for {}", target_cell));
                     }
                     crate::backend::backend::Status::InvalidRange => {
-                        status_message.set(format!("⚠️ Invalid range in formula '{}'", formula));
+                        status_message.set(format!("Invalid range in formula '{}'", formula));
                     }
                     crate::backend::backend::Status::InvalidRowColumn => {
-                        status_message.set(format!("⚠️ Invalid cell reference in '{}'", formula));
+                        status_message.set(format!("Invalid cell reference in '{}'", formula));
                     }
                     crate::backend::backend::Status::UnrecognizedCmd => {
-                        status_message.set(format!("⚠️ Unrecognized command"));
+                        status_message.set(("Unrecognized command").to_string());
                     }
                     _ => {
                         // Optional: silently ignore other statuses
-                        status_message.set("ℹ️ No update performed.".to_string());
+                        status_message.set("No update performed.".to_string());
                     }
                 }
-                // 🟢 now update the table right here:
-                table.set(backend_ref.get_valgrid());
+                // debug
+                // table.set(backend_ref.get_valgrid());
 
-                // ✅ reset formula input and mode
+                let updated_table = backend_ref.get_valgrid();
+
+                // TEMP DEBUG LOG
+                let row_idx = cell.row;
+                let col_idx = cell.col;
+                if row_idx < updated_table.cells.len()
+                    && col_idx < updated_table.cells[row_idx].len()
+                {
+                    let val = updated_table.cells[row_idx][col_idx];
+                    web_sys::console::log_1(
+                        &format!("DEBUG: cell[{}, {}] = {:?}", row_idx, col_idx, val).into(),
+                    );
+                } else {
+                    web_sys::console::log_1(&"DEBUG: selected cell out of bounds".into());
+                }
+
+                table.set(updated_table);
+
                 formula_input.set("".to_string());
                 is_formula_building.set(false);
             }
         })
     };
+
+    let on_undo = {
+        let backend = backend.clone();
+        let table = table.clone();
+        let status_message = status_message.clone();
+    
+        Callback::from(move |_| {
+            let mut backend_ref = backend.borrow_mut();
+            let status = backend_ref.process_command(100, 100, "undo".to_string());
+            if let crate::backend::backend::Status::Success = status {
+                table.set(backend_ref.get_valgrid());
+                status_message.set("Undo successful".to_string());
+            } else {
+                status_message.set("Nothing to undo".to_string());
+            }
+        })
+    };
+    
+    let on_redo = {
+        let backend = backend.clone();
+        let table = table.clone();
+        let status_message = status_message.clone();
+    
+        Callback::from(move |_| {
+            let mut backend_ref = backend.borrow_mut();
+            let status = backend_ref.process_command(100, 100, "redo".to_string());
+            if let crate::backend::backend::Status::Success = status {
+                table.set(backend_ref.get_valgrid());
+                status_message.set("Redo successful".to_string());
+            } else {
+                status_message.set("Nothing to redo".to_string());
+            }
+        })
+    };
+    
 
     let on_rows1_change = {
         let rows1 = rows1.clone();
@@ -193,15 +460,18 @@ pub fn app() -> Html {
     };
 
     let on_cell_click = {
+        let was_inside_table = was_inside_table_click.clone(); // capture clone
         let formula_input = formula_input.clone();
         let selected_cell = selected_cell.clone();
+        let selected_range = selected_range.clone();
+        let click_anchor = click_anchor.clone();
         let is_formula_building = is_formula_building.clone();
         let input_ref = formula_input_ref.clone();
-
+    
         Callback::from(move |cell: SelectedCell| {
             if *is_formula_building {
                 let label = format!("{}{}", number_to_column_label(cell.col), cell.row);
-
+    
                 if let Some(input) = input_ref.cast::<web_sys::HtmlInputElement>() {
                     let mut current = (*formula_input).clone();
                     let start = input
@@ -212,22 +482,39 @@ pub fn app() -> Html {
                         .selection_end()
                         .unwrap_or(None)
                         .unwrap_or(current.len() as u32) as usize;
-
+    
                     current.replace_range(start..end, &label);
                     formula_input.set(current);
-
-                    // move cursor after inserted text
+    
                     let new_pos = (start + label.len()) as u32;
                     input.set_selection_start(Some(new_pos)).ok();
                     input.set_selection_end(Some(new_pos)).ok();
                     input.focus().ok();
                 }
             } else {
-                selected_cell.set(Some(cell));
+                match click_anchor.as_ref() {
+                    None => {
+                        was_inside_table.borrow_mut().clone_from(&true);
+                        selected_cell.set(Some(cell.clone()));
+                        selected_range.set(None);
+                        click_anchor.set(Some(cell));
+                    }
+                    Some(anchor) => {
+                        was_inside_table.borrow_mut().clone_from(&true);
+                        selected_cell.set(Some(cell.clone()));
+                        selected_range.set(Some(CellRange {
+                            start: anchor.clone(),
+                            end: cell,
+                        }));
+                        click_anchor.set(None);
+                    }
+                }
             }
         })
     };
+    
 
+    #[allow(clippy::type_complexity)]
     let get_column_data = {
         let table = table.clone();
         move |col: usize| -> Vec<(f32, f32, Option<Rc<dyn Labeller>>)> {
@@ -238,8 +525,8 @@ pub fn app() -> Html {
                 .enumerate()
                 .take(20)
                 .map(|(i, row)| {
-                    let val = row[col - 1] as f32;
-                    (i as f32, val.max(0.1), None) // Ensure positive values
+                    let val = row.get(col).and_then(|v| *v).unwrap_or(0) as f32;
+                    (i as f32, val, None) // Ensure positive values
                 })
                 .collect();
 
@@ -247,6 +534,8 @@ pub fn app() -> Html {
             if values.is_empty() {
                 values = vec![(0.0, 1.0, None)];
             }
+            let debug_values: Vec<(f32, f32)> = values.iter().map(|(x, y, _)| (*x, *y)).collect();
+            web_sys::console::log_1(&format!("chart data = {:?}", debug_values).into());
 
             values
         }
@@ -255,7 +544,13 @@ pub fn app() -> Html {
     let on_chart_column_select = {
         let selected_column_for_chart = selected_column_for_chart.clone();
         Callback::from(move |col: usize| {
-            selected_column_for_chart.set(Some(col));
+            selected_column_for_chart.set(
+                if Some(col) == *selected_column_for_chart {
+                    None // Deselect if same column is clicked
+                } else {
+                    Some(col) // Select if new column is clicked
+                }
+            );
         })
     };
 
@@ -267,18 +562,202 @@ pub fn app() -> Html {
         })
     };
 
+    fn is_cell_in_range(row: usize, col: usize, range: &CellRange) -> bool {
+        let (start_row, end_row) = if range.start.row <= range.end.row {
+            (range.start.row, range.end.row)
+        } else {
+            (range.end.row, range.start.row)
+        };
+        let (start_col, end_col) = if range.start.col <= range.end.col {
+            (range.start.col, range.end.col)
+        } else {
+            (range.end.col, range.start.col)
+        };
+        row >= start_row && row <= end_row && col >= start_col && col <= end_col
+    }
+
+    {
+        let selected_cell = selected_cell.clone();
+        let selected_range = selected_range.clone();
+        let click_anchor = click_anchor.clone();
+    
+        use_effect(move || {
+            let was_inside_table = was_inside_table_effect.clone(); // use this clone
+            let closure = Closure::<dyn FnMut(_)>::wrap(Box::new(move |event: web_sys::MouseEvent| {
+                if let Some(target) = event.target() {
+                    let tag = target.dyn_ref::<web_sys::Element>().map(|e| e.tag_name());
+                    let tag_name = tag.as_deref().unwrap_or("");
+        
+                    let is_table_cell = tag_name == "TD";
+                    let is_input = tag_name == "INPUT";
+                    let is_button = tag_name == "BUTTON";
+        
+                    let clicked_inside = is_table_cell || is_input || is_button;
+        
+                    web_sys::console::log_1(&format!("tag = {}, clicked_inside = {}", tag_name, clicked_inside).into());
+        
+                    if !clicked_inside && !*was_inside_table.borrow() {
+                        selected_cell.set(None);
+                        selected_range.set(None);
+                        click_anchor.set(None);
+                    }
+        
+                    *was_inside_table.borrow_mut() = false;
+                }
+            }) as Box<dyn FnMut(_)>);
+        
+            let window = web_sys::window().unwrap();
+            window
+                .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())
+                .unwrap();
+        
+            let closure_ref = closure.as_ref().clone();
+            let boxed = Box::new(closure);
+            move || {
+                window
+                    .remove_event_listener_with_callback("mousedown", closure_ref.unchecked_ref())
+                    .unwrap();
+                drop(boxed);
+            }
+        });        
+    }
+    
+    
+    use_effect(move || {
+        if let Some(window) = web_sys::window() {
+            if let Some(document) = window.document() {
+                if let Some(body) = document.body() {
+                    let element: &web_sys::Element = body.dyn_ref().unwrap();
+                    if !element.class_name().contains("theme-") {
+                        element.set_class_name("theme-dark");
+                    }
+                }
+            }
+        }
+        || ()
+    });
+
     html! {
         <div>
+            // <div>
+            //     <h2>{"Chart Section (using plotters)"}</h2>
+            //     <CanvasChart data={data.iter().map(|(x, y, _)| (*x, *y)).collect()} chart_type={(*chart_type).clone()} />
+            // </div>
             <style>
             {"
+                :root {
+                /* Light theme variables */
+                --primary-color-light: #1d4ed8;
+                --primary-hover-light: #1e40af;
+                --background-color-light: #ffffff;
+                --text-color-light: #333333;
+                --border-color-light: #dddddd;
+                --header-bg-light: #f5f5f5;
+                --selected-cell-light: #ffeeba;
+                --selected-border-light: #ff9900;
+                --range-selected-light: #d0f0fd;
+                --range-border-light: #00aaff;
+                --formula-bar-bg-light: #ffffff;
+
+                /* Dark theme variables */
+                --primary-color-dark: #1d4ed8;
+                --primary-hover-dark: #1e40af;
+                --background-color-dark: #1e293b;
+                --text-color-dark: #e2e8f0;
+                --border-color-dark: #334155;
+                --header-bg-dark: #0f172a;
+                --selected-cell-dark: #854d0e;
+                --selected-border-dark: #d97706;
+                --range-selected-dark: #0c4a6e;
+                --range-border-dark: #0284c7;
+                --formula-bar-bg-dark: #1e293b;
+            }
+
+            .theme-light {
+                --primary-color: var(--primary-color-light);
+                --primary-hover: var(--primary-hover-light);
+                --background-color: var(--background-color-light);
+                --text-color: var(--text-color-light);
+                --border-color: var(--border-color-light);
+                --header-bg: var(--header-bg-light);
+                --selected-cell: var(--selected-cell-light);
+                --selected-border: var(--selected-border-light);
+                --range-selected: var(--range-selected-light);
+                --range-border: var(--range-border-light);
+                --formula-bar-bg: var(--formula-bar-bg-light);
+            }
+
+            .theme-dark {
+                --primary-color: var(--primary-color-dark);
+                --primary-hover: var(--primary-hover-dark);
+                --background-color: var(--background-color-dark);
+                --text-color: var(--text-color-dark);
+                --border-color: var(--border-color-dark);
+                --header-bg: var(--header-bg-dark);
+                --selected-cell: var(--selected-cell-dark);
+                --selected-border: var(--selected-border-dark);
+                --range-selected: var(--range-selected-dark);
+                --range-border: var(--range-border-dark);
+                --formula-bar-bg: var(--formula-bar-bg-dark);
+            }
+
+            /* ...existing code... */
                 .selected {
                     background-color: #ffeeba;
                     border: 2px solid #ff9900;
+                }
+                .range-selected {
+                    background-color: #d0f0fd;
+                    border: 1px solid #00aaff;
+                }
+                .highlight-column {
+                    background-color: pink;
                 }
                 .status-bar p {
                     font-weight: bold;
                     margin: 10px;
                     color: #333;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    padding: 10px;
+                    border-radius: 4px;
+                    background: white;
+                }
+                .table-container h3 {
+                    color: #333;
+                    margin-bottom: 15px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: center;
+                }
+                th {
+                    background-color: #f5f5f5;
+                }
+                /* Specific styles for the complete table */
+                .complete-table {
+                    border: none;
+                    max-width: 100%;
+                    overflow-x: auto;
+                    display: block;
+                }
+                .complete-table td {
+                    border: none;
+                    padding: 0;
+                    width: 10px;
+                    height: 10px;
+                    min-width: 10px;
+                    min-height: 10px;
+                }
+                .complete-table tr:hover {
+                    background: none;
                 }
             "}
             </style>
@@ -304,7 +783,10 @@ pub fn app() -> Html {
                     // })}
                     placeholder="Enter formula eg. SUM(B1:B10)"
                 />
-                <button onclick={on_submit_formula}>{"Apply"}</button>
+                <button style="margin-right: 10px;" onclick={on_submit_formula}>{"Apply"}</button>
+                <button style="margin-right: 10px;" onclick={on_undo}>{"Undo"}</button>
+                <button onclick={on_redo}>{"Redo"}</button>
+
             </div>
             <div class="status-bar">
                 <p>{ (*status_message).clone() }</p>
@@ -322,108 +804,102 @@ pub fn app() -> Html {
                     {" to "}
                     <input type="number" value={(*cols2).to_string()} oninput={on_cols2_change} min="1" max="100"/>
                 </div>
-                <div>
-                    <label>{"Chart Type: "}</label>
+                <div style="margin-left: 20px;">
+                    <label>{"Chart: "}</label>
                     <select value={(*chart_type).clone()} onchange={on_chart_type_change}>
                         <option value="bar">{"Bar"}</option>
                         <option value="line">{"Line"}</option>
                     </select>
                 </div>
+                <div>
+                    <button onclick={
+                        Callback::from(move |_| {
+                            if let Some(window) = web_sys::window() {
+                                if let Some(document) = window.document() {
+                                    if let Some(body) = document.body() {
+                                        let element: &web_sys::Element = body.dyn_ref().unwrap();
+                                        if element.class_name().contains("theme-light") {
+                                            element.set_class_name("theme-dark");
+                                        } else {
+                                            element.set_class_name("theme-light");
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    }>
+                        {"Toggle Theme"}
+                    </button>
+                </div>
+                <div>
+                    <button onclick={
+                        let show_full_table = show_full_table.clone();
+                        Callback::from(move |_| {
+                            show_full_table.set(!*show_full_table);
+                        })
+                    }>
+                        {if *show_full_table { "Hide Image" } else { "Generate Image" }}
+                    </button>
+                </div>
             </div>
 
             {if let Some(col) = *selected_column_for_chart {
                 let data = get_column_data(col);
-                let y_max = data.iter().map(|(_, y, _)| *y).fold(0.0f32, |a, b| a.max(b));
-                let x_max = data.len() as f32;
-
-                // SVG dimensions
-                let width = 800.0;
-                let height = 500.0;
-                let margin = 60.0;
-                let chart_width = width - 2.0 * margin;
-                let chart_height = height - 2.0 * margin;
-
-                let x_scale = Rc::new(LinearScale::new(
-                    Range { start: 0.0, end: x_max },
-                    1.0
-                )) as Rc<dyn Scale<Scalar = f32>>;
-
-                let y_scale = Rc::new(LinearScale::new(
-                    Range { start: 0.0, end: y_max * 1.1 },
-                    (y_max / 5.0).max(1.0)
-                )) as Rc<dyn Scale<Scalar = f32>>;
 
                 html! {
-                    <div class="chart-container">
-                        <svg
-                            width={width.to_string()}
-                            height={height.to_string()}
-                            style="background: white;"
-                        >
-                            // Y-axis (left side)
-                            <g transform={format!("translate({},{})", margin, margin)}>
-                                <Axis<f32>
-                                    name="y-axis"
-                                    orientation={Orientation::Left}
-                                    scale={y_scale.clone()}
-                                    tick_len={5.0}
-                                    x1={0.0}
-                                    y1={0.0}
-                                    xy2={chart_height}
-                                    title="Value"
-                                />
-                            </g>
+                    <div>
+                        <h2>{ format!("Chart for Column {}", number_to_column_label(col)) }</h2>
+                        <CanvasChart
+                            data={data.iter().map(|(x, y, _)| (*x, *y)).collect::<Vec<(f32, f32)>>()}
+                            chart_type={(*chart_type).clone()}
+                        />
 
-                            // X-axis (bottom)
-                            <g transform={format!("translate({},{})", margin, height - margin)}>
-                                <Axis<f32>
-                                    name="x-axis"
-                                    orientation={Orientation::Bottom}
-                                    scale={x_scale.clone()}
-                                    tick_len={5.0}
-                                    x1={0.0}
-                                    y1={0.0}
-                                    xy2={chart_width}
-                                    title="Row"
-                                />
-                            </g>
-
-                            // Chart series
-                            <g transform={format!("translate({},{})", margin, height - margin)}>
-                                <g transform="scale(1,-1)">
-                                    <Series<f32, f32>
-                                        data={Rc::new(data)}
-                                        height={chart_height}
-                                        width={chart_width}
-                                        x={0.0}
-                                        y={0.0}
-                                        horizontal_scale={x_scale}
-                                        vertical_scale={y_scale}
-                                        name={format!("Column {}", number_to_column_label(col))}
-                                        series_type={if (*chart_type).as_str() == "bar" { Type::Bar(BarType::Rise) } else { Type::Line }}
-                                    />
-                                </g>
-                            </g>
-                        </svg>
                     </div>
                 }
             } else {
                 html! {}
             }}
 
+            { if let Some(label) = &selected_range_label {
+                html! {
+                    <div style="margin: 8px 0; font-weight: bold;">
+                        { format!("Selected Range: {}", label) }
+                        <br/>
+                        {
+                            if let Some((sum, min, max, avg, stdev)) = &selected_range_stats {
+                                html! {
+                                    <div style="font-weight: normal; margin-top: 4px;">
+                                        { format!("Sum = {sum}, Min = {min}, Max = {max}, Avg = {:.2}, Stdev = {:.2}", avg, stdev) }
+                                    </div>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        }
+                    </div>
+                }
+            } else {
+                html! {}
+            } }
+
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th></th>
-                            { for (*cols1..=*cols2).map(|col| {
+                            { for (*cols1..=(*cols2).min(table.columns - 1)).map(|column| {
                                 let onclick = {
                                     let on_chart_column_select = on_chart_column_select.clone();
-                                    let col = col.clone();
-                                    Callback::from(move |_| on_chart_column_select.emit(col))
+                                    Callback::from(move |_| on_chart_column_select.emit(column))
                                 };
+                                let is_col_selected = Some(column) == *selected_column_for_chart;
                                 html! {
-                                    <th onclick={onclick}>{ number_to_column_label(col) }</th>
+                                    <th
+                                        onclick={onclick}
+                                        class={if is_col_selected { "highlight-column" } else { "" }}
+                                    >
+                                        { number_to_column_label(column) }
+                                    </th>
                                 }
                             }) }
                         </tr>
@@ -438,11 +914,19 @@ pub fn app() -> Html {
                                         let cell_value = table.cells
                                             .get(row)
                                             .and_then(|r| r.get(col))
-                                            .map(|v| v.to_string())
+                                            .map(|v| v.map_or("ERR".to_string(), |n| n.to_string()))
                                             .unwrap_or_else(|| "ERR".to_string());
+
                                         let is_selected = selected_cell.as_ref()
                                             .map(|sc| sc.row == row && sc.col == col)
                                             .unwrap_or(false);
+
+                                        let in_range = selected_range.as_ref()
+                                            .map(|range| is_cell_in_range(row, col, range))
+                                            .unwrap_or(false);
+
+                                        let is_in_selected_col = Some(col) == *selected_column_for_chart;
+
                                         let onclick = {
                                             let on_cell_click = on_cell_click.clone();
                                             let row = row;
@@ -454,7 +938,17 @@ pub fn app() -> Html {
                                         html! {
                                             <td
                                                 onclick={onclick}
-                                                class={if is_selected { "selected" } else { "" }}
+                                                class={
+                                                    if is_selected {
+                                                        "selected"
+                                                    } else if in_range {
+                                                        "range-selected"
+                                                    } else if is_in_selected_col {
+                                                        "highlight-column"
+                                                    } else {
+                                                        ""
+                                                    }
+                                                }
                                             >
                                                 { cell_value }
                                             </td>
@@ -466,6 +960,46 @@ pub fn app() -> Html {
                     </tbody>
                 </table>
             </div>
+            
+            {if *show_full_table {
+                html! {
+                    <div class="table-container">
+                        <h3>{"Image View"}</h3>
+                        <table class="complete-table">
+                            <tbody>
+                                { for (1..=table.rows).map(|row| {
+                                    html! {
+                                        <tr>
+                                            { for (1..=table.columns).map(|col| {
+                                                let cell_value = table.cells
+                                                    .get(row)
+                                                    .and_then(|r| r.get(col))
+                                                    .map(|v| v.map_or("ERR".to_string(), |n| n.to_string()))
+                                                    .unwrap_or_else(|| "".to_string());
+
+                                                let bg_color = if let Ok(num) = cell_value.parse::<u32>() {
+                                                    let (r, g, b) = number_to_rgb(num);
+                                                    format!("rgb({}, {}, {})", r, g, b)
+                                                } else {
+                                                    "white".to_string()
+                                                };
+
+                                                html! {
+                                                    <td style={format!("background-color: {}", bg_color)}>
+                                                        { " " }
+                                                    </td>
+                                                }
+                                            }) }
+                                        </tr>
+                                    }
+                                }) }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            } else {
+                html! {}
+            }}
         </div>
     }
 }
