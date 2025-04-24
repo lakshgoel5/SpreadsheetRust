@@ -83,7 +83,7 @@ pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]
 pub fn min_function(
     value1: Coordinates,
     value2: Coordinates,
-    grid: &Vec<Vec<Node>>,
+    grid: &[Vec<Node>],
 ) -> Option<i32> {
     // Both are cell references
     let mut min_val = i32::MAX;
@@ -105,7 +105,7 @@ pub fn min_function(
 pub fn avg_function(
     value1: Coordinates,
     value2: Coordinates,
-    grid: &Vec<Vec<Node>>,
+    grid: &[Vec<Node>],
 ) -> Option<i32> {
     let mut sum = 0;
     let mut count = 0;
@@ -125,7 +125,7 @@ pub fn avg_function(
 pub fn sum_function(
     value1: Coordinates,
     value2: Coordinates,
-    grid: &Vec<Vec<Node>>,
+    grid: &[Vec<Node>],
 ) -> Option<i32> {
     let mut sum = 0;
     for i in value1.row..=value2.row {
@@ -143,7 +143,7 @@ pub fn sum_function(
 pub fn stdev_function(
     value1: Coordinates,
     value2: Coordinates,
-    grid: &Vec<Vec<Node>>,
+    grid: &[Vec<Node>],
 ) -> Option<i32> {
     let mut sum = 0f64;
     let mut count = 0;
@@ -191,8 +191,5 @@ pub fn stdev_function(
 
 // arith operations - tbd
 pub fn is_arithmetic(op: Operation) -> bool {
-    match op {
-        Operation::Add | Operation::Sub | Operation::Mul | Operation::Div => true,
-        _ => false,
-    }
+    matches!(op, Operation::Add | Operation::Sub | Operation::Mul | Operation::Div)
 }

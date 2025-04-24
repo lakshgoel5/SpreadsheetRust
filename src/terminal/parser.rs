@@ -46,9 +46,7 @@ pub fn validate(
         }
     }
 
-    let Some((cell, exp)) = cmd.split_once('=') else {
-        return None;
-    };
+    let (cell, exp) = cmd.split_once('=')?;
 
     let cell = String::from(cell).trim().to_string();
     let cell = is_cell(&cell, rows, columns);

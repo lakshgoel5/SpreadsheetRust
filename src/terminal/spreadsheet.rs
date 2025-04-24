@@ -34,11 +34,11 @@ fn column_decoder(mut j: usize) -> String {
 }
 
 // , graph: &Graph
-pub fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid: &mut Vec<Vec<Node>>) {
+pub fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid: &mut [Vec<Node>]) {
     let max_x = cmp::min(9 + start_x, r);
     let max_y = cmp::min(9 + start_y, c);
 
-    for i in start_x - 1..=max_x {
+    for (i, _row) in grid.iter().enumerate().take(max_x + 1).skip(start_x - 1) {
         for j in start_y - 1..=max_y {
             if i == start_x - 1 && j == start_y - 1 {
                 print!("{:>12}", " ");
@@ -131,7 +131,7 @@ pub fn process_command(
     match parser::validate(command, &r, &c) {
         Some((Some(Value::Cell(col, row)), Some(Value::Oper(v1, v2, op)))) => {
             // Handle special operations
-            if (op == Operation::Scrollto) {
+            if op == Operation::Scrollto {
                 {
                     *start_x = row as usize;
                     *start_y = col as usize;

@@ -287,7 +287,7 @@ pub fn topological_sort(
 }
 
 // function that sets node value according to its operation
-pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
+pub fn evaluate_node(graph: &mut [Vec<Node>], coord: Coordinates) {
     let row = coord.row as usize;
     let col = coord.col as usize;
 
@@ -516,6 +516,7 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
                 node.valid = false;
             }
         }
+        #[allow(clippy::if_same_then_else)]
         Operation::Cons => {
             // Handle constant assignment
             // No operation needed, just set the value
@@ -537,7 +538,7 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
     }
 }
 
-pub fn has_cycle(target: Coordinates, graph: &mut Vec<Vec<Node>>) -> bool {
+pub fn has_cycle(target: Coordinates, graph: &mut [Vec<Node>]) -> bool {
     // check for cycle using iterative DFS
     // use stack
     // reset visited flags
