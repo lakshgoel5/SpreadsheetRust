@@ -47,10 +47,10 @@ pub fn print_grid(start_x: usize, start_y: usize, r: usize, c: usize, grid: &mut
             } else if j == start_y - 1 {
                 print!("{:>12}", i);
             } else if grid[i][j].valid {
-                    print!("{:>12}", grid[i][j].node_value);
-                } else {
-                    print!("{:>12}", "ERR");
-                }
+                print!("{:>12}", grid[i][j].node_value);
+            } else {
+                print!("{:>12}", "ERR");
+            }
         }
         println!();
     }

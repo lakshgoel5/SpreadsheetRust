@@ -512,8 +512,7 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
                 node.valid = true;
                 node.node_value = value1_node_value;
                 std::thread::sleep(std::time::Duration::from_secs(value1_node_value as u64));
-            }
-             else {
+            } else {
                 node.valid = false;
             }
         }
@@ -528,11 +527,11 @@ pub fn evaluate_node(graph: &mut Vec<Vec<Node>>, coord: Coordinates) {
             }
             // C
             else if value1_valid {
-                    node.valid = true;
-                    node.node_value = value1_node_value;
-                } else {
-                    node.valid = false;
-                }
+                node.valid = true;
+                node.node_value = value1_node_value;
+            } else {
+                node.valid = false;
+            }
         }
         _ => {}
     }

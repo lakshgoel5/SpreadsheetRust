@@ -944,8 +944,6 @@ pub fn app() -> Html {
 
                                         let onclick = {
                                             let on_cell_click = on_cell_click.clone();
-                                            let row = row;
-                                            let col = col;
                                             Callback::from(move |_| {
                                                 on_cell_click.emit(SelectedCell { row, col });
                                             })

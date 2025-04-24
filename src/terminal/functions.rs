@@ -62,11 +62,7 @@ pub enum Value {
 // handle sleep individually
 
 // range based functions
-pub fn max_function(
-    value1: Coordinates,
-    value2: Coordinates,
-    grid: &[Vec<Node>],
-) -> Option<i32> {
+pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]) -> Option<i32> {
     // Both are cell references
     let mut max_val = i32::MIN;
     // bool flag = false;
