@@ -7,10 +7,8 @@ use crate::terminal::parser;
 use crate::terminal::functions::Operation;
 use crate::terminal::types::Coordinates;
 use std::cmp;
-use std::env;
-use std::ffi::CString;
-use std::io::{self, BufRead, Write};
-use std::ptr;
+use std::io;
+use std::io::Write;
 const MAX_ROW: usize = 999;
 const MAX_COLUMN: usize = 18278;
 
@@ -79,6 +77,7 @@ fn is_number(str: &str) -> bool {
 
 // , graph: &Graph // debug
 // this processes commands and prints the grid
+#[allow(unreachable_code)]
 pub fn process_command(
     command: &str,
     start_x: &mut usize,
@@ -193,7 +192,7 @@ pub fn process_command(
 
             return status;
         }
-        Some((None, Some(Value::Oper(v1, v2, op)))) => {
+        Some((None, Some(Value::Oper(_v1, _v2, op)))) => {
             // Handle special operations
             match op {
                 Operation::EnableOutput => {
@@ -223,7 +222,7 @@ pub fn process_command(
     1
 }
 
-pub fn process_first(x: usize, command: &[String], is_disabled: &mut bool) -> bool {
+pub fn process_first(x: usize, command: &[String], _is_disabled: &mut bool) -> bool {
     if x != 3 {
         return false;
     }

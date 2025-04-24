@@ -1,7 +1,9 @@
-use project::terminal::backend::*;
-use project::terminal::spreadsheet::*;
+// use project::terminal::backend::*;
+// use project::terminal::spreadsheet::*;
 use std::env;
-
+pub mod terminal;
+use crate::terminal::backend::*;
+use crate::terminal::spreadsheet::*;
 use std::io::{self, BufRead, Write};
 use std::time::Instant;
 

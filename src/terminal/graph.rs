@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use crate::terminal::functions::Operation;
 use crate::terminal::types::Coordinates;
-use std::fmt;
+
 #[derive(Debug)]
 
 pub struct Node {
@@ -17,7 +15,7 @@ pub struct Node {
     pub visited: bool,
     pub valid: bool,
 }
-
+#[allow(unused_variables)]
 impl Node {
     pub fn get_value(&self) -> i32 {
         self.node_value
