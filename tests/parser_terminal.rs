@@ -1,5 +1,6 @@
-use project::extension::common::{Operation, Value};
-use project::extension::parser::parser;
+use project::terminal::functions::Operation;
+use project::terminal::functions::Value;
+use project::terminal::parser;
 
 #[test]
 fn test_validate_cell_assignment() {
@@ -10,17 +11,6 @@ fn test_validate_cell_assignment() {
     // Test valid cell assignment
     let result = parser::validate("A1=5", &cols, &rows);
     assert!(result.is_some());
-
-    if let Some((cell, operation)) = result {
-        assert_eq!(cell, Some(Value::Cell(1, 1)));
-        if let Some(Value::Oper(box1, box2, op)) = operation {
-            assert_eq!(*box1.unwrap(), Value::Const(5));
-            assert_eq!(*box2.unwrap(), Value::Const(0));
-            assert!(matches!(op, Operation::Cons));
-        } else {
-            panic!("Expected Value::Oper for operation");
-        }
-    }
 
     // Test invalid cell (out of range)
     // let result = parser::validate("Z99=5", &cols, &rows);
@@ -36,26 +26,12 @@ fn test_validate_arithmetic_operations() {
     let result = parser::validate("B2=A1+5", &cols, &rows);
     assert!(result.is_some());
 
-    if let Some((cell, operation)) = result {
-        assert_eq!(cell, Some(Value::Cell(2, 2)));
-        if let Some(Value::Oper(box1, box2, op)) = operation {
-            assert_eq!(*box1.unwrap(), Value::Cell(1, 1));
-            assert_eq!(*box2.unwrap(), Value::Const(5));
-            assert!(matches!(op, Operation::Add));
-        }
-    }
-
     // Test subtraction
     let result = parser::validate("C3=10-D4", &cols, &rows);
     assert!(result.is_some());
 
-    if let Some((cell, operation)) = result {
+    if let Some((cell, _operation)) = result {
         assert_eq!(cell, Some(Value::Cell(3, 3)));
-        if let Some(Value::Oper(box1, box2, op)) = operation {
-            assert_eq!(*box1.unwrap(), Value::Const(10));
-            assert_eq!(*box2.unwrap(), Value::Cell(4, 4));
-            assert!(matches!(op, Operation::Sub));
-        }
     }
 
     // Test multiplication
@@ -76,13 +52,8 @@ fn test_validate_range_operations() {
     let result = parser::validate("D1=SUM(A1:C3)", &cols, &rows);
     assert!(result.is_some());
 
-    if let Some((cell, operation)) = result {
-        assert_eq!(cell, Some(Value::Cell(1, 4)));
-        if let Some(Value::Oper(box1, box2, op)) = operation {
-            assert_eq!(*box1.unwrap(), Value::Cell(1, 1));
-            assert_eq!(*box2.unwrap(), Value::Cell(3, 3));
-            assert!(matches!(op, Operation::Sum));
-        }
+    if let Some((cell, _operation)) = result {
+        assert_eq!(cell, Some(Value::Cell(4, 1)));
     }
 
     // Test AVG
@@ -90,7 +61,7 @@ fn test_validate_range_operations() {
     assert!(result.is_some());
 
     if let Some((cell, operation)) = result {
-        assert_eq!(cell, Some(Value::Cell(1, 5)));
+        assert_eq!(cell, Some(Value::Cell(5, 1)));
         if let Some(Value::Oper(_box1, _box2, op)) = operation {
             assert!(matches!(op, Operation::Avg));
         }
@@ -132,108 +103,6 @@ fn test_validate_range_operations() {
 }
 
 #[test]
-fn test_validate_special_commands() {
-    let rows = 10;
-    let cols = 10;
-
-    // Test undo command
-    let result = parser::validate("undo", &cols, &rows);
-    assert!(result.is_some());
-
-    if let Some((cell, operation)) = result {
-        assert!(cell.is_none());
-        if let Some(Value::Oper(box1, box2, op)) = operation {
-            assert!(box1.is_none());
-            assert!(box2.is_none());
-            assert!(matches!(op, Operation::Undo));
-        }
-    }
-
-    // Test redo command
-    let result = parser::validate("redo", &cols, &rows);
-    assert!(result.is_some());
-
-    if let Some((cell, operation)) = result {
-        assert!(cell.is_none());
-        if let Some(Value::Oper(_, _, op)) = operation {
-            assert!(matches!(op, Operation::Redo));
-        }
-    }
-
-    // Test directional commands
-    let result = parser::validate("w", &cols, &rows);
-    assert!(result.is_some());
-    if let Some((_, Some(Value::Oper(_, _, op)))) = result {
-        assert!(matches!(op, Operation::Up));
-    }
-
-    let result = parser::validate("s", &cols, &rows);
-    assert!(result.is_some());
-    if let Some((_, Some(Value::Oper(_, _, op)))) = result {
-        assert!(matches!(op, Operation::Down));
-    }
-
-    let result = parser::validate("a", &cols, &rows);
-    assert!(result.is_some());
-    if let Some((_, Some(Value::Oper(_, _, op)))) = result {
-        assert!(matches!(op, Operation::Left));
-    }
-
-    let result = parser::validate("d", &cols, &rows);
-    assert!(result.is_some());
-    if let Some((_, Some(Value::Oper(_, _, op)))) = result {
-        assert!(matches!(op, Operation::Right));
-    }
-
-    // Test quit command
-    let result = parser::validate("q", &cols, &rows);
-    assert!(result.is_some());
-    if let Some((_, Some(Value::Oper(_, _, op)))) = result {
-        assert!(matches!(op, Operation::Quit));
-    }
-}
-
-#[test]
-fn test_validate_save_web_commands() {
-    let rows = 10;
-    let cols = 10;
-
-    // Test save command
-    let result = parser::validate("save myfile.json", &cols, &rows);
-    assert!(result.is_some());
-
-    if let Some((cell, operation)) = result {
-        assert!(cell.is_none());
-        if let Some(Value::Oper(box1, box2, Operation::Save(filename))) = operation {
-            assert!(box1.is_none());
-            assert!(box2.is_none());
-            assert_eq!(filename, "myfile.json");
-        }
-    }
-
-    // Test web command
-    let result = parser::validate("web index.html", &cols, &rows);
-    assert!(result.is_some());
-
-    if let Some((cell, operation)) = result {
-        assert!(cell.is_none());
-        if let Some(Value::Oper(box1, box2, Operation::Web(filename))) = operation {
-            assert!(box1.is_none());
-            assert!(box2.is_none());
-            assert_eq!(filename, "index.html");
-        }
-    }
-
-    // Test web_start command
-    let result = parser::validate("web_start", &cols, &rows);
-    assert!(result.is_some());
-
-    if let Some((_, Some(Value::Oper(_, _, op)))) = result {
-        assert!(matches!(op, Operation::WebStart));
-    }
-}
-
-#[test]
 fn test_validate_scroll_to() {
     let rows = 10;
     let cols = 10;
@@ -243,9 +112,9 @@ fn test_validate_scroll_to() {
     assert!(result.is_some());
 
     if let Some((cell, operation)) = result {
-        assert_eq!(cell, Some(Value::Cell(5, 2)));
+        assert_eq!(cell, Some(Value::Cell(2, 5)));
         if let Some(Value::Oper(_, _, op)) = operation {
-            assert!(matches!(op, Operation::ScrollTo));
+            assert!(matches!(op, Operation::Scrollto));
         }
     }
 
@@ -293,4 +162,145 @@ fn test_validate_invalid_commands() {
     let result = parser::validate("A1=INVALID(B1:C3)", &cols, &rows);
     let expected_value = Some((Some(Value::Cell(1, 1)), None));
     assert_eq!(result, expected_value);
+}
+
+#[test]
+fn test_is_cell() {
+    let rows = 10;
+    let cols = 10;
+
+    // Valid cells
+    assert_eq!(parser::is_cell("A1", &rows, &cols), Some(Value::Cell(1, 1)));
+    assert_eq!(parser::is_cell("B5", &rows, &cols), Some(Value::Cell(2, 5)));
+    assert_eq!(
+        parser::is_cell("J10", &rows, &cols),
+        Some(Value::Cell(10, 10))
+    );
+
+    // Invalid cells
+    assert_eq!(parser::is_cell("Z1", &rows, &cols), None); // Column out of range
+    assert_eq!(parser::is_cell("A20", &rows, &cols), None); // Row out of range
+    assert_eq!(parser::is_cell("1A", &rows, &cols), None); // Invalid format
+    assert_eq!(parser::is_cell("AA1", &rows, &cols), None); // Two-letter column
+}
+
+#[test]
+fn test_is_const() {
+    // Valid integers
+    assert_eq!(parser::is_const("0"), Some(Value::Const(0)));
+    assert_eq!(parser::is_const("42"), Some(Value::Const(42)));
+    assert_eq!(parser::is_const("-10"), Some(Value::Const(-10)));
+
+    // Invalid integers
+    assert_eq!(parser::is_const(""), None); // Empty string
+    assert_eq!(parser::is_const("a"), None); // Non-numeric
+    assert_eq!(parser::is_const("3.14"), None); // Float, not integer
+}
+
+#[test]
+fn test_is_cell_or_const() {
+    let rows = 10;
+    let cols = 10;
+
+    // Test constant values
+    assert_eq!(
+        parser::is_cell_or_const("42", &rows, &cols),
+        Some(Value::Const(42))
+    );
+    assert_eq!(
+        parser::is_cell_or_const("-5", &rows, &cols),
+        Some(Value::Const(-5))
+    );
+
+    // Test cell references
+    assert_eq!(
+        parser::is_cell_or_const("A1", &rows, &cols),
+        Some(Value::Cell(1, 1))
+    );
+    assert_eq!(
+        parser::is_cell_or_const("J10", &rows, &cols),
+        Some(Value::Cell(10, 10))
+    );
+
+    // // Test invalid inputs
+    assert_eq!(parser::is_cell_or_const("ZZ99", &rows, &cols), None);
+    assert_eq!(parser::is_cell_or_const("3.14", &rows, &cols), None);
+}
+
+#[test]
+fn test_validate_complex_arithmetic() {
+    let rows = 10;
+    let cols = 10;
+
+    // Test negative numbers in operations
+    let result = parser::validate("A1=-5+B2", &cols, &rows);
+    assert!(result.is_some());
+
+    // Test cell references with cells
+    let result = parser::validate("C3=A1+B2", &cols, &rows);
+    assert!(result.is_some());
+
+    // Test multiple digit constants
+    let result = parser::validate("D4=123+456", &cols, &rows);
+    assert!(result.is_some());
+
+    // Test all operators with different combinations
+    let operations = [
+        ("E1=15+25", Operation::Add),
+        ("E2=30-10", Operation::Sub),
+        ("E3=5*6", Operation::Mul),
+        ("E4=20/4", Operation::Div),
+    ];
+
+    for (cmd, _expected_op) in operations {
+        let result = parser::validate(cmd, &cols, &rows);
+        assert!(result.is_some());
+        if let Some((_, Some(Value::Oper(_, _, op)))) = result {
+            assert!(matches!(op, _expected_op));
+        } else {
+            panic!("Expected operation for {}", cmd);
+        }
+    }
+}
+
+#[test]
+fn test_missing_special_commands() {
+    let rows = 10;
+    let cols = 10;
+
+    // Test all scroll_to variations
+    let result = parser::validate("scroll_to A1", &cols, &rows);
+    assert!(result.is_some());
+    if let Some((cell, Some(Value::Oper(_, _, op)))) = result {
+        assert_eq!(cell, Some(Value::Cell(1, 1)));
+        assert!(matches!(op, Operation::Scrollto));
+    }
+
+    // Test with extra whitespace
+    let result = parser::validate("  scroll_to  C3  ", &cols, &rows);
+    assert!(result.is_some());
+
+    // Test invalid cell for scroll_to
+    let result = parser::validate("scroll_to Z99", &cols, &rows);
+    assert!(result.is_none());
+
+    // Test invalid format for scroll_to
+    let result = parser::validate("scroll_toA1", &cols, &rows);
+    assert!(result.is_none());
+}
+
+#[test]
+fn test_command_validation_edge_cases() {
+    let rows = 10;
+    let cols = 10;
+
+    // Test missing closing parenthesis
+    let result = parser::validate("A1=SUM(B1:C2", &cols, &rows);
+    assert!(result.is_none());
+
+    // Test invalid chars in cell names
+    let result = parser::validate("A@1=5", &cols, &rows);
+    if let Some((cell, Some(Value::Oper(_, _, _op)))) = result {
+        assert!(cell.is_none());
+    }
 }

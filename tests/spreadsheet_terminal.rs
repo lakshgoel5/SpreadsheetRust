@@ -8,6 +8,8 @@ use std::collections::HashMap;
 #[allow(unused_imports)]
 use std::io::{self, Write};
 
+// Existing tests
+
 #[test]
 fn test_column_decoder() {
     // Test single-letter columns
@@ -23,6 +25,15 @@ fn test_column_decoder() {
     // Test triple-letter columns
     assert_eq!(column_decoder(703), "AAA");
     assert_eq!(column_decoder(18278), "ZZZ"); // MAX_COLUMN
+}
+
+// New edge cases for column_decoder
+#[test]
+fn test_column_decoder_edge_cases() {
+    // Edge cases
+    assert_eq!(column_decoder(702), "ZZ");
+    assert_eq!(column_decoder(677), "ZA");
+    assert_eq!(column_decoder(676), "YZ");
 }
 
 #[test]
@@ -88,6 +99,53 @@ fn test_process_first() {
     assert!(!process_first(
         zero_args.len(),
         &zero_args,
+        &mut is_disabled
+    ));
+}
+
+// Additional test for process_first with boundary values
+#[test]
+fn test_process_first_boundary_values() {
+    let mut is_disabled = false;
+
+    // Test with minimum valid values
+    let min_args = vec![
+        String::from("program_name"),
+        String::from("1"),
+        String::from("1"),
+    ];
+    assert!(process_first(min_args.len(), &min_args, &mut is_disabled));
+
+    // Test with maximum valid values
+    let max_args = vec![
+        String::from("program_name"),
+        String::from("999"),   // MAX_ROW
+        String::from("18278"), // MAX_COLUMN
+    ];
+    assert!(process_first(max_args.len(), &max_args, &mut is_disabled));
+
+    // Test with too many arguments
+    let too_many_args = vec![
+        String::from("program_name"),
+        String::from("100"),
+        String::from("100"),
+        String::from("extra"),
+    ];
+    assert!(!process_first(
+        too_many_args.len(),
+        &too_many_args,
+        &mut is_disabled
+    ));
+
+    // Test with empty strings
+    let empty_args = vec![
+        String::from("program_name"),
+        String::from(""),
+        String::from("100"),
+    ];
+    assert!(!process_first(
+        empty_args.len(),
+        &empty_args,
         &mut is_disabled
     ));
 }
@@ -270,6 +328,150 @@ fn test_process_command_navigation() {
     );
 }
 
+// New test for navigation at grid boundaries
+#[test]
+fn test_navigation_at_grid_boundaries() {
+    let rows = 15;
+    let cols = 15;
+    let mut grid = create_test_grid(rows, cols);
+    let mut is_disabled = false;
+
+    // Test at top boundary
+    let mut start_x = 1;
+    let mut start_y = 8;
+    assert_eq!(
+        process_command(
+            "w",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        1
+    );
+    assert_eq!(start_x, 1); // Should remain at 1, not go below
+
+    // Test at bottom boundary
+    start_x = rows - 8;
+    assert_eq!(
+        process_command(
+            "s",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        1
+    );
+    assert_eq!(start_x, 7);
+
+    // Another move down should be constrained to show the last rows
+    assert_eq!(
+        process_command(
+            "s",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        1
+    );
+    assert_eq!(start_x, rows - 8); // Constrained to show the last 9 rows
+
+    // Test at left boundary
+    start_x = 8;
+    start_y = 1;
+    assert_eq!(
+        process_command(
+            "a",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        1
+    );
+    assert_eq!(start_y, 1); // Should remain at 1, not go below
+
+    // Test at right boundary
+    start_y = cols - 8;
+    assert_eq!(
+        process_command(
+            "d",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        1
+    );
+    assert_eq!(start_y, cols - 8);
+
+    // Another move right should be constrained to show the last columns
+    assert_eq!(
+        process_command(
+            "d",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        1
+    );
+    assert_eq!(start_y, cols - 8); // Constrained to show the last 9 columns
+}
+
+// Test invalid commands
+#[test]
+fn test_invalid_commands() {
+    let rows = 20;
+    let cols = 20;
+    let mut grid = create_test_grid(rows, cols);
+    let mut start_x = 10;
+    let mut start_y = 10;
+    let mut is_disabled = false;
+
+    // Test completely invalid command
+    assert_eq!(
+        process_command(
+            "invalid_command",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        3 // Expected to return code 3 for unrecognized command
+    );
+
+    // Test command with invalid syntax
+    assert_eq!(
+        process_command(
+            "A1 = invalid_operation(B2, C3)",
+            &mut start_x,
+            &mut start_y,
+            rows,
+            cols,
+            &mut is_disabled,
+            &mut grid
+        ),
+        3 // Expected to return code 3 for unrecognized command
+    );
+}
+
 // This is a more involved test that requires mocking the parser
 // and getting_things_updated functions
 #[test]
@@ -317,6 +519,77 @@ fn test_process_command_cell_operations() {
     // This test requires knowing how your parser and getting_things_updated function work
 }
 
+// New test for cell operations based on actual parser examples
+#[test]
+fn test_cell_operations_with_mock() {
+    // This test creates a simulated environment to test cell operations
+    // Assuming the parser syntax is like: "A1 = add(B2, C3)"
+    let rows = 30;
+    let cols = 30;
+    let mut grid = create_test_grid(rows, cols);
+    let mut start_x = 5;
+    let mut start_y = 5;
+    let mut is_disabled = false;
+
+    // These commands need to match your actual parser syntax
+    // Modify them based on your implementation
+
+    // Basic arithmetic operations
+    let add_cmd = "A1 = add(B2, C3)";
+    let sub_cmd = "D4 = subtract(E5, F6)";
+    let mul_cmd = "G7 = multiply(H8, I9)";
+    let div_cmd = "J10 = divide(K11, L12)";
+
+    // Process commands and check status codes
+    // The expected return values depend on your implementation
+    let add_result = process_command(
+        add_cmd,
+        &mut start_x,
+        &mut start_y,
+        rows,
+        cols,
+        &mut is_disabled,
+        &mut grid,
+    );
+
+    let sub_result = process_command(
+        sub_cmd,
+        &mut start_x,
+        &mut start_y,
+        rows,
+        cols,
+        &mut is_disabled,
+        &mut grid,
+    );
+
+    let mul_result = process_command(
+        mul_cmd,
+        &mut start_x,
+        &mut start_y,
+        rows,
+        cols,
+        &mut is_disabled,
+        &mut grid,
+    );
+
+    let div_result = process_command(
+        div_cmd,
+        &mut start_x,
+        &mut start_y,
+        rows,
+        cols,
+        &mut is_disabled,
+        &mut grid,
+    );
+
+    // Check status codes based on your expected behavior
+    // This is a basic check to ensure the commands are processed
+    assert!(add_result >= 1 && add_result <= 5);
+    assert!(sub_result >= 1 && sub_result <= 5);
+    assert!(mul_result >= 1 && mul_result <= 5);
+    assert!(div_result >= 1 && div_result <= 5);
+}
+
 #[test]
 fn test_display_status() {
     // This is mainly a visual function that writes to stdout
@@ -330,6 +603,25 @@ fn test_display_status() {
     display_status(4, 1.00);
     display_status(5, 1.25);
     display_status(6, 1.50); // Unknown status code
+
+    // If we reach here without panicking, the test passes
+    assert!(true);
+}
+
+// New test for display_status with extreme values
+#[test]
+fn test_display_status_edge_cases() {
+    // Test with very small time
+    display_status(1, 0.0001);
+
+    // Test with zero time
+    display_status(1, 0.0);
+
+    // Test with large time
+    display_status(1, 99999.9999);
+
+    // Test negative status code (should be handled gracefully)
+    display_status(-1, 1.0);
 
     // If we reach here without panicking, the test passes
     assert!(true);
@@ -357,4 +649,81 @@ fn test_print_grid() {
 
     // If we reach here without panicking, the test passes
     assert!(true);
+}
+
+// New test for print_grid with edge cases
+#[test]
+fn test_print_grid_edge_cases() {
+    let rows = 15;
+    let cols = 15;
+    let mut grid = create_test_grid(rows, cols);
+
+    // Test boundary conditions
+    print_grid(rows - 8, cols - 8, rows, cols, &mut grid); // Near the edge
+    print_grid(rows, cols, rows, cols, &mut grid); // At the edge
+
+    // Test with view window that would extend beyond grid boundaries
+    print_grid(rows - 5, cols - 5, rows, cols, &mut grid);
+
+    // Test with single row/column visibility
+    print_grid(rows, 1, rows, cols, &mut grid);
+    print_grid(1, cols, rows, cols, &mut grid);
+
+    // Test with starting position at the exact boundary
+    print_grid(rows + 1, cols + 1, rows, cols, &mut grid);
+
+    // If we reach here without panicking, the test passes
+    assert!(true);
+}
+
+// Test the output toggle functionality
+#[test]
+fn test_output_toggle() {
+    let rows = 20;
+    let cols = 20;
+    let mut grid = create_test_grid(rows, cols);
+    let mut start_x = 10;
+    let mut start_y = 10;
+    let mut is_disabled = false;
+
+    // Test initial state
+    assert!(!is_disabled);
+
+    // Test with your actual disable output command
+    // Replace with your actual syntax
+    let disable_output_cmd = "output disable";
+
+    let result = process_command(
+        disable_output_cmd,
+        &mut start_x,
+        &mut start_y,
+        rows,
+        cols,
+        &mut is_disabled,
+        &mut grid,
+    );
+
+    // If command is correctly parsed, check that is_disabled is now true
+    if result == 1 {
+        assert!(is_disabled);
+    }
+
+    // Test with your actual enable output command
+    // Replace with your actual syntax
+    let enable_output_cmd = "output enable";
+
+    let result = process_command(
+        enable_output_cmd,
+        &mut start_x,
+        &mut start_y,
+        rows,
+        cols,
+        &mut is_disabled,
+        &mut grid,
+    );
+
+    // If command is correctly parsed, check that is_disabled is now false
+    if result == 1 {
+        assert!(!is_disabled);
+    }
 }

@@ -77,7 +77,7 @@ pub enum Operation {
 ///
 /// Values can be cell references, constants, or operations involving
 /// other values.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Value {
     /// A cell reference with row and column indices
     Cell(i32, i32),

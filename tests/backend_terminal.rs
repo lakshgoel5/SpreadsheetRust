@@ -500,4 +500,67 @@ mod tests {
         assert_eq!(stack[1], b1); // B1 should be second
         assert_eq!(stack[2], a1); // A1 should be last
     }
+    #[test]
+    fn test_evaluate_node_sleep() {
+        let mut grid = generate_grid(3, 3);
+        let a1 = Coordinates { row: 1, col: 1 };
+
+        grid[1][1].op = Operation::Slp;
+        grid[1][1].value1 = Coordinates { row: 1, col: -1 };
+
+        evaluate_node(&mut grid, a1);
+
+        assert_eq!(grid[1][1].node_value, 1);
+        assert!(grid[1][1].valid);
+    }
+    #[test]
+    fn test_evaluate_node_std_range() {
+        let mut grid = generate_grid(3, 3);
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b2 = Coordinates { row: 2, col: 2 };
+        let d1 = Coordinates { row: 1, col: 3 };
+
+        // Fill A1:B2 with constants
+        for i in 1..=2 {
+            for j in 1..=2 {
+                grid[i][j].op = Operation::Cons;
+                grid[i][j].value1 = Coordinates {
+                    row: 5 * (i + j) as i32,
+                    col: -1,
+                };
+                evaluate_node(
+                    &mut grid,
+                    Coordinates {
+                        row: i as i32,
+                        col: j as i32,
+                    },
+                );
+            }
+        }
+
+        grid[1][3].op = Operation::Std;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b2;
+
+        evaluate_node(&mut grid, d1);
+
+        assert!(grid[1][3].valid);
+    }
+    #[test]
+    fn test_add_and_break_edges_old_dependencies() {
+        let mut grid = generate_grid(3, 3);
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Initial: C1 = A1 + B1
+        getting_things_updated(&mut grid, c1, a1, b1, Operation::Add);
+
+        // Update C1 = A1 - B1 (this should break previous edges using old values)
+        getting_things_updated(&mut grid, c1, a1, b1, Operation::Sub);
+
+        // C1 should still be dependent on A1 and B1 (new op)
+        assert!(grid[1][1].dependents.contains(&c1));
+        assert!(grid[1][2].dependents.contains(&c1));
+    }
 }
