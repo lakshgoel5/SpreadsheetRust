@@ -122,7 +122,46 @@ fn test_process_command_disable() {
 
     // Test SUM function
     let status = backend.process_command(10, 10, "disable_output".to_string());
-    assert_eq!(status, Status::Success);
+    assert_eq!(status, Status::PrintDisabled);
+}
+
+#[test]
+fn test_process_command_right() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+
+    // Test SUM function
+    let status = backend.process_command(10, 10, "d".to_string());
+    assert_eq!(status, Status::Right);
+}
+
+#[test]
+fn test_process_command_down() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+
+    // Test SUM function
+    let status = backend.process_command(10, 10, "s".to_string());
+    assert_eq!(status, Status::Down);
+}
+
+#[test]
+fn test_process_command_left() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+
+    // Test SUM function
+    let status = backend.process_command(10, 10, "a".to_string());
+    assert_eq!(status, Status::Left);
 }
 
 #[test]
@@ -135,7 +174,7 @@ fn test_process_command_up() {
 
     // Test SUM function
     let status = backend.process_command(10, 10, "w".to_string());
-    assert_eq!(status, Status::Success);
+    assert_eq!(status, Status::Up);
 }
 
 #[test]
