@@ -67,10 +67,7 @@ jobs:
           args: --no-deps
 
       - name: Test coverage
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.23.0'
-          args: '--out Xml'
+        run: cargo install cargo-tarpaulin && cargo tarpaulin --out Xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
