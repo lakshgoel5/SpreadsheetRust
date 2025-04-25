@@ -172,6 +172,8 @@ impl Frontend {
                 Command::new("trunk")
                     .arg("serve")
                     .arg("--open")
+                    .arg("--port")
+                    .arg("8000")
                     .env("LOAD", "1")
                     .spawn()
                     .expect("Failed to start trunk")
@@ -190,7 +192,9 @@ impl Frontend {
                 Command::new("trunk")
                     .arg("serve")
                     .arg("--open")
-                    // .env("LOAD", "1") // Your web.rs already reads this
+                    .arg("--port")
+                    .arg("8000")
+                    .env("LOAD", "1") // Your web.rs already reads this
                     .spawn()
                     .expect("Failed to start trunk")
                     .wait()

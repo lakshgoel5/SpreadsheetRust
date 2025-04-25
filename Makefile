@@ -43,7 +43,7 @@ ext1:
 	./target/release/extension 20 20
 
 ext2:
-	trunk serve --open
+	trunk serve --open --port 8000
 # Run the binary with env vars unset
 run: $(TARGET_PATH)
 	@$(UNSET_ENV) $(TARGET_PATH) $(ARGS)
@@ -57,3 +57,9 @@ $(PDF_FILE): report.tex
 # Clean target
 clean:
 	cargo clean
+
+coverage:
+	cargo tarpaulin --exclude-files "src/extension/frontend/web.rs" --exclude-files "src/main.rs" --exclude-files "src/extension_main.rs"
+
+test:
+	@$(UNSET_ENV) cargo test --release
