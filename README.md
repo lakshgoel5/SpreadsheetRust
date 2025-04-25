@@ -18,7 +18,7 @@ A versatile and feature-rich spreadsheet application implemented in Rust with bo
 ## Prerequisites
 - Rust (latest stable version recommended)
 - pkg-config
-- libfontconfig1-dev (for Linux systems)
+- libfontconfig1-dev pkg-config (for Linux systems)
 - wasm-bindgen (for web extension)
 - trunk (for web extension)
 
