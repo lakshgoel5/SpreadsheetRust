@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 pub struct Grid {
     rows: usize,
     columns: usize,
-    cells_vec: Vec<Vec<Node>>,
+    pub cells_vec: Vec<Vec<Node>>,
 }
 ///Data structure to represent status of command
 #[derive(PartialEq, Debug)]
@@ -52,6 +52,9 @@ impl Grid {
             cells_vec: vec![vec![Node::new(0); columns]; rows],
         }
     }
+    pub fn set_node(&mut self, row: usize, col: usize, node: Node) {
+        self.cells_vec[row][col] = node;
+    }
     pub fn get_row_size(&self) -> usize {
         self.rows
     }
@@ -79,7 +82,7 @@ pub struct Valgrid {
 ///Struct that contains data structure as well as methods
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Backend {
-    grid: Grid,
+    pub grid: Grid,
     undo_stack: Vec<Grid>,
     redo_stack: Vec<Grid>,
 }

@@ -1,8 +1,6 @@
-use project::extension::backend::backend::Grid;
-use project::extension::backend::node::*;
+use project::extension::backend::backend::*;
+use project::extension::backend::graph::*;
 use project::extension::common::{Operation, Value};
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[cfg(test)]
 mod node_tests {
@@ -408,7 +406,7 @@ mod node_tests {
         // Now change formula: C3 = D4 * 5
         let func2 = Some(Value::Oper(
             Some(Box::new(d4.clone())),
-            Some(Box::new(Value::Num(5.0))),
+            Some(Box::new(Value::Const(5))),
             Operation::Mul,
         ));
 
@@ -429,7 +427,7 @@ mod node_tests {
         // Try to create a cycle: D4 = C3 (should fail)
         let cycle_func = Some(Value::Oper(
             Some(Box::new(c3.clone())),
-            Some(Box::new(Value::Num(2.0))),
+            Some(Box::new(Value::Const(2))),
             Operation::Mul,
         ));
 

@@ -19,10 +19,10 @@ use std::time::{Duration, Instant};
 /// of the spreadsheet, handling display, user input, and interaction
 /// with the backend.
 pub struct Frontend {
-    start: Value,
-    dimension: Value,
-    backend: Backend,
-    print_enabled: bool,
+    pub start: Value,
+    pub dimension: Value,
+    pub backend: Backend,
+    pub print_enabled: bool,
 }
 
 /// Converts a column number to an Excel-style column label.
@@ -125,7 +125,7 @@ impl Frontend {
     ///
     /// Handles navigation commands (up, down, left, right), display settings,
     /// and custom commands like ScrollTo and Web.
-    fn execute_status(&mut self, status: &Status) {
+    pub fn execute_status(&mut self, status: &Status) {
         match status {
             Status::Left => {
                 if self.start.col() > 10 {
