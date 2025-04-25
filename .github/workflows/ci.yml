@@ -69,12 +69,6 @@ jobs:
       - name: Test coverage
         run: cargo install cargo-tarpaulin && cargo tarpaulin --out Xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: 
-          fail_ci_if_error: true
-
   build:
     name: Build
     runs-on: ubuntu-latest
