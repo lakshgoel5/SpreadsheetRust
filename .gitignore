@@ -5,3 +5,5 @@
 safe.txt
 /dist
 **/.DS_Store
+report.aux
+report.log
