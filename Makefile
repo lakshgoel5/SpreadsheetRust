@@ -52,7 +52,7 @@ docs: $(PDF_FILE)
 	cargo doc --open
 
 $(PDF_FILE): report.tex
-	pdflatex report.tex
+	pdflatex report.tex \n \n
 
 # Clean target
 clean:
