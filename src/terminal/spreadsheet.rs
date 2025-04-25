@@ -1,14 +1,14 @@
 /// Spreadsheet module for the terminal-based interface.
 ///
-/// This module provides functionality for rendering the spreadsheet grid in 
-/// the terminal, handling user commands, and displaying the current state of 
-/// cells to the user. It acts as the frontend for the terminal-based version 
+/// This module provides functionality for rendering the spreadsheet grid in
+/// the terminal, handling user commands, and displaying the current state of
+/// cells to the user. It acts as the frontend for the terminal-based version
 /// of the spreadsheet application.
 use crate::terminal::backend::getting_things_updated;
+use crate::terminal::functions::Operation;
 use crate::terminal::functions::Value;
 use crate::terminal::graph::Node;
 use crate::terminal::parser;
-use crate::terminal::functions::Operation;
 use crate::terminal::types::Coordinates;
 use std::cmp;
 use std::io;
@@ -43,7 +43,7 @@ pub fn column_decoder(mut j: usize) -> String {
 /// # Arguments
 ///
 /// * `start_x` - The starting row index for display
-/// * `start_y` - The starting column index for display 
+/// * `start_y` - The starting column index for display
 /// * `r` - The number of rows in the grid
 /// * `c` - The number of columns in the grid
 /// * `grid` - The spreadsheet grid containing the cells
@@ -172,7 +172,6 @@ pub fn process_command(
                     }
                     return 1;
                 }
-                
             }
 
             let target_cell = Coordinates { row, col };

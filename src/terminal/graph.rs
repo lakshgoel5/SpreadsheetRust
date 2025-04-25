@@ -14,25 +14,25 @@ use crate::terminal::types::Coordinates;
 pub struct Node {
     /// List of cells that depend on this node's value
     pub dependents: Vec<Coordinates>,
-    
+
     /// The computed value of this cell
     pub node_value: i32,
-    
+
     /// First operand for the operation performed by this cell
     pub value1: Coordinates,
-    
+
     /// Second operand for the operation performed by this cell
     pub value2: Coordinates,
-    
+
     /// Position of this cell in the grid
     pub position: Coordinates,
-    
+
     /// The operation performed by this cell
     pub op: Operation,
-    
+
     /// Whether the cell contains a valid value
     pub valid: bool,
-    
+
     /// Used during graph traversal algorithms (e.g., cycle detection)
     pub visited: bool,
 }
@@ -107,7 +107,11 @@ impl Node {
     ///
     /// * `cell` - The coordinates of the cell to add to dependents.
     pub fn add_dep(&mut self, cell: Coordinates) {
-        if !self.dependents.iter().any(|x| x.row == cell.row && x.col == cell.col) {
+        if !self
+            .dependents
+            .iter()
+            .any(|x| x.row == cell.row && x.col == cell.col)
+        {
             self.dependents.push(cell);
         }
     }
@@ -118,7 +122,8 @@ impl Node {
     ///
     /// * `cell` - The coordinates of the cell to remove from dependents.
     pub fn remove_dep(&mut self, cell: Coordinates) {
-        self.dependents.retain(|x| x.row != cell.row || x.col != cell.col);
+        self.dependents
+            .retain(|x| x.row != cell.row || x.col != cell.col);
     }
 
     /// Gets the list of cells that depend on this node's value.

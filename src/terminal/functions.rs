@@ -4,7 +4,7 @@
 /// - Range-based operations (SUM, MIN, MAX, AVG, STDEV)
 /// - Arithmetic operations (Add, Sub, Mul, Div)
 /// - Special operations like Sleep and Constant assignment
-/// 
+///
 /// These functions are the core computational elements of the spreadsheet.
 use crate::terminal::graph::Node;
 use crate::terminal::types::Coordinates;
@@ -17,7 +17,7 @@ use std::cmp::{max, min};
 pub struct Range {
     /// The starting cell (top-left corner) of the range
     pub start: Coordinates,
-    
+
     /// The ending cell (bottom-right corner) of the range
     pub end: Coordinates,
 }
@@ -31,43 +31,43 @@ pub struct Range {
 pub enum Operation {
     /// Assign a constant value to a cell
     Cons,
-    
+
     /// Add two values
     Add,
-    
+
     /// Subtract one value from another
     Sub,
-    
+
     /// Multiply two values
     Mul,
-    
+
     /// Divide one value by another
     Div,
-    
+
     /// Find the minimum value in a range
     Min,
-    
+
     /// Find the maximum value in a range
     Max,
-    
+
     /// Calculate the average of values in a range
     Avg,
-    
+
     /// Calculate the sum of values in a range
     Sum,
-    
+
     /// Calculate the standard deviation of values in a range
     Std,
-    
+
     /// Sleep operation (pause execution)
     Slp,
-    
+
     /// Enable output to the terminal
     EnableOutput,
-    
+
     /// Disable output to the terminal
     DisableOutput,
-    
+
     /// Scroll to a specific cell
     Scrollto,
 }
@@ -86,10 +86,10 @@ impl Default for Operation {
 pub enum Value {
     /// A cell reference with row and column indices
     Cell(i32, i32),
-    
+
     /// A constant integer value
     Const(isize),
-    
+
     /// An operation involving two values and an operator
     Oper(Box<Value>, Box<Value>, Operation),
 }
@@ -132,11 +132,7 @@ pub fn max_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]
 ///
 /// * `Some(i32)` - The minimum value in the range if all cells are valid.
 /// * `None` - If any cell in the range is invalid.
-pub fn min_function(
-    value1: Coordinates,
-    value2: Coordinates,
-    grid: &[Vec<Node>],
-) -> Option<i32> {
+pub fn min_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]) -> Option<i32> {
     let mut min_val = i32::MAX;
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
@@ -162,11 +158,7 @@ pub fn min_function(
 ///
 /// * `Some(i32)` - The average value in the range if all cells are valid.
 /// * `None` - If any cell in the range is invalid.
-pub fn avg_function(
-    value1: Coordinates,
-    value2: Coordinates,
-    grid: &[Vec<Node>],
-) -> Option<i32> {
+pub fn avg_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]) -> Option<i32> {
     let mut sum = 0;
     let mut count = 0;
     for i in value1.row..=value2.row {
@@ -194,11 +186,7 @@ pub fn avg_function(
 ///
 /// * `Some(i32)` - The sum of values in the range if all cells are valid.
 /// * `None` - If any cell in the range is invalid.
-pub fn sum_function(
-    value1: Coordinates,
-    value2: Coordinates,
-    grid: &[Vec<Node>],
-) -> Option<i32> {
+pub fn sum_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]) -> Option<i32> {
     let mut sum = 0;
     for i in value1.row..=value2.row {
         for j in value1.col..=value2.col {
@@ -224,11 +212,7 @@ pub fn sum_function(
 ///
 /// * `Some(i32)` - The standard deviation of values in the range if all cells are valid.
 /// * `None` - If any cell in the range is invalid.
-pub fn stdev_function(
-    value1: Coordinates,
-    value2: Coordinates,
-    grid: &[Vec<Node>],
-) -> Option<i32> {
+pub fn stdev_function(value1: Coordinates, value2: Coordinates, grid: &[Vec<Node>]) -> Option<i32> {
     let mut sum = 0f64;
     let mut count = 0;
 
@@ -279,5 +263,8 @@ pub fn stdev_function(
 /// * `true` - If the operation is Add, Sub, Mul, or Div.
 /// * `false` - Otherwise.
 pub fn is_arithmetic(op: Operation) -> bool {
-    matches!(op, Operation::Add | Operation::Sub | Operation::Mul | Operation::Div)
+    matches!(
+        op,
+        Operation::Add | Operation::Sub | Operation::Mul | Operation::Div
+    )
 }

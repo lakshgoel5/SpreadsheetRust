@@ -181,9 +181,7 @@ pub fn validate(
             cell,
             Some(Value::Oper(Box::new(start), Box::new(end), Operation::Max)),
         )),
-        _ => {
-            Some((cell, None))
-        }
+        _ => Some((cell, None)),
     }
 }
 

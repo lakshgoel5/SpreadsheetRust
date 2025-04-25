@@ -12,7 +12,7 @@ use std::fmt;
 pub struct Coordinates {
     /// The row index (0-based)
     pub row: i32,
-    
+
     /// The column index (0-based)
     pub col: i32,
 }

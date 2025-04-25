@@ -1,3 +1,4 @@
+pub mod backend;
 /// Terminal module for the spreadsheet application.
 ///
 /// This module provides the core functionality for the terminal-based version of the
@@ -10,8 +11,7 @@
 ///
 /// The terminal version allows for interactive use via command-line input.
 pub mod functions;
+pub mod graph;
 pub mod parser;
 pub mod spreadsheet;
-pub mod graph;
 pub mod types;
-pub mod backend;
