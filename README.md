@@ -57,7 +57,6 @@ This project includes a Makefile with various commands to simplify operation:
 - `scroll_to A10`: Jump to a specific cell.
 - `enable_output, disable_output`: Toggle output display.
 - `save filename.json`: Save current spreadsheet state.
-- `load filename.json`: Load spreadsheet from file.
 - `q`: Quit the application.
 
 ## Web Interface
@@ -92,6 +91,10 @@ Generate documentation with:
 make report
 cargo doc --open
 ```
+
+## Other Comments
+- The coverage for cargo-tarpaulin does not include `main.rs`, `extension_main.rs`, `extension/frontend/web.rs`.
+- The web interface is run on localhost::8000 (port 8000) when run from the CLI.
 
 <!-- For terminal:
 cargo run #rows #cols - to specify size to initiate
