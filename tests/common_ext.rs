@@ -7,8 +7,8 @@ pub fn tesst() {
     assert_eq!(my_val, 0);
     let my_val = val.col();
     assert_eq!(my_val, 0);
-    let mut my_val = val.assign_row(2);
+    let my_val = val.assign_row(2);
     assert_eq!(my_val, ());
-    let mut my_val = val.assign_col(3);
+    let my_val = val.assign_col(3);
     assert_eq!(my_val, ());
 }
