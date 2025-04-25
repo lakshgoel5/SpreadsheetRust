@@ -287,7 +287,7 @@ fn test_process_command_navigation() {
     // We'll need to simulate a command that would toggle output
     // Since we don't have direct access to the parser implementation, this is a placeholder
     // You'll need to update this based on your actual implementation
-    let disable_output_cmd = "output disable"; // Replace with your actual command syntax
+    let disable_output_cmd = "disable_output"; // Replace with your actual command syntax
     if let 1 = process_command(
         disable_output_cmd,
         &mut start_x,
@@ -300,7 +300,7 @@ fn test_process_command_navigation() {
         assert!(is_disabled);
     }
 
-    let enable_output_cmd = "output enable"; // Replace with your actual command syntax
+    let enable_output_cmd = "enable_output"; // Replace with your actual command syntax
     if let 1 = process_command(
         enable_output_cmd,
         &mut start_x,
@@ -488,7 +488,7 @@ fn test_process_command_cell_operations() {
 
     // Test scrollto operation
     // Replace with your actual command syntax
-    let scrollto_cmd = "A5 = scrollto(B2, C3)";
+    let scrollto_cmd = "A5 = scroll_to B2";
 
     // For this test to work correctly, you'll need to ensure your parser handles this command
     // and recognizes it as a scrollto operation
@@ -515,7 +515,7 @@ fn test_process_command_cell_operations() {
 
     // Test basic cell operations
     // These depend heavily on your parser implementation
-    let _basic_op_cmd = "B2 = add(C3, 5)";
+    let _basic_op_cmd = "B2 = C3 + 5";
     // This test requires knowing how your parser and getting_things_updated function work
 }
 
@@ -535,10 +535,10 @@ fn test_cell_operations_with_mock() {
     // Modify them based on your implementation
 
     // Basic arithmetic operations
-    let add_cmd = "A1 = add(B2, C3)";
-    let sub_cmd = "D4 = subtract(E5, F6)";
-    let mul_cmd = "G7 = multiply(H8, I9)";
-    let div_cmd = "J10 = divide(K11, L12)";
+    let add_cmd = "A1 = B2+C3";
+    let sub_cmd = "D4 = E5-F6";
+    let mul_cmd = "G7 = H8*I9";
+    let div_cmd = "J10 = K11/L12";
 
     // Process commands and check status codes
     // The expected return values depend on your implementation
