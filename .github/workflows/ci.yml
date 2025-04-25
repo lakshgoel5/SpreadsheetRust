@@ -31,6 +31,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-build-
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libfontconfig-dev
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -51,28 +55,28 @@ jobs:
           command: clippy
           args: -- -D warnings
 
-      # - name: Run tests
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
-      # - name: Generate documentation
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: doc
-      #     args: --no-deps
+      - name: Generate documentation
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --no-deps
 
-      # - name: Test coverage
-      #   uses: actions-rs/tarpaulin@v0.1
-      #   with:
-      #     version: '0.23.0'
-      #     args: '--out Xml'
+      - name: Test coverage
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: '0.23.0'
+          args: '--out Xml'
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v3
-      #   with:
-      #     token: 
-      #     fail_ci_if_error: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: 
+          fail_ci_if_error: true
 
   build:
     name: Build
@@ -94,6 +98,10 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libfontconfig-dev
 
       - name: Build
         uses: actions-rs/cargo@v1
