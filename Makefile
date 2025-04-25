@@ -3,7 +3,7 @@
 # Name of the binary (defined in Cargo.toml)
 BIN_NAME=spreadsheet
 EXT1=extension
-
+PDF_FILE = report.pdf
 # Target path for the release binary
 TARGET_PATH=target/release/$(BIN_NAME)
 
@@ -33,14 +33,26 @@ all: prebuild $(TARGET_PATH)
 prebuild:
 	sudo apt update
 	sudo apt install -y libfontconfig1-dev pkg-config
-	
+
 # How to build the binary with env vars unset
 $(TARGET_PATH):
 	@$(UNSET_ENV) cargo build --release --bin $(BIN_NAME)
 
+ext1:
+	@$(UNSET_ENV) cargo build --release --bin $(EXT1)
+	./target/release/extension 20 20
+
+ext2:
+	trunk serve --open
 # Run the binary with env vars unset
 run: $(TARGET_PATH)
 	@$(UNSET_ENV) $(TARGET_PATH) $(ARGS)
+
+docs: $(PDF_FILE)
+	cargo doc --open
+
+$(PDF_FILE): report.tex
+	pdflatex report.tex
 
 # Clean target
 clean:

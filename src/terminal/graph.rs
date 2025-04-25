@@ -138,19 +138,4 @@ impl Node {
     pub fn set_dependents(&mut self, dependents: Vec<Coordinates>) {
         self.dependents = dependents;
     }
-
-    /// Checks for cycles in the dependency graph using efficient DFS.
-    ///
-    /// # Arguments
-    ///
-    /// * `coord` - The coordinates of the cell to check for cycles.
-    ///
-    /// # Returns
-    ///
-    /// `true` if a cycle is detected, `false` otherwise.
-    pub fn check_cycle(&self, coord: Coordinates) -> bool {
-        // check for cycle using efficient DFS
-        // no need of visited and instack use dirty parent flags
-        false
-    }
 }
