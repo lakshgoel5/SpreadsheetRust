@@ -8,7 +8,7 @@ use std::fmt;
 ///
 /// Used to identify cells by their row and column positions, and to
 /// represent positions for operations and rendering.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Coordinates {
     /// The row index (0-based)
     pub row: i32,

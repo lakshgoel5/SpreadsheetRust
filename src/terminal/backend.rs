@@ -652,7 +652,7 @@ pub fn has_cycle(target: Coordinates, graph: &mut [Vec<Node>]) -> bool {
 ///
 /// * `graph` - The dependency graph represented as a 2D vector of `Node`s
 /// * `start` - The starting cell for resetting visited flags
-fn reset_visited(graph: &mut [Vec<Node>], start: Coordinates) {
+pub fn reset_visited(graph: &mut [Vec<Node>], start: Coordinates) {
     let mut stack = vec![start];
     graph[start.row as usize][start.col as usize].visited = false;
 

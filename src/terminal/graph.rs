@@ -10,7 +10,7 @@ use crate::terminal::types::Coordinates;
 ///
 /// Each node maintains its value, the operation it performs, references to its
 /// operands, and a list of other cells that depend on it.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Node {
     /// List of cells that depend on this node's value
     pub dependents: Vec<Coordinates>,
@@ -139,18 +139,4 @@ impl Node {
         self.dependents = dependents;
     }
 
-    /// Checks for cycles in the dependency graph using efficient DFS.
-    ///
-    /// # Arguments
-    ///
-    /// * `coord` - The coordinates of the cell to check for cycles.
-    ///
-    /// # Returns
-    ///
-    /// `true` if a cycle is detected, `false` otherwise.
-    pub fn check_cycle(&self, coord: Coordinates) -> bool {
-        // check for cycle using efficient DFS
-        // no need of visited and instack use dirty parent flags
-        false
-    }
 }

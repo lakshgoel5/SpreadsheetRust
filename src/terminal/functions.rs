@@ -72,6 +72,12 @@ pub enum Operation {
     Scrollto,
 }
 
+impl Default for Operation {
+    fn default() -> Self {
+        Operation::Cons
+    }
+}
+
 /// Represents a value in the spreadsheet expression system.
 ///
 /// Values can be cell references, constants, or operations involving

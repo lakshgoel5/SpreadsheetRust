@@ -91,7 +91,7 @@ fn test_validate_range_operations() {
     
     if let Some((cell, operation)) = result {
         assert_eq!(cell, Some(Value::Cell(1, 5)));
-        if let Some(Value::Oper(box1, box2, op)) = operation {
+        if let Some(Value::Oper(_box1, _box2, op)) = operation {
             assert!(matches!(op, Operation::Avg));
         }
     }
@@ -100,7 +100,7 @@ fn test_validate_range_operations() {
     let result = parser::validate("F1=MIN(A1:C3)", &cols, &rows);
     assert!(result.is_some());
     
-    if let Some((cell, operation)) = result {
+    if let Some((_cell, operation)) = result {
         if let Some(Value::Oper(_, _, op)) = operation {
             assert!(matches!(op, Operation::Min));
         }
@@ -110,7 +110,7 @@ fn test_validate_range_operations() {
     let result = parser::validate("G1=MAX(A1:C3)", &cols, &rows);
     assert!(result.is_some());
     
-    if let Some((cell, operation)) = result {
+    if let Some((_cell, operation)) = result {
         if let Some(Value::Oper(_, _, op)) = operation {
             assert!(matches!(op, Operation::Max));
         }
@@ -120,7 +120,7 @@ fn test_validate_range_operations() {
     let result = parser::validate("H1=STDEV(A1:C3)", &cols, &rows);
     assert!(result.is_some());
     
-    if let Some((cell, operation)) = result {
+    if let Some((_cell, operation)) = result {
         if let Some(Value::Oper(_, _, op)) = operation {
             assert!(matches!(op, Operation::Std));
         }

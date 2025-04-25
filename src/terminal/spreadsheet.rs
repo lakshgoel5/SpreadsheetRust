@@ -27,7 +27,7 @@ const MAX_COLUMN: usize = 18278;
 /// # Returns
 ///
 /// A string containing the column letter(s)
-fn column_decoder(mut j: usize) -> String {
+pub fn column_decoder(mut j: usize) -> String {
     let mut cc = Vec::new();
     while j > 0 {
         j -= 1;
