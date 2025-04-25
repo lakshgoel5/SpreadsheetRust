@@ -279,7 +279,7 @@ mod tests {
         evaluate_node(&mut grid, c1);
 
         // Check result
-        assert_eq!(grid[1][3].node_value, 30); // 10 + 20
+        assert_eq!(grid[1][3].node_value, 21); // 10 + 20
         assert!(grid[1][3].valid);
     }
 
@@ -314,7 +314,7 @@ mod tests {
         evaluate_node(&mut grid, c1);
 
         // Check result
-        assert_eq!(grid[1][3].node_value, 30); // 10 + 20
+        assert_eq!(grid[1][3].node_value, 11); // 10 + 20
         assert!(grid[1][3].valid);
     }
 
@@ -349,7 +349,7 @@ mod tests {
         evaluate_node(&mut grid, c1);
 
         // Check result
-        assert_eq!(grid[1][3].node_value, 30); // 10 + 20
+        assert_eq!(grid[1][3].node_value, 2); // 10 + 20
         assert!(grid[1][3].valid);
     }
 
@@ -392,25 +392,25 @@ mod tests {
     fn test_evaluate_node_binary_sub1() {
         let mut grid = generate_grid(3, 3);
 
-        // Set A1 = 30, B1 = 12, C1 = A1 - B1
-        let a1 = Coordinates { row: 1, col: -1 };
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
         let b1 = Coordinates { row: 1, col: 2 };
         let c1 = Coordinates { row: 1, col: 3 };
 
         // Set values for A1 and B1
         grid[1][1].op = Operation::Cons;
-        grid[1][1].value1 = Coordinates { row: 30, col: -1 };
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
         grid[1][2].op = Operation::Cons;
-        grid[1][2].value1 = Coordinates { row: 12, col: -1 };
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
 
         // Evaluate them first
         evaluate_node(&mut grid, a1);
         evaluate_node(&mut grid, b1);
 
-        // Set C1 = A1 - B1
+        // Set C1 = A1 + B1
         grid[1][3].op = Operation::Sub;
-        grid[1][3].value1 = a1;
-        grid[1][3].value2 = b1;
+        grid[1][3].value1 = Coordinates { row: 1, col: -1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: 2 };
 
         // Add dependencies
         add_edges(&mut grid, a1, b1, c1, Operation::Sub, true);
@@ -419,7 +419,7 @@ mod tests {
         evaluate_node(&mut grid, c1);
 
         // Check result
-        assert_eq!(grid[1][3].node_value, 18); // 30 - 12
+        assert_eq!(grid[1][3].node_value, -19); // 10 + 20
         assert!(grid[1][3].valid);
     }
 
@@ -427,25 +427,25 @@ mod tests {
     fn test_evaluate_node_binary_sub2() {
         let mut grid = generate_grid(3, 3);
 
-        // Set A1 = 30, B1 = 12, C1 = A1 - B1
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
         let a1 = Coordinates { row: 1, col: 1 };
-        let b1 = Coordinates { row: 1, col: -1 };
+        let b1 = Coordinates { row: 1, col: 2 };
         let c1 = Coordinates { row: 1, col: 3 };
 
         // Set values for A1 and B1
         grid[1][1].op = Operation::Cons;
-        grid[1][1].value1 = Coordinates { row: 30, col: -1 };
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
         grid[1][2].op = Operation::Cons;
-        grid[1][2].value1 = Coordinates { row: 12, col: -1 };
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
 
         // Evaluate them first
         evaluate_node(&mut grid, a1);
         evaluate_node(&mut grid, b1);
 
-        // Set C1 = A1 - B1
+        // Set C1 = A1 + B1
         grid[1][3].op = Operation::Sub;
-        grid[1][3].value1 = a1;
-        grid[1][3].value2 = b1;
+        grid[1][3].value1 = Coordinates { row: 1, col: 1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: -1 };
 
         // Add dependencies
         add_edges(&mut grid, a1, b1, c1, Operation::Sub, true);
@@ -454,7 +454,7 @@ mod tests {
         evaluate_node(&mut grid, c1);
 
         // Check result
-        assert_eq!(grid[1][3].node_value, 18); // 30 - 12
+        assert_eq!(grid[1][3].node_value, 9); // 10 + 20
         assert!(grid[1][3].valid);
     }
 
@@ -462,25 +462,25 @@ mod tests {
     fn test_evaluate_node_binary_sub3() {
         let mut grid = generate_grid(3, 3);
 
-        // Set A1 = 30, B1 = 12, C1 = A1 - B1
-        let a1 = Coordinates { row: 1, col: -1 };
-        let b1 = Coordinates { row: 1, col: -1 };
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
         let c1 = Coordinates { row: 1, col: 3 };
 
         // Set values for A1 and B1
         grid[1][1].op = Operation::Cons;
-        grid[1][1].value1 = Coordinates { row: 30, col: -1 };
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
         grid[1][2].op = Operation::Cons;
-        grid[1][2].value1 = Coordinates { row: 12, col: -1 };
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
 
         // Evaluate them first
         evaluate_node(&mut grid, a1);
         evaluate_node(&mut grid, b1);
 
-        // Set C1 = A1 - B1
+        // Set C1 = A1 + B1
         grid[1][3].op = Operation::Sub;
-        grid[1][3].value1 = a1;
-        grid[1][3].value2 = b1;
+        grid[1][3].value1 = Coordinates { row: 1, col: -1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: -1 };
 
         // Add dependencies
         add_edges(&mut grid, a1, b1, c1, Operation::Sub, true);
@@ -489,7 +489,7 @@ mod tests {
         evaluate_node(&mut grid, c1);
 
         // Check result
-        assert_eq!(grid[1][3].node_value, 18); // 30 - 12
+        assert_eq!(grid[1][3].node_value, 0); // 10 + 20
         assert!(grid[1][3].valid);
     }
 
@@ -528,6 +528,110 @@ mod tests {
         assert!(grid[1][3].valid);
     }
 
+    #[test]
+    fn test_evaluate_node_binary_mul1() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 + B1
+        grid[1][3].op = Operation::Mul;
+        grid[1][3].value1 = Coordinates { row: 1, col: -1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: 2 };
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Mul, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 20); // 10 + 20
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
+    fn test_evaluate_node_binary_mul2() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 + B1
+        grid[1][3].op = Operation::Mul;
+        grid[1][3].value1 = Coordinates { row: 1, col: 1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: -1 };
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Mul, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 10); // 10 + 20
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
+    fn test_evaluate_node_binary_mul3() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 + B1
+        grid[1][3].op = Operation::Mul;
+        grid[1][3].value1 = Coordinates { row: 1, col: -1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: -1 };
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Mul, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 1); // 10 + 20
+        assert!(grid[1][3].valid);
+    }
     #[test]
     fn test_evaluate_node_binary_div() {
         let mut grid = generate_grid(3, 3);
