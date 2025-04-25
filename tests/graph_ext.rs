@@ -8,7 +8,7 @@ mod node_tests {
 
     // Helper function to create a test grid with predefined size
     fn create_test_grid(rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows+1, cols+1);
+        let mut grid = Grid::new(rows + 1, cols + 1);
         // Initialize with default nodes
         for r in 1..=rows {
             for c in 1..=cols {

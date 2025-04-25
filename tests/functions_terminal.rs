@@ -278,7 +278,7 @@ mod tests {
             Coordinates { row: 3, col: 3 },
             &grid,
         );
-        assert_eq!(result, Some(18));  // only that grid cell is present whose value is 18
+        assert_eq!(result, Some(18)); // only that grid cell is present whose value is 18
     }
 
     #[test]
