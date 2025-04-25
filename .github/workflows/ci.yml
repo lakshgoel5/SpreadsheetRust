@@ -2,9 +2,9 @@ name: Rust CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, adit, yuvika_branch, laksh-branch ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, adit, yuvika_branch, laksh-branch ]
 
 jobs:
   test:
