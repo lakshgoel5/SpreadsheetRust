@@ -197,7 +197,7 @@ mod frontend_tests {
         // You might need to mock backend.process_command to verify this
 
         // For example:
-        let command = "A1 = 100";
+        let _command = "A1 = 100";
         // Call a method that would trigger process_command
         // Then verify backend state changed appropriately
 
