@@ -27,8 +27,7 @@ pub struct Range {
 /// This enum defines all possible operations that can be performed
 /// on cells in the spreadsheet, including both arithmetic operations
 /// and range-based functions.
-#[derive(Clone, Copy, Debug, PartialEq)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub enum Operation {
     /// Assign a constant value to a cell
     #[default]

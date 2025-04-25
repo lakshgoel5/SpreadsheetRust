@@ -1,7 +1,7 @@
+use project::extension::backend::backend::*;
 #[allow(unused_imports)]
 use project::extension::common::{Operation, Value};
 use project::extension::frontend::terminal::*;
-use project::extension::backend::backend::*;
 
 #[cfg(test)]
 mod frontend_tests {
@@ -25,16 +25,16 @@ mod frontend_tests {
     fn test_frontend_initialization() {
         // Test initialization with empty path
         let frontend = Frontend::init_frontend(10, 20, "");
-        
+
         // Check that default values are set correctly
         assert_eq!(frontend.start, Value::Cell(1, 1));
         assert_eq!(frontend.dimension, Value::Cell(10, 20));
         assert_eq!(frontend.print_enabled, true);
-        
+
         // Check that backend was initialized with correct dimensions
         assert_eq!(frontend.backend.grid.get_row_size(), 11); // +1 because backend adds 1
         assert_eq!(frontend.backend.grid.get_column_size(), 21); // +1 because backend adds 1
-        
+
         // Test initialization with a path (this would require creating a test file first)
         // This part is more complex and might need mocking, so we'll skip it for now
     }
@@ -100,12 +100,12 @@ mod frontend_tests {
     #[test]
     fn test_print_grid_enabled() {
         let mut frontend = Frontend::init_frontend(10, 10, "");
-        
+
         // Directly access and modify grid nodes through public field
         frontend.backend.grid.cells_vec[1][1].node_value = 100;
         frontend.backend.grid.cells_vec[1][1].valid = true;
-        
-        frontend.backend.grid.cells_vec[2][2].node_value = 42;  // For text display test
+
+        frontend.backend.grid.cells_vec[2][2].node_value = 42; // For text display test
         frontend.backend.grid.cells_vec[2][2].valid = true;
 
         // Ensure print is enabled
@@ -126,7 +126,7 @@ mod frontend_tests {
     #[test]
     fn test_print_grid_disabled() {
         let mut frontend = Frontend::init_frontend(10, 10, "");
-        
+
         // Set up some test data directly
         frontend.backend.grid.cells_vec[1][1].node_value = 100;
         frontend.backend.grid.cells_vec[1][1].valid = true;
@@ -144,22 +144,22 @@ mod frontend_tests {
     #[test]
     fn test_display() {
         let mut frontend = Frontend::init_frontend(10, 10, "");
-        
+
         // Set up a test cell
         frontend.backend.grid.cells_vec[1][1].node_value = 100;
         frontend.backend.grid.cells_vec[1][1].valid = true;
-        
+
         // Capture stdout to verify output
         let mut output = Vec::new();
         {
             use std::io::{Write, stdout};
             let _stdout_backup = stdout();
-            // Note: In a real test, you'd use a crate like `rexpect` or set up 
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
             // proper stdout capturing, but this is simplified
             frontend.display(Status::Success, 0.5);
             writeln!(output, "Output captured").unwrap();
         }
-        
+
         // Verify output contains expected elements
         // This is just a basic test; actual implementation would need proper stdout capture
         assert!(!output.is_empty());
@@ -192,15 +192,15 @@ mod frontend_tests {
     #[test]
     fn test_command_processing() {
         let mut frontend = Frontend::init_frontend(10, 10, "");
-        
+
         // Test that commands are properly passed to backend
         // You might need to mock backend.process_command to verify this
-        
+
         // For example:
         let command = "A1 = 100";
         // Call a method that would trigger process_command
         // Then verify backend state changed appropriately
-        
+
         // Or test navigation commands:
         frontend.start = Value::Cell(50, 50);
         frontend.execute_status(&Status::ScrollTo(25, 30));
@@ -210,11 +210,11 @@ mod frontend_tests {
     #[test]
     fn test_dimension_boundaries() {
         let mut frontend = Frontend::init_frontend(5, 5, "");
-        
+
         // Test that print_grid correctly handles cells at boundaries
         frontend.start = Value::Cell(1, 1);
         frontend.print_grid(); // Should show cells 1,1 through 9,9
-        
+
         // Test scrolling beyond grid boundaries
         frontend.execute_status(&Status::ScrollTo(100, 100));
         // Verify it doesn't go beyond actual dimensions
@@ -225,17 +225,17 @@ mod frontend_tests {
     #[test]
     fn test_print_grid_formatting() {
         let mut frontend = Frontend::init_frontend(10, 10, "");
-        
+
         // Set up a variety of cell values to test formatting
         frontend.backend.grid.cells_vec[1][1].node_value = 12345; // Large number
         frontend.backend.grid.cells_vec[1][1].valid = true;
-        
+
         frontend.backend.grid.cells_vec[2][2].node_value = -42; // Negative number
         frontend.backend.grid.cells_vec[2][2].valid = true;
-        
+
         frontend.backend.grid.cells_vec[3][3].node_value = 0; // Zero
         frontend.backend.grid.cells_vec[3][3].valid = true;
-        
+
         // In a real test, capture and verify stdout formatting
         frontend.print_grid();
         // Assert that formatting is correct (would need proper stdout capture)
@@ -244,19 +244,19 @@ mod frontend_tests {
     #[test]
     fn test_execute_status_chain() {
         let mut frontend = Frontend::init_frontend(100, 100, "");
-        
+
         // Test complex sequence of status commands
         frontend.start = Value::Cell(50, 50);
-        
+
         // Chain of navigation commands
-        frontend.execute_status(&Status::Up);      // Should go to row 40
-        frontend.execute_status(&Status::Left);    // Should go to col 40
-        frontend.execute_status(&Status::Down);    // Should go to row 50
-        frontend.execute_status(&Status::Right);   // Should go to col 50
-        
+        frontend.execute_status(&Status::Up); // Should go to row 40
+        frontend.execute_status(&Status::Left); // Should go to col 40
+        frontend.execute_status(&Status::Down); // Should go to row 50
+        frontend.execute_status(&Status::Right); // Should go to col 50
+
         // Verify final position after chain
         assert_eq!(frontend.start, Value::Cell(50, 50));
-        
+
         // Test disable -> enable print
         frontend.execute_status(&Status::PrintDisabled);
         assert_eq!(frontend.print_enabled, false);
