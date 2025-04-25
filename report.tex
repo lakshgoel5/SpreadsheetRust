@@ -71,7 +71,7 @@ The main data structures and concepts used in the Rust implementation are
 \noindent
 The Rust implementation leverages safe and efficient data structures from the standard library, ensuring both performance and maintainability.
 
-\section{Project Structure}
+\section{Encapsulation}
 
 The project is organized into well-defined modules to support both terminal and web-based spreadsheet interfaces, while also handling efficient command parsing and the backend logic. Below is a description of the main directories and files, based on the current repository structure:
 
@@ -146,8 +146,19 @@ The spreadsheet application is structured around two main data abstractions: the
 
 \textbf{Note:} Unlike the C implementation, which used a custom hash table for outward dependencies, the Rust version uses a vector of \texttt{Coordinates} for each node's dependents, leveraging Rust's safe and efficient collections.
 
+\begin{figure}[t]
+    \centering
+    {{\includegraphics[width=9cm]{terminal.jpg}}}
+    \caption{Interface between Modules in Terminal }
+    \end{figure}
+
 
 \section{Extension Architecture}
+\begin{figure}[t]
+    \centering
+    {{\includegraphics[width=9cm]{extension.jpg}}}
+    \caption{Interface between Modules in Extension}
+    \end{figure}
 We have extended the project described above to add more functions to it and make it more relevant to a real-world user. This involves having features for saving and opening a saved file in a custom format, undoing and redoing commands, and displaying the sheet in a web-based GUI for better data analytics.
 The features added are thus:
 \begin{enumerate}
@@ -163,7 +174,9 @@ The features added are thus:
     The GUI is intended only for analyzing the current state, and to try out unit changes in it and observe their effects. For this reason, it allows only one change at a time, that is, making a second change undoes the first. It allows the user to undo the last command performed in the sheet (again, up to a depth of one).
 \end{enumerate}
 
+
 \section{Features of the web-display}
+
 \begin{enumerate}
     \item Displays the table in a more interactive manner. Lets the user select the range of rows and columns to display, thus allowing focus on the required sections of data alone.
     \item Allows selection of ranges of cells(1D or 2D), which displays statistics for the selected range. The statistics include the mean, sum, maximum, minimum and standard deviation.
@@ -244,7 +257,18 @@ Our Rust project features a comprehensive and automated test suite, leveraging R
 \noindent
 The test suite is automated and can be run using \texttt{cargo test}, providing rapid feedback during development. This ensures high reliability and allows safe refactoring and extension of the codebase.
 
+\section{Why Few features could not be implemented?}
+\begin{enumerate}
+    \item \textbf{Copy Paste:} Copy pasting a single cell is easy since only a single dependency is checked for cycle. Copy pasting a range would required saving all old and new values and checking cycle for each cell, one at a time. This would take a lot of space and time of our systems. So we decided to include it as our future extensions.
+    \item \textbf{Find and Replace:} Finding a value in a graph is easy(but would take time). Replacing each found value with a formula would consume lot of resources since again we have to check for each cell if there is a cyclic dependency.
+\end{enumerate}
 
+\section{Why this is a good design?}
+Our extension has a very modular structure, as can be seen in Section 3. The only major issue which Terminal-based Spreadsheet users face is lack of visual data analysis, line graphs, bar graphs and themes.
+We understood the problem and made a web interface for data analysis of data present in terminal and make unit changes to analyse it. We have features of selecting a range of cells to show it's statistics like Min, Max, Avg, Stdev and Sum.
+We have Line and Bar graphs
+We have Dark theme since users have different preferences of light and dark theme.\\ \\ If a user want's to open data on web and edit it right there, we have another extension where we can open a json file in web. \\
+We can also store and open data in terminal for editing and saving for future use. Overall, we believe that it would help users for Data Analysis and a better User experience.
 \section{Challenges Faced}
 \begin{enumerate}
     \item Deciding the basic framework of the extension took some time.
