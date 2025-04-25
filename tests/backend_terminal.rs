@@ -63,6 +63,39 @@ mod tests {
     }
 
     #[test]
+    fn test_add_edges_range_sleep() {
+        let mut grid = generate_grid(3, 3);
+
+        // Create a range dependency: D1 = SUM(A1:B2)
+        let a1 = Coordinates { row: -1, col: -1 };
+        let b2 = Coordinates { row: 2, col: 2 };
+        let d1 = Coordinates { row: 1, col: 3 };
+
+        add_edges(&mut grid, a1, b2, d1, Operation::Slp, true);
+
+        // Check that all cells in range have D1 as dependent
+        assert!(!grid[1][1].dependents.contains(&d1)); // A1
+    }
+
+    #[test]
+    fn test_add_edges_range_enable() {
+        let mut grid = generate_grid(3, 3);
+
+        // Create a range dependency: D1 = SUM(A1:B2)
+        let a1 = Coordinates { row: -1, col: -1 };
+        let b2 = Coordinates { row: 2, col: 2 };
+        let d1 = Coordinates { row: 1, col: 3 };
+
+        add_edges(&mut grid, a1, b2, d1, Operation::EnableOutput, true);
+
+        // Check that all cells in range have D1 as dependent
+        assert!(!grid[1][1].dependents.contains(&d1)); // A1
+        assert!(!grid[1][2].dependents.contains(&d1)); // B1
+        assert!(!grid[2][1].dependents.contains(&d1)); // A2
+        assert!(!grid[2][2].dependents.contains(&d1)); // B2
+    }
+
+    #[test]
     fn test_break_edges_binary_operation() {
         let mut grid = generate_grid(3, 3);
 
@@ -216,12 +249,222 @@ mod tests {
     }
 
     #[test]
+    fn test_evaluate_node_binary_add_1() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 + B1
+        grid[1][3].op = Operation::Add;
+        grid[1][3].value1 = Coordinates { row: 1, col: -1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: 2 };
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Add, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 30); // 10 + 20
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
+    fn test_evaluate_node_binary_add_2() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 + B1
+        grid[1][3].op = Operation::Add;
+        grid[1][3].value1 = Coordinates { row: 1, col: 1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: -1 };
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Add, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 30); // 10 + 20
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
+    fn test_evaluate_node_binary_add_3() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 10, B1 = 20, C1 = A1 + B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 10, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 20, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 + B1
+        grid[1][3].op = Operation::Add;
+        grid[1][3].value1 = Coordinates { row: 1, col: -1 };
+        grid[1][3].value2 = Coordinates { row: 1, col: -1 };
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Add, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 30); // 10 + 20
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
     fn test_evaluate_node_binary_sub() {
         let mut grid = generate_grid(3, 3);
 
         // Set A1 = 30, B1 = 12, C1 = A1 - B1
         let a1 = Coordinates { row: 1, col: 1 };
         let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 30, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 12, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 - B1
+        grid[1][3].op = Operation::Sub;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b1;
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Sub, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 18); // 30 - 12
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
+    fn test_evaluate_node_binary_sub1() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 30, B1 = 12, C1 = A1 - B1
+        let a1 = Coordinates { row: 1, col: -1 };
+        let b1 = Coordinates { row: 1, col: 2 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 30, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 12, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 - B1
+        grid[1][3].op = Operation::Sub;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b1;
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Sub, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 18); // 30 - 12
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
+    fn test_evaluate_node_binary_sub2() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 30, B1 = 12, C1 = A1 - B1
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b1 = Coordinates { row: 1, col: -1 };
+        let c1 = Coordinates { row: 1, col: 3 };
+
+        // Set values for A1 and B1
+        grid[1][1].op = Operation::Cons;
+        grid[1][1].value1 = Coordinates { row: 30, col: -1 };
+        grid[1][2].op = Operation::Cons;
+        grid[1][2].value1 = Coordinates { row: 12, col: -1 };
+
+        // Evaluate them first
+        evaluate_node(&mut grid, a1);
+        evaluate_node(&mut grid, b1);
+
+        // Set C1 = A1 - B1
+        grid[1][3].op = Operation::Sub;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b1;
+
+        // Add dependencies
+        add_edges(&mut grid, a1, b1, c1, Operation::Sub, true);
+
+        // Evaluate C1
+        evaluate_node(&mut grid, c1);
+
+        // Check result
+        assert_eq!(grid[1][3].node_value, 18); // 30 - 12
+        assert!(grid[1][3].valid);
+    }
+
+    #[test]
+    fn test_evaluate_node_binary_sub3() {
+        let mut grid = generate_grid(3, 3);
+
+        // Set A1 = 30, B1 = 12, C1 = A1 - B1
+        let a1 = Coordinates { row: 1, col: -1 };
+        let b1 = Coordinates { row: 1, col: -1 };
         let c1 = Coordinates { row: 1, col: 3 };
 
         // Set values for A1 and B1
@@ -539,6 +782,138 @@ mod tests {
         }
 
         grid[1][3].op = Operation::Std;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b2;
+
+        evaluate_node(&mut grid, d1);
+
+        assert!(grid[1][3].valid);
+    }
+    #[test]
+    fn test_evaluate_node_min_range() {
+        let mut grid = generate_grid(3, 3);
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b2 = Coordinates { row: 2, col: 2 };
+        let d1 = Coordinates { row: 1, col: 3 };
+
+        // Fill A1:B2 with constants
+        for i in 1..=2 {
+            for j in 1..=2 {
+                grid[i][j].op = Operation::Cons;
+                grid[i][j].value1 = Coordinates {
+                    row: 5 * (i + j) as i32,
+                    col: 3,
+                };
+                evaluate_node(
+                    &mut grid,
+                    Coordinates {
+                        row: i as i32,
+                        col: j as i32,
+                    },
+                );
+            }
+        }
+
+        grid[1][3].op = Operation::Min;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b2;
+
+        evaluate_node(&mut grid, d1);
+
+        assert!(grid[1][3].valid);
+    }
+    #[test]
+    fn test_evaluate_node_max_range() {
+        let mut grid = generate_grid(3, 3);
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b2 = Coordinates { row: 2, col: 2 };
+        let d1 = Coordinates { row: 1, col: 3 };
+
+        // Fill A1:B2 with constants
+        for i in 1..=2 {
+            for j in 1..=2 {
+                grid[i][j].op = Operation::Cons;
+                grid[i][j].value1 = Coordinates {
+                    row: 5 * (i + j) as i32,
+                    col: -1,
+                };
+                evaluate_node(
+                    &mut grid,
+                    Coordinates {
+                        row: i as i32,
+                        col: j as i32,
+                    },
+                );
+            }
+        }
+
+        grid[1][3].op = Operation::Max;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b2;
+
+        evaluate_node(&mut grid, d1);
+
+        assert!(grid[1][3].valid);
+    }
+    #[test]
+    fn test_evaluate_node_avg_range() {
+        let mut grid = generate_grid(3, 3);
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b2 = Coordinates { row: 2, col: 2 };
+        let d1 = Coordinates { row: 1, col: 3 };
+
+        // Fill A1:B2 with constants
+        for i in 1..=2 {
+            for j in 1..=2 {
+                grid[i][j].op = Operation::Cons;
+                grid[i][j].value1 = Coordinates {
+                    row: 5 * (i + j) as i32,
+                    col: -1,
+                };
+                evaluate_node(
+                    &mut grid,
+                    Coordinates {
+                        row: i as i32,
+                        col: j as i32,
+                    },
+                );
+            }
+        }
+
+        grid[1][3].op = Operation::Avg;
+        grid[1][3].value1 = a1;
+        grid[1][3].value2 = b2;
+
+        evaluate_node(&mut grid, d1);
+
+        assert!(grid[1][3].valid);
+    }
+    #[test]
+    fn test_evaluate_node_sum_range() {
+        let mut grid = generate_grid(3, 3);
+        let a1 = Coordinates { row: 1, col: 1 };
+        let b2 = Coordinates { row: 2, col: 2 };
+        let d1 = Coordinates { row: 1, col: 3 };
+
+        // Fill A1:B2 with constants
+        for i in 1..=2 {
+            for j in 1..=2 {
+                grid[i][j].op = Operation::Cons;
+                grid[i][j].value1 = Coordinates {
+                    row: 5 * (i + j) as i32,
+                    col: -1,
+                };
+                evaluate_node(
+                    &mut grid,
+                    Coordinates {
+                        row: i as i32,
+                        col: j as i32,
+                    },
+                );
+            }
+        }
+
+        grid[1][3].op = Operation::Sum;
         grid[1][3].value1 = a1;
         grid[1][3].value2 = b2;
 

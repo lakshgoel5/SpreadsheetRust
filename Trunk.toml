@@ -1,2 +1,2 @@
 [build]
-static_dir = "static"
+target = "index.html"

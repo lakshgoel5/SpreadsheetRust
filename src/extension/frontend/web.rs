@@ -131,7 +131,6 @@ pub fn canvas_chart(props: &CanvasChartProps) -> Html {
         <canvas id="plotters-canvas" width="800" height="500" style="border: 1px solid #ccc;" />
     }
 }
-
 fn number_to_column_label(num: usize) -> String {
     if num == 0 {
         return String::new();
@@ -149,7 +148,6 @@ fn number_to_column_label(num: usize) -> String {
 
     result
 }
-
 fn number_to_rgb(n: u32) -> (u8, u8, u8) {
     let r = (n >> 16) & 0xFF;
     let g = (n >> 8) & 0xFF;
@@ -358,12 +356,6 @@ pub fn app() -> Html {
                     crate::extension::backend::backend::Status::CircularDependency => {
                         status_message
                             .set(format!("Cycle detected in formula for {}", target_cell));
-                    }
-                    crate::extension::backend::backend::Status::InvalidRange => {
-                        status_message.set(format!("Invalid range in formula '{}'", formula));
-                    }
-                    crate::extension::backend::backend::Status::InvalidRowColumn => {
-                        status_message.set(format!("Invalid cell reference in '{}'", formula));
                     }
                     crate::extension::backend::backend::Status::UnrecognizedCmd => {
                         status_message.set(("Unrecognized command").to_string());

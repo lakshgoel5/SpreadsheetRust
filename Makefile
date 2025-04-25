@@ -35,7 +35,7 @@ prebuild:
 	sudo apt install -y libfontconfig1-dev pkg-config
 
 # How to build the binary with env vars unset
-$(TARGET_PATH):
+$(TARGET_PATH): prebuild
 	@$(UNSET_ENV) cargo build --release --bin $(BIN_NAME)
 
 ext1:

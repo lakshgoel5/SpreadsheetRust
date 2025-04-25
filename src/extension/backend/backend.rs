@@ -27,9 +27,7 @@ pub struct Grid {
 #[derive(PartialEq, Debug)]
 pub enum Status {
     Success,
-    InvalidRange,
     UnrecognizedCmd,
-    InvalidRowColumn,
     CircularDependency,
     PrintEnabled,
     PrintDisabled,

@@ -13,6 +13,14 @@ fn test_init_backend() {
 }
 
 #[test]
+#[should_panic(expected = "Expected a Cell value")]
+fn test_init_backend1() {
+    let backend = Backend::init_backend(10, 15);
+    let val = Value::Const(5);
+    backend.get_node_value(val);
+}
+
+#[test]
 fn test_grid_new() {
     let grid = Grid::new(10, 15);
     assert_eq!(grid.get_row_size(), 10);
@@ -65,6 +73,7 @@ fn test_process_command_avg() {
     backend.process_command(10, 10, "A3=18".to_string());
 
     // Test AVG function
+
     let status = backend.process_command(10, 10, "B1=AVG(A1:A3)".to_string());
     assert_eq!(status, Status::Success);
     assert_eq!(backend.get_node_value(Value::Cell(1, 2)), Some(12));
@@ -87,6 +96,109 @@ fn test_process_command_arithmetic() {
     assert_eq!(backend.get_node_value(Value::Cell(2, 2)), Some(5)); // 10-5
     assert_eq!(backend.get_node_value(Value::Cell(3, 2)), Some(50)); // 5*10
     assert_eq!(backend.get_node_value(Value::Cell(4, 2)), Some(2)); // 10/5
+}
+
+#[test]
+fn test_process_command_stdev() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+
+    // Test SUM function
+    let status = backend.process_command(10, 10, "B1=STDEV(A1:A3)".to_string());
+    assert_eq!(status, Status::Success);
+    assert_eq!(backend.get_node_value(Value::Cell(1, 2)), Some(4));
+}
+
+#[test]
+fn test_process_command_stdev_none() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+    backend.grid.cells_vec[1][1].valid = false;
+    // Test SUM function
+    let status = backend.process_command(10, 10, "B1=STDEV(A1:A3)".to_string());
+    assert_eq!(status, Status::Success);
+    assert_eq!(backend.get_node_value(Value::Cell(1, 2)), None);
+}
+
+#[test]
+fn test_process_command_sleep() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=1".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+
+    // Test SUM function
+    let status = backend.process_command(10, 10, "B1=SLEEP(A1)".to_string());
+    assert_eq!(status, Status::Success);
+    assert_eq!(backend.get_node_value(Value::Cell(1, 2)), Some(1));
+}
+
+#[test]
+fn test_process_command_sleep_none() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+    backend.grid.cells_vec[1][1].valid = false;
+    // Test SUM function
+    let status = backend.process_command(10, 10, "B1=SLEEP(A1)".to_string());
+    assert_eq!(status, Status::Success);
+}
+
+#[test]
+fn test_process_command_sum_none() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+    backend.grid.cells_vec[1][1].valid = false;
+    // Test SUM function
+    let status = backend.process_command(10, 10, "B1=SUM(A1:A3)".to_string());
+    assert_eq!(status, Status::Success);
+    assert_eq!(backend.get_node_value(Value::Cell(1, 2)), None);
+}
+
+#[test]
+fn test_process_command_avg_none() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=6".to_string());
+    backend.process_command(10, 10, "A2=12".to_string());
+    backend.process_command(10, 10, "A3=18".to_string());
+
+    // Test AVG function
+    backend.grid.cells_vec[1][1].valid = false;
+    let status = backend.process_command(10, 10, "B1=AVG(A1:A3)".to_string());
+    assert_eq!(status, Status::Success);
+    assert_eq!(backend.get_node_value(Value::Cell(1, 2)), None);
+}
+
+#[test]
+fn test_process_command_arithmetic_none() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    // Test arithmetic operations
+    backend.grid.cells_vec[1][1].valid = false;
+    backend.process_command(10, 10, "B1=A1+A2".to_string()); // Addition
+    backend.process_command(10, 10, "B2=A2-A1".to_string()); // Subtraction
+    backend.process_command(10, 10, "B3=A1*A2".to_string()); // Multiplication
+    backend.process_command(10, 10, "B4=A2/A1".to_string()); // Division
+
+    assert_eq!(backend.get_node_value(Value::Cell(1, 2)), None); // 5+10
+    assert_eq!(backend.get_node_value(Value::Cell(2, 2)), None); // 10-5
+    assert_eq!(backend.get_node_value(Value::Cell(3, 2)), None); // 5*10
+    assert_eq!(backend.get_node_value(Value::Cell(4, 2)), None); // 10/5
 }
 
 #[test]

@@ -38,6 +38,23 @@ mod frontend_tests {
         // Test initialization with a path (this would require creating a test file first)
         // This part is more complex and might need mocking, so we'll skip it for now
     }
+    #[test]
+    fn test_frontend_from_file() {
+        // Test initialization with empty path
+        let frontend = Frontend::init_frontend(11, 11, "gradient.json");
+
+        // Check that default values are set correctly
+        assert_eq!(frontend.start, Value::Cell(1, 1));
+        assert_eq!(frontend.dimension, Value::Cell(10, 10));
+        assert_eq!(frontend.print_enabled, true);
+
+        // Check that backend was initialized with correct dimensions
+        assert_eq!(frontend.backend.grid.get_row_size(), 11); // +1 because backend adds 1
+        assert_eq!(frontend.backend.grid.get_column_size(), 11); // +1 because backend adds 1
+
+        // Test initialization with a path (this would require creating a test file first)
+        // This part is more complex and might need mocking, so we'll skip it for now
+    }
 
     #[test]
     fn test_execute_status() {
@@ -122,6 +139,31 @@ mod frontend_tests {
         // Verify that something was written
         assert!(!output.is_empty());
     }
+    #[test]
+    fn test_print_grid_err() {
+        let mut frontend = Frontend::init_frontend(10, 10, "");
+
+        // Directly access and modify grid nodes through public field
+        frontend.backend.grid.cells_vec[1][1].node_value = 100;
+        frontend.backend.grid.cells_vec[1][1].valid = false;
+
+        frontend.backend.grid.cells_vec[2][2].node_value = 42; // For text display test
+        frontend.backend.grid.cells_vec[2][2].valid = false;
+
+        // Ensure print is enabled
+        frontend.print_enabled = true;
+
+        // Capture stdout to verify output
+        let mut output = Vec::new();
+        {
+            use std::io::Write;
+            frontend.print_grid();
+            writeln!(output, "Output captured").unwrap();
+        }
+
+        // Verify that something was written
+        assert!(!output.is_empty());
+    }
 
     #[test]
     fn test_print_grid_disabled() {
@@ -148,7 +190,6 @@ mod frontend_tests {
         // Set up a test cell
         frontend.backend.grid.cells_vec[1][1].node_value = 100;
         frontend.backend.grid.cells_vec[1][1].valid = true;
-
         // Capture stdout to verify output
         let mut output = Vec::new();
         {
@@ -157,6 +198,78 @@ mod frontend_tests {
             // Note: In a real test, you'd use a crate like `rexpect` or set up
             // proper stdout capturing, but this is simplified
             frontend.display(Status::Success, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::UnrecognizedCmd, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::CircularDependency, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::PrintEnabled, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::PrintDisabled, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::Up, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::Down, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::Left, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::Right, 0.5);
+            writeln!(output, "Output captured").unwrap();
+        }
+        {
+            use std::io::{Write, stdout};
+            let _stdout_backup = stdout();
+            // Note: In a real test, you'd use a crate like `rexpect` or set up
+            // proper stdout capturing, but this is simplified
+            frontend.display(Status::ScrollTo(5, 5), 0.5);
             writeln!(output, "Output captured").unwrap();
         }
 

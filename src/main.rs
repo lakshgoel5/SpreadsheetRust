@@ -6,7 +6,6 @@ use crate::terminal::backend::*;
 use crate::terminal::spreadsheet::*;
 use std::io::{self, BufRead, Write};
 use std::time::Instant;
-
 fn main() {
     let mut start_x = 1;
     let mut start_y = 1;

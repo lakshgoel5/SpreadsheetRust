@@ -190,7 +190,7 @@ impl Frontend {
                 Command::new("trunk")
                     .arg("serve")
                     .arg("--open")
-                    .env("LOAD", "1") // Your web.rs already reads this
+                    // .env("LOAD", "1") // Your web.rs already reads this
                     .spawn()
                     .expect("Failed to start trunk")
                     .wait()
@@ -212,9 +212,7 @@ impl Frontend {
         self.print_grid();
         match status {
             Status::Success => print!("[{:.2}] (ok) > ", elapsed_time),
-            Status::InvalidRange => print!("[{:.2}] (invalid range) > ", elapsed_time),
             Status::UnrecognizedCmd => print!("[{:.2}] (unrecognized command) > ", elapsed_time),
-            Status::InvalidRowColumn => print!("[{:.2}] (invalid row or column) > ", elapsed_time),
             Status::CircularDependency => print!("[{:.2}] (cycle not allowed) > ", elapsed_time),
             Status::PrintEnabled => print!("[{:.2}] (ok) > ", elapsed_time),
             Status::PrintDisabled => print!("[{:.2}] (ok) > ", elapsed_time),

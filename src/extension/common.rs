@@ -14,32 +14,26 @@ impl Value {
     pub fn row(&self) -> usize {
         match self {
             Value::Cell(row, _) => *row,
-            _ => panic!("Expected a Cell value"),
+            _ => 0,
         }
     }
     /// return column of Cell
     pub fn col(&self) -> usize {
         match self {
             Value::Cell(_, col) => *col,
-            _ => panic!("Expected a Cell value"),
+            _ => 0,
         }
     }
 
     pub fn assign_row(&mut self, new_row: usize) {
-        match self {
-            Value::Cell(row, _) => {
-                *row = new_row;
-            }
-            _ => panic!("Expected a Cell value"),
+        if let Value::Cell(row, _) = self {
+            *row = new_row;
         }
     }
 
     pub fn assign_col(&mut self, new_col: usize) {
-        match self {
-            Value::Cell(_, col) => {
-                *col = new_col;
-            }
-            _ => panic!("Expected a Cell value"),
+        if let Value::Cell(_, col) = self {
+            *col = new_col;
         }
     }
 }
