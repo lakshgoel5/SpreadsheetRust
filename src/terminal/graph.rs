@@ -138,5 +138,4 @@ impl Node {
     pub fn set_dependents(&mut self, dependents: Vec<Coordinates>) {
         self.dependents = dependents;
     }
-
 }
