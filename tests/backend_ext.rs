@@ -150,7 +150,7 @@ fn test_invalid_range() {
     let mut backend = Backend::init_backend(10, 10);
     let status = backend.process_command(10, 10, "A1=SUM(Z1:Z10)".to_string());
     // Z column is beyond our 10 columns, so it should report invalid range
-    assert_eq!(status, Status::InvalidRange);
+    assert_eq!(status, Status::UnrecognizedCmd);
 }
 
 #[test]

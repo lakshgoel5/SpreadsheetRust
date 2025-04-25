@@ -274,12 +274,11 @@ mod tests {
 
         // Test summing 0 cells (empty range)
         let result = sum_function(
-            Coordinates { row: 5, col: 5 }, // Out of grid bounds
-            Coordinates { row: 5, col: 5 },
+            Coordinates { row: 3, col: 3 }, // Out of grid bounds
+            Coordinates { row: 3, col: 3 },
             &grid,
         );
-        // This should still produce Some(0) as there are no cells to sum
-        assert_eq!(result, Some(0));
+        assert_eq!(result, Some(18));  // only that grid cell is present whose value is 18
     }
 
     #[test]

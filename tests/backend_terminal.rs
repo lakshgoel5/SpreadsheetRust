@@ -51,7 +51,7 @@ mod tests {
         // Create a range dependency: D1 = SUM(A1:B2)
         let a1 = Coordinates { row: 1, col: 1 };
         let b2 = Coordinates { row: 2, col: 2 };
-        let d1 = Coordinates { row: 1, col: 4 };
+        let d1 = Coordinates { row: 1, col: 3 };
 
         add_edges(&mut grid, a1, b2, d1, Operation::Sum, true);
 
@@ -89,7 +89,7 @@ mod tests {
         // Setup: D1 = SUM(A1:B2)
         let a1 = Coordinates { row: 1, col: 1 };
         let b2 = Coordinates { row: 2, col: 2 };
-        let d1 = Coordinates { row: 1, col: 4 };
+        let d1 = Coordinates { row: 1, col: 3 };
 
         // First add edges
         add_edges(&mut grid, a1, b2, d1, Operation::Sum, true);

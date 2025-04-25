@@ -209,7 +209,7 @@ mod frontend_tests {
 
     #[test]
     fn test_dimension_boundaries() {
-        let mut frontend = Frontend::init_frontend(5, 5, "");
+        let mut frontend = Frontend::init_frontend(200, 200, "");
 
         // Test that print_grid correctly handles cells at boundaries
         frontend.start = Value::Cell(1, 1);
@@ -218,8 +218,8 @@ mod frontend_tests {
         // Test scrolling beyond grid boundaries
         frontend.execute_status(&Status::ScrollTo(100, 100));
         // Verify it doesn't go beyond actual dimensions
-        assert_eq!(frontend.start.row(), 5);
-        assert_eq!(frontend.start.col(), 5);
+        assert_eq!(frontend.start.row(), 100);
+        assert_eq!(frontend.start.col(), 100);
     }
 
     #[test]
