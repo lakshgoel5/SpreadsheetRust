@@ -113,6 +113,32 @@ fn test_process_command_stdev() {
 }
 
 #[test]
+fn test_process_command_disable() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+
+    // Test SUM function
+    let status = backend.process_command(10, 10, "disable_output".to_string());
+    assert_eq!(status, Status::Success);
+}
+
+#[test]
+fn test_process_command_up() {
+    let mut backend = Backend::init_backend(10, 10);
+    // Assign values to cells
+    backend.process_command(10, 10, "A1=5".to_string());
+    backend.process_command(10, 10, "A2=10".to_string());
+    backend.process_command(10, 10, "A3=15".to_string());
+
+    // Test SUM function
+    let status = backend.process_command(10, 10, "w".to_string());
+    assert_eq!(status, Status::Success);
+}
+
+#[test]
 fn test_process_command_stdev_none() {
     let mut backend = Backend::init_backend(10, 10);
     // Assign values to cells
